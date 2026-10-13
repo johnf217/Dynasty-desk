@@ -137,6 +137,8 @@ async function loadWeek(week) {
           waiver: +f.waiverSortOrder || null,
         })),
         faabLimit: +lg.bbidSeasonLimit || null,
+        rosterSize: +lg.rosterSize || null,
+        waiverType: lg.currentWaiverType || "",
         roster,
         proj,
       };
@@ -164,7 +166,7 @@ async function loadWeek(week) {
 
 async function submitLineup({ league, host, week, starters }) {
   if (!league || !week || !Array.isArray(starters) || !starters.length) throw httpError(400, "Missing league, week or starters.");
-  if (!/^https:\/\/[a-z0-9]+\.myfantasyleague\.com$/.test(host)) throw httpError(400, "Unknown league server.");
+  if (!okHost(host)) throw httpError(400, "Unknown league server.");
   if (!cookie) await login();
   const send = () =>
     fetch(`${host}/${YEAR}/import`, {
@@ -179,6 +181,76 @@ async function submitLineup({ league, host, week, starters }) {
   throw httpError(502, `MFL didn't accept the lineup: ${msg}`);
 }
 
+const okHost = (h) => /^https:\/\/[a-z0-9]+\.myfantasyleague\.com$/.test(h || "");
+const chunks = (a, n) => Array.from({ length: Math.ceil(a.length / n) }, (_, i) => a.slice(i * n, i * n + n));
+
+async function pending(host, league) {
+  try {
+    const p = await mfl(exportUrl(host, "pendingWaivers", { L: league }));
+    // Collect every claim MFL lists for your franchise, whatever its exact shape.
+    const out = [];
+    const walk = (x) => {
+      if (Array.isArray(x)) return x.forEach(walk);
+      if (x && typeof x === "object") {
+        const strs = Object.values(x).filter((v) => typeof v === "string");
+        const t = strs.find((s) => /\d{3,6}_[\d.]+_\d{3,6}/.test(s)) || (x.transaction ?? null);
+        if (t) out.push(String(t));
+        Object.values(x).forEach((v) => typeof v === "object" && walk(v));
+      }
+    };
+    walk(p.pendingWaivers);
+    return [...new Set(out)];
+  } catch { return null; }
+}
+
+async function freeAgents({ league, host, week }) {
+  if (!okHost(host)) throw httpError(400, "Unknown league server.");
+  const fa = await mfl(exportUrl(host, "freeAgents", { L: league }));
+  const ids = [];
+  const walk = (x) => {
+    if (Array.isArray(x)) return x.forEach(walk);
+    if (x && typeof x === "object") { if (typeof x.id === "string" && /^\d+$/.test(x.id)) ids.push(x.id); Object.values(x).forEach((v) => typeof v === "object" && walk(v)); }
+  };
+  walk(fa.freeAgents);
+  const players = {}, wanted = new Set(ids);
+  await Promise.all(chunks([...wanted], 300).map(async (c) => {
+    const pl = await mfl(exportUrl(API_HOST, "players", { PLAYERS: c.join(",") }), { auth: false });
+    arr(pl.players?.player).forEach((p) => {
+      if (!wanted.has(p.id) || !["QB", "RB", "WR", "TE"].includes(p.position)) return;
+      const [last, first] = String(p.name).split(", ");
+      players[p.id] = { name: first ? `${first} ${last}` : p.name, pos: p.position, team: p.team, rookie: p.status === "R" };
+    });
+  }));
+  const keep = Object.keys(players);
+  const proj = {};
+  await Promise.all(chunks(keep, 250).map(async (c) => {
+    const ps = await mfl(exportUrl(host, "projectedScores", { L: league, W: week, PLAYERS: c.join(",") }));
+    arr(ps.projectedScores?.playerScore).forEach((p) => { if (p.score !== "") proj[p.id] = +p.score; });
+  }));
+  return { league, week: +week, players, proj, pending: await pending(host, league) };
+}
+
+async function submitBid({ league, host, add, bid, drop }) {
+  if (!okHost(host)) throw httpError(400, "Unknown league server.");
+  const amt = Number(bid);
+  if (!/^\d+$/.test(String(add)) || !Number.isInteger(amt) || amt < 0) throw httpError(400, "Pick a player and a whole-dollar bid.");
+  if (drop && !/^\d+$/.test(String(drop))) throw httpError(400, "Unknown drop player.");
+  if (!cookie) await login();
+  const send = () =>
+    fetch(`${host}/${YEAR}/import`, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded", "user-agent": UA, cookie: `MFL_USER_ID=${cookie}` },
+      body: new URLSearchParams({ TYPE: "blindBidWaiverRequest", L: league, PICKS: `${add}_${amt}_${drop || "0000"}` }),
+    }).then((r) => r.text());
+  let reply = await send();
+  if (/login|cookie|not authorized/i.test(reply) && !/<status>OK/i.test(reply)) { await login(); reply = await send(); }
+  if (!/<status>\s*OK/i.test(reply)) {
+    const msg = reply.match(/<error>([\s\S]*?)<\/error>/i)?.[1] || reply.replace(/<[^>]+>/g, " ").trim().slice(0, 200);
+    throw httpError(502, `MFL didn't accept the bid: ${msg}`);
+  }
+  return { ok: true, pending: await pending(host, league) };
+}
+
 export default async (req) => {
   const pin = process.env.APP_PIN;
   if (!pin) return json(500, { error: "APP_PIN is not set in Netlify." });
@@ -187,9 +259,15 @@ export default async (req) => {
     if (req.method === "POST") {
       const body = await req.json().catch(() => ({}));
       if (body.action === "lineup") return json(200, await submitLineup(body));
+      if (body.action === "bid") return json(200, await submitBid(body));
       return json(400, { error: "Unknown action." });
     }
-    const w = new URL(req.url).searchParams.get("w");
+    const q = new URL(req.url).searchParams;
+    const w = q.get("w");
+    if (q.get("action") === "fa") {
+      if (!/^\d+$/.test(q.get("L") || "") || !/^\d{1,2}$/.test(w || "")) return json(400, { error: "Missing league or week." });
+      return json(200, await freeAgents({ league: q.get("L"), host: q.get("host"), week: w }));
+    }
     return json(200, await loadWeek(w && /^\d{1,2}$/.test(w) ? w : null));
   } catch (e) {
     return json(e.status || 500, { error: e.message || "Something went wrong talking to MFL." });
