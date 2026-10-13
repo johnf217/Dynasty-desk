@@ -79,6 +79,45 @@ async function mfl(url, { auth = true, retry = true } = {}) {
 const exportUrl = (host, type, params = {}) =>
   `${host}/${YEAR}/export?` + new URLSearchParams({ TYPE: type, ...params, JSON: "1" });
 
+// Your head-to-head matchup for the week: both teams' MFL starters, live points and time left.
+async function liveFor(host, league, fid, week) {
+  const side = (f) => ({
+    id: f.id,
+    score: f.score === "" || f.score == null ? null : +f.score,
+    yet: +f.playersYetToPlay || 0,
+    playing: +f.playersCurrentlyPlaying || 0,
+    players: Object.fromEntries(arr(f.players?.player).map((p) => [p.id, {
+      score: p.score === "" || p.score == null ? null : +p.score,
+      secs: p.gameSecondsRemaining === "" || p.gameSecondsRemaining == null ? null : +p.gameSecondsRemaining,
+      starter: p.status === "starter",
+    }])),
+  });
+  try {
+    const ls = await mfl(exportUrl(host, "liveScoring", { L: league, W: week, DETAILS: "1" }));
+    for (const m of arr(ls.liveScoring?.matchup)) {
+      const fs = arr(m.franchise), me = fs.find((f) => f.id === fid);
+      if (me) { const opp = fs.find((f) => f.id !== fid); return { me: side(me), opp: opp ? side(opp) : null }; }
+    }
+  } catch { /* fall back to the schedule below */ }
+  try {
+    const sc = await mfl(exportUrl(host, "schedule", { L: league, W: week }));
+    for (const ws of arr(sc.schedule?.weeklySchedule)) {
+      for (const m of arr(ws.matchup)) {
+        const fs = arr(m.franchise);
+        if (fs.some((f) => f.id === fid)) {
+          const opp = fs.find((f) => f.id !== fid);
+          return { me: { id: fid, score: null, players: {} }, opp: opp ? { id: opp.id, score: null, players: {} } : null };
+        }
+      }
+    }
+  } catch { /* no matchup info */ }
+  return null;
+}
+
+async function liveAll(week, list) {
+  return Promise.all(list.map(async ({ id, host, fid }) => ({ id, live: await liveFor(host, id, fid, week) })));
+}
+
 async function loadWeek(week) {
   // Your leagues, with your franchise in each and the server MFL currently hosts it on.
   const my = await mfl(exportUrl(API_HOST, "myleagues", { FRANCHISE_NAMES: "1" }));
@@ -109,11 +148,14 @@ async function loadWeek(week) {
         mfl(exportUrl(l.host, "rules", { L: l.id })),
       ]);
       const roster = arr(arr(rosters.rosters?.franchise)[0]?.player).map((p) => p.id);
+      const live = await liveFor(l.host, l.id, l.fid, wk);
+      const oppIds = live?.opp ? Object.keys(live.opp.players) : [];
+      const projIds = [...new Set([...roster, ...oppIds])];
       const proj = {};
-      if (roster.length) {
-        const ps = await mfl(exportUrl(l.host, "projectedScores", { L: l.id, W: wk, PLAYERS: roster.join(",") }));
+      await Promise.all(chunks(projIds, 250).map(async (c) => {
+        const ps = await mfl(exportUrl(l.host, "projectedScores", { L: l.id, W: wk, PLAYERS: c.join(",") }));
         arr(ps.projectedScores?.playerScore).forEach((p) => { if (p.score !== "") proj[p.id] = +p.score; });
-      }
+      }));
       const lg = league.league || {};
       const groups = arr(rules.rules?.positionRules);
       return {
@@ -141,19 +183,20 @@ async function loadWeek(week) {
         waiverType: lg.currentWaiverType || "",
         roster,
         proj,
+        live,
       };
     })
   );
 
-  const ids = [...new Set(leagues.flatMap((l) => l.roster))];
+  const ids = [...new Set(leagues.flatMap((l) => [...l.roster, ...(l.live?.opp ? Object.keys(l.live.opp.players) : [])]))];
   const players = {};
-  if (ids.length) {
-    const pl = await mfl(exportUrl(API_HOST, "players", { PLAYERS: ids.join(",") }), { auth: false });
+  await Promise.all(chunks(ids, 300).map(async (c) => {
+    const pl = await mfl(exportUrl(API_HOST, "players", { PLAYERS: c.join(",") }), { auth: false });
     arr(pl.players?.player).forEach((p) => {
       const [last, first] = String(p.name).split(", ");
       players[p.id] = { name: first ? `${first} ${last}` : p.name, pos: p.position, team: p.team, rookie: p.status === "R" };
     });
-  }
+  }));
 
   const injuries = {};
   try {
@@ -251,6 +294,40 @@ async function submitBid({ league, host, add, bid, drop }) {
   return { ok: true, pending: await pending(host, league) };
 }
 
+// One blind-bid import call. REPLACE=1 swaps out every pending claim for this one.
+async function bbidImport(host, league, pick, replace) {
+  if (!cookie) await login();
+  const params = { TYPE: "blindBidWaiverRequest", L: league, PICKS: pick };
+  if (replace) params.REPLACE = "1";
+  const send = () =>
+    fetch(`${host}/${YEAR}/import`, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded", "user-agent": UA, cookie: `MFL_USER_ID=${cookie}` },
+      body: new URLSearchParams(params),
+    }).then((r) => r.text());
+  let reply = await send();
+  if (/login|cookie|not authorized/i.test(reply) && !/<status>OK/i.test(reply)) { await login(); reply = await send(); }
+  if (/<status>\s*OK/i.test(reply)) return null;
+  return reply.match(/<error>([\s\S]*?)<\/error>/i)?.[1] || reply.replace(/<[^>]+>/g, " ").trim().slice(0, 200) || "no reply";
+}
+
+// Make your pending claims exactly `picks` (each "addId_bid_dropId"): replace with the first, then add the rest.
+const normPick = (s) => { const m = String(s).match(/(\d+)_([\d.]+)_(\d+)/); return m ? `${+m[1]}_${+m[2]}_${+m[3]}` : String(s); };
+async function setClaims({ league, host, picks }) {
+  if (!okHost(host)) throw httpError(400, "Unknown league server.");
+  if (!Array.isArray(picks) || picks.some((p) => !/^\d+_\d+_\d+$/.test(p))) throw httpError(400, "Claims must look like player_bid_drop.");
+  let error = null;
+  if (!picks.length) {
+    error = await bbidImport(host, league, "", true);
+  } else {
+    for (let i = 0; i < picks.length && !error; i++) error = await bbidImport(host, league, picks[i], i === 0);
+  }
+  const now = await pending(host, league);
+  const want = picks.map(normPick).sort().join("|");
+  const matched = now != null && now.map(normPick).sort().join("|") === want;
+  return { ok: !error && matched, matched, error, pending: now, wanted: picks };
+}
+
 export default async (req) => {
   const pin = process.env.APP_PIN;
   if (!pin) return json(500, { error: "APP_PIN is not set in Netlify." });
@@ -260,10 +337,18 @@ export default async (req) => {
       const body = await req.json().catch(() => ({}));
       if (body.action === "lineup") return json(200, await submitLineup(body));
       if (body.action === "bid") return json(200, await submitBid(body));
+      if (body.action === "claims") return json(200, await setClaims(body));
       return json(400, { error: "Unknown action." });
     }
     const q = new URL(req.url).searchParams;
     const w = q.get("w");
+    if (q.get("action") === "live") {
+      if (!/^\d{1,2}$/.test(w || "")) return json(400, { error: "Missing week." });
+      const list = (q.get("leagues") || "").split(",").map((s) => { const [id, host, fid] = s.split("~"); return { id, host, fid }; })
+        .filter((x) => /^\d+$/.test(x.id) && okHost(x.host) && /^\d{4}$/.test(x.fid));
+      if (!list.length) return json(400, { error: "No leagues given." });
+      return json(200, { week: +w, at: Date.now(), leagues: await liveAll(w, list) });
+    }
     if (q.get("action") === "fa") {
       if (!/^\d+$/.test(q.get("L") || "") || !/^\d{1,2}$/.test(w || "")) return json(400, { error: "Missing league or week." });
       return json(200, await freeAgents({ league: q.get("L"), host: q.get("host"), week: w }));
