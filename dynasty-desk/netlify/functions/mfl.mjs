@@ -27,17 +27,27 @@ const json = (status, body) =>
   });
 
 async function login() {
-  const user = process.env.MFL_USERNAME, pass = process.env.MFL_PASSWORD;
-  if (!user || !pass) throw httpError(500, "MFL_USERNAME and MFL_PASSWORD are not set in Netlify.");
-  const res = await fetch(`${API}/login`, {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded", "user-agent": UA },
-    body: new URLSearchParams({ USERNAME: user, PASSWORD: pass, XML: "1" }),
-  });
-  const text = await res.text();
-  const m = text.match(/cookie_value="([^"]+)"/);
-  if (!m) throw httpError(401, "MFL rejected the username or password. Check them in Netlify.");
-  cookie = m[1];
+  const user = (process.env.MFL_USERNAME || "").trim(), pass = (process.env.MFL_PASSWORD || "").trim();
+  if (!user || !pass) throw httpError(500, "MFL_USERNAME or MFL_PASSWORD isn't reaching the function. Check both are set for Production in Netlify, then redeploy.");
+  const params = new URLSearchParams({ USERNAME: user, PASSWORD: pass, XML: "1" });
+  const tryLogin = async (method) => {
+    const res = await fetch(method === "GET" ? `${API}/login?${params}` : `${API}/login`, {
+      method,
+      headers: { "user-agent": UA, ...(method === "POST" ? { "content-type": "application/x-www-form-urlencoded" } : {}) },
+      body: method === "POST" ? params : undefined,
+    });
+    const text = await res.text();
+    const fromBody = text.match(/cookie_value="([^"]+)"/)?.[1];
+    const fromHeader = (res.headers?.get?.("set-cookie") || "").match(/MFL_USER_ID=([^;]+)/)?.[1];
+    return { value: fromBody || fromHeader, text, status: res.status };
+  };
+  let r = await tryLogin("POST");
+  if (!r.value) r = await tryLogin("GET");
+  if (!r.value) {
+    const said = r.text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160);
+    throw httpError(401, `MFL login failed for username "${user}" (HTTP ${r.status}). MFL said: ${said || "nothing"}`);
+  }
+  cookie = r.value;
   return cookie;
 }
 
