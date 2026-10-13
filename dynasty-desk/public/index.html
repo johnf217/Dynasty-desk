@@ -95,6 +95,20 @@ tr.me td{font-weight:600;color:var(--accent)}
 .bar{height:6px;border-radius:3px;background:var(--chip-bg);overflow:hidden;min-width:60px}
 .bar i{display:block;height:100%;background:var(--accent)}
 input[type=password],input[type=text]{font:inherit;font-size:18px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);width:100%}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--chip-bg);border-radius:10px;padding:4px}
+.seg button{border:0;background:none;color:var(--fg);font:inherit;font-weight:600;padding:8px;border-radius:7px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--accent);box-shadow:0 1px 2px rgb(0 0 0 / .12)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:4px 12px;font:inherit;font-size:13px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.bidform{display:flex;flex-direction:column;gap:10px;background:var(--accent-soft);border-radius:10px;padding:12px;margin:2px 0 8px}
+.bidform label{font-size:12px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.bidform input,.bidform select{font:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);width:100%}
+.bidrow{display:grid;grid-template-columns:110px 1fr;gap:10px}
+.claims{display:flex;flex-direction:column;gap:4px;font-size:14px}
+.claims div{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:4px}
+.claims div:first-child{border-top:0;padding-top:0}
+.row.sel{background:var(--accent-soft)}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:14px;max-width:90vw}
 @media (prefers-reduced-motion:no-preference){.row{transition:background .12s}}
 </style>
@@ -134,12 +148,13 @@ const fmt=n=>n.toFixed(2);
 const when=t=>{try{return new Date(t*1000).toLocaleString("en-US",{timeZone:"America/New_York",weekday:"short",hour:"numeric",minute:"2-digit"})}catch(e){return""}};
 
 let D=store.get("dd-data"),cur=store.get("dd-tab"),week=null,lineups={},confirming=false,busy=false;
+let mode="lineup",FA={},faPos="ALL",faQ="",faShow=50,faSel=null,bidConfirm=false;
 let G={},owned={};
 
-async function api(method,body,w){
+async function api(method,body,w,qs){
   const pin=store.get("dd-pin");
   if(!pin){showPin();throw new Error("PIN needed")}
-  const res=await fetch("/api/mfl"+(w?`?w=${w}`:""),{method,headers:{"x-app-pin":pin,...(body?{"content-type":"application/json"}:{})},body:body?JSON.stringify(body):undefined});
+  const res=await fetch("/api/mfl"+(qs?`?${qs}`:w?`?w=${w}`:""),{method,headers:{"x-app-pin":pin,...(body?{"content-type":"application/json"}:{})},body:body?JSON.stringify(body):undefined});
   const data=await res.json().catch(()=>({error:"The server sent an unreadable reply."}));
   if(res.status===401&&data.error==="Wrong PIN."){store.del("dd-pin");showPin("That PIN didn't match. Try again.");throw new Error("PIN")}
   if(!res.ok)throw new Error(data.error||`Request failed (${res.status})`);
@@ -165,7 +180,8 @@ function prepare(){
   $("sub").textContent=`Live from MFL · updated ${new Date(D.generated).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
 }
 const lk=l=>`dd-lu-${D.year}-${week}-${l.id}`;
-const P=id=>D.players[id]||{name:`Player ${id}`,pos:"?",team:"?"};
+const faKey=l=>`${l.id}-${week}`;
+const P=id=>D.players[id]||Object.values(FA).find(f=>f.players&&f.players[id])?.players[id]||{name:`Player ${id}`,pos:"?",team:"?"};
 const pts=(l,id)=>l.proj[id]||0;
 const lim=(l,p)=>l.starters.limits[p]||[0,0];
 const me=l=>l.franchises.find(f=>f.id===l.fid)||{};
@@ -221,7 +237,8 @@ function render(){
   <section class="panel">
     <div class="head"><div><h2>${esc(mine.name||"Your team")}</h2><div class="meta">${esc(l.name)} · ${sf?"Superflex":"1-QB"} · ${l.teBonus?"TE premium":"No TE bonus"}</div></div>
       <span class="status ${status[0]}">${esc(status[1])}</span></div>
-    <div class="total"><div><div class="lbl">Projected starters · Week ${week}</div><div class="num">${fmt(tot)}</div></div>
+    <div class="seg" role="group" aria-label="View"><button data-mode="lineup" aria-pressed="${mode==="lineup"}">Lineup</button><button data-mode="fa" aria-pressed="${mode==="fa"}">Free agents</button></div>
+    ${mode==="fa"?faPanel(l):`<div class="total"><div><div class="lbl">Projected starters · Week ${week}</div><div class="num">${fmt(tot)}</div></div>
       <div class="meta" style="text-align:right">${gap>0.005?`Best possible: ${fmt(bestTot)}<br><b style="color:var(--warn)">${fmt(gap)} pts left on bench</b>`:"This is your highest-projected lineup"}</div></div>
     <div class="counts">${POS.map(p=>{const[a,b]=lim(l,p),off=c[p]<a||c[p]>b;return`<div class="count${off?" off":""}"><span class="k">${p} ${a===b?a:a+"–"+b}</span><span class="v">${c[p]}</span></div>`}).join("")}</div>
     ${issues.length>1?`<p class="note">Also: ${esc(issues.slice(1).join(", "))}</p>`:""}
@@ -231,13 +248,67 @@ function render(){
     <div class="list">${bench.map(id=>row(l,id,false)).join("")}</div>
     ${confirming?`<div class="confirm"><b>Send these ${set.size} starters to MFL for week ${week}?</b><span class="note">This replaces whatever lineup is set there now.</span><div class="btns"><button class="btn primary" data-act="send"${busy?" disabled":""}>${busy?"Sending…":"Send lineup"}</button><button class="btn" data-act="cancel"${busy?" disabled":""}>Cancel</button></div></div>`:
     `<div class="btns"><button class="btn primary" data-act="ask"${issues.length?" disabled":""}>Send to MFL</button><button class="btn" data-act="best">Set best projected</button></div>
-    ${issues.length?`<p class="note">Fix the lineup above before sending. MFL needs exactly ${n} starters${l.partialLineupAllowed?"":" and won't take a partial lineup"}.</p>`:`<p class="note">Tap a player to start or bench them.</p>`}`}
+    ${issues.length?`<p class="note">Fix the lineup above before sending. MFL needs exactly ${n} starters${l.partialLineupAllowed?"":" and won't take a partial lineup"}.</p>`:`<p class="note">Tap a player to start or bench them.</p>`}`}`}
   </section>
   <section class="panel">
     <div class="head"><h2>FAAB</h2><span class="meta">${mine.waiver?`You're #${mine.waiver} in waiver order`:""}</span></div>
     <table>${faab.map(f=>`<tr class="${f.id===l.fid?"me":""}"><td>${esc(f.name)}</td><td style="width:35%"><div class="bar"><i style="width:${f.faab/fmax*100}%"></i></div></td><td class="n">$${f.faab}</td></tr>`).join("")}</table>
   </section>`;
 }
+let bidDraft={amt:"",drop:""};
+async function loadFA(l){
+  const k=faKey(l);FA[k]={loading:true};
+  try{FA[k]=await api("GET",null,null,`action=fa&L=${l.id}&host=${encodeURIComponent(l.host)}&w=${week}`)}
+  catch(e){FA[k]={error:e.message==="PIN needed"||e.message==="PIN"?"Enter your PIN to load free agents.":e.message}}
+  if(cur===l.id&&mode==="fa")render();
+}
+function claimLine(s){
+  const m=s.match(/(\d+)_([\d.]+)_(\d+)/);
+  if(!m)return`<div><span>${esc(s.replace(/\d{4,6}/g,id=>P(id).name))}</span></div>`;
+  const drop=+m[3]?` · drop ${esc(P(m[3]).name)}`:"";
+  return`<div><span>Add ${esc(P(m[1]).name)}${drop}</span><b>$${esc(m[2])}</b></div>`;
+}
+function faPanel(l){
+  const f=FA[faKey(l)];
+  if(!f||f.loading){if(!f)setTimeout(()=>loadFA(l));return`<p class="note">Loading free agents from MFL…</p>`}
+  if(f.error)return`<div class="banner"><span>${esc(f.error)}</span><button class="btn sm" data-act="fareload">Try again</button></div>`;
+  const mine=me(l),full=l.rosterSize&&l.roster.length>=l.rosterSize,claims=f.pending;
+  return`<div class="total"><div><div class="lbl">FAAB left</div><div class="num">$${mine.faab??"—"}</div></div>
+    <div class="meta" style="text-align:right">Roster ${l.roster.length}${l.rosterSize?"/"+l.rosterSize:""}${full?`<br><b style="color:var(--warn)">Full, so each bid needs a drop</b>`:""}</div></div>
+  <div class="section-label"><span>Your pending claims</span></div>
+  ${claims==null?`<p class="note">Couldn't read your pending claims. Check them on the MFL site.</p>`:claims.length?`<div class="claims">${claims.map(claimLine).join("")}</div>`:`<p class="note">No pending claims.</p>`}
+  <input type="text" id="fasearch" placeholder="Search free agents" value="${esc(faQ)}" autocomplete="off" aria-label="Search free agents">
+  <div class="chips">${["ALL",...POS].map(p=>`<button class="chip" data-pos="${p}" aria-pressed="${faPos===p}">${p==="ALL"?"All":p}</button>`).join("")}</div>
+  <div id="falist">${faList(l)}</div>`;
+}
+function faList(l){
+  const f=FA[faKey(l)];if(!f||!f.players)return"";
+  const q=faQ.trim().toLowerCase();
+  const ids=Object.keys(f.players).filter(id=>{const p=f.players[id];return(faPos==="ALL"||p.pos===faPos)&&(!q||p.name.toLowerCase().includes(q))})
+    .sort((a,b)=>(f.proj[b]||0)-(f.proj[a]||0)||f.players[a].name.localeCompare(f.players[b].name));
+  if(!ids.length)return`<p class="note">No free agents match.</p>`;
+  return`<div class="section-label"><span>${ids.length} free agents</span><span>Proj</span></div><div class="list">${ids.slice(0,faShow).map(id=>faRow(l,f,id)+(id===faSel?bidForm(l,f,id):"")).join("")}</div>
+  ${ids.length>faShow?`<button class="btn" data-act="famore">Show ${Math.min(50,ids.length-faShow)} more</button>`:""}`;
+}
+function faRow(l,f,id){
+  const p=f.players[id],v=f.proj[id],inj=D.injuries[id],bye=D.byes.includes(p.team),out=inj&&/out|ir|suspend/i.test(inj.status);
+  const badge=inj?`<span class="inj${out?" out":""}">${esc(/^ir/i.test(inj.status)?"IR":(inj.status||"").slice(0,1).toUpperCase())}</span>`:"";
+  return`<button class="row${id===faSel?" sel":""}" data-fa="${id}"><span class="pos ${p.pos}">${p.pos}</span><span class="nm"><b>${esc(p.name)}${badge} <small>${tm(p.team)}${p.rookie?" · R":""}</small></b>${oppLine(id)}${inj&&inj.details?`<span class="flag${out?" bad":""}">${esc(inj.status)} · ${esc(inj.details)}</span>`:""}</span><span class="proj"><span class="pts${v&&!bye?"":" zero"}">${v&&!bye?fmt(v):"—"}</span><span class="act">${id===faSel?"Close":"Bid"}</span></span></button>`;
+}
+function bidForm(l,f,id){
+  const mine=me(l),full=l.rosterSize&&l.roster.length>=l.rosterSize;
+  const drops=[...l.roster].sort((a,b)=>pts(l,a)-pts(l,b));
+  if(bidConfirm)return`<div class="bidform"><b>Bid $${esc(bidDraft.amt)} on ${esc(f.players[id].name)}${bidDraft.drop?`, dropping ${esc(P(bidDraft.drop).name)}`:", no drop"}?</b>
+    <span class="note">This goes straight to MFL as a blind bid.</span>
+    <div class="btns"><button class="btn primary" data-act="bidsend"${busy?" disabled":""}>${busy?"Sending…":"Place bid"}</button><button class="btn" data-act="bidcancel"${busy?" disabled":""}>Back</button></div></div>`;
+  return`<div class="bidform"><div class="bidrow">
+    <label for="bidamt">Bid ($)<input type="number" id="bidamt" inputmode="numeric" min="0" step="1" ${mine.faab!=null?`max="${mine.faab}"`:""} value="${esc(bidDraft.amt)}" placeholder="0"></label>
+    <label for="biddrop">Drop<select id="biddrop">${full?"":`<option value="">No drop</option>`}${drops.map(d=>`<option value="${d}"${bidDraft.drop===d?" selected":""}>${P(d).pos} ${esc(P(d).name)} · ${fmt(pts(l,d))}</option>`).join("")}</select></label></div>
+    <div class="btns"><button class="btn primary" data-act="bidask">Review bid</button></div>
+    <span class="note">You have $${mine.faab??"?"} left. Drop list starts with your lowest projected players.</span></div>`;
+}
+function renderFAList(){const l=D&&D.leagues.find(x=>x.id===cur),el=$("falist");if(l&&el)el.innerHTML=faList(l)}
+document.addEventListener("input",e=>{if(e.target.id==="fasearch"){faQ=e.target.value;faShow=50;faSel=null;bidConfirm=false;renderFAList()}});
 function renderAll(){
   const shared=Object.entries(owned).filter(([,ks])=>ks.length>1).sort((a,b)=>b[1].length-a[1].length);
   const byeNames=D.byes.map(tm).join(", ");
@@ -251,10 +322,38 @@ function renderAll(){
 function toast(t){const e=$("toast");e.textContent=t;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>e.hidden=true,2600)}
 
 document.addEventListener("click",async e=>{
-  const tab=e.target.closest(".tab");if(tab){cur=tab.dataset.k;confirming=false;store.set("dd-tab",cur);render();return}
+  const tab=e.target.closest(".tab");if(tab){cur=tab.dataset.k;confirming=false;faSel=null;bidConfirm=false;store.set("dd-tab",cur);render();return}
   if(!D)return;
   const l=D.leagues.find(x=>x.id===cur);if(!l)return;
-  const r=e.target.closest("button.row");
+  const md=e.target.closest("[data-mode]");
+  if(md){mode=md.dataset.mode;faSel=null;bidConfirm=false;render();return}
+  const ch=e.target.closest("[data-pos]");
+  if(ch){faPos=ch.dataset.pos;faShow=50;faSel=null;bidConfirm=false;render();return}
+  const fr=e.target.closest("button[data-fa]");
+  if(fr&&!busy){const id=fr.dataset.fa;faSel=faSel===id?null:id;bidDraft={amt:"",drop:""};bidConfirm=false;renderFAList();return}
+  const fa=e.target.closest("[data-act]");
+  if(fa&&["famore","fareload","bidask","bidcancel","bidsend"].includes(fa.dataset.act)){
+    const k=faKey(l),f=FA[k];
+    if(fa.dataset.act==="famore"){faShow+=50;renderFAList()}
+    if(fa.dataset.act==="fareload"){delete FA[k];render()}
+    if(fa.dataset.act==="bidask"){
+      const amt=($("bidamt")?.value||"").trim(),drop=$("biddrop")?.value||"",bal=me(l).faab,full=l.rosterSize&&l.roster.length>=l.rosterSize;
+      if(!/^\d+$/.test(amt)){toast("Enter a whole-dollar bid, like 12");return}
+      if(bal!=null&&+amt>bal){toast(`You only have $${bal} left`);return}
+      if(full&&!drop){toast("Your roster is full. Pick someone to drop.");return}
+      bidDraft={amt,drop};bidConfirm=true;renderFAList();
+    }
+    if(fa.dataset.act==="bidcancel"){bidConfirm=false;renderFAList()}
+    if(fa.dataset.act==="bidsend"){
+      busy=true;renderFAList();
+      try{const r=await api("POST",{action:"bid",league:l.id,host:l.host,add:faSel,bid:+bidDraft.amt,drop:bidDraft.drop||null});
+        if(f)f.pending=r.pending;toast(`Bid placed: $${bidDraft.amt} on ${P(faSel).name}`);faSel=null}
+      catch(err){if(err.message!=="PIN"&&err.message!=="PIN needed")toast(err.message)}
+      busy=false;bidConfirm=false;render();
+    }
+    return;
+  }
+  const r=e.target.closest("button.row[data-id]");
   if(r&&!busy){const s=lineups[l.id],id=r.dataset.id;s.has(id)?s.delete(id):s.add(id);confirming=false;store.set(lk(l),[...s]);render();return}
   const a=e.target.closest("[data-act]");if(!a)return;
   const act=a.dataset.act;
