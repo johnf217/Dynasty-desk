@@ -109,6 +109,18 @@ input[type=password],input[type=text]{font:inherit;font-size:18px;padding:10px 1
 .claims div{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:4px}
 .claims div:first-child{border-top:0;padding-top:0}
 .row.sel{background:var(--accent-soft)}
+.mu{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}
+.mu .side{display:flex;flex-direction:column;gap:2px;min-width:0}
+.mu .side.r{text-align:right;align-items:flex-end}
+.mu .tn{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.mu .sc{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:30px;line-height:1.05;color:var(--muted)}
+.mu .sc.lead{color:var(--accent)}
+.mu .vs{font-family:var(--display);font-size:18px;color:var(--muted)}
+.livedot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--bad);margin-right:5px;vertical-align:1px}
+@media (prefers-reduced-motion:no-preference){.livedot{animation:pulse 1.6s ease-in-out infinite}}
+@keyframes pulse{50%{opacity:.35}}
+details summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--accent)}
+.proj .pts.live{color:var(--accent);font-weight:600}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:14px;max-width:90vw}
 @media (prefers-reduced-motion:no-preference){.row{transition:background .12s}}
 </style>
@@ -219,7 +231,7 @@ function row(l,id,on){
   if(p.pos==="QB"){const m=l.roster.find(o=>o!==id&&P(o).pos==="QB"&&P(o).team===p.team);if(m)ex.push(`<span class="flag">Same team as ${esc(P(m).name.split(" ").pop())}</span>`)}
   if(owned[id]&&owned[id].length>1)ex.push(`<span class="extra">Also on ${owned[id].filter(k=>k!==key(l)).join(", ")}</span>`);
   const badge=inj?`<span class="inj${st==="out"?" out":""}">${esc((inj.status||"").slice(0,inj.status&&/^ir/i.test(inj.status)?2:1).toUpperCase())}</span>`:"";
-  return`<button class="row${on?" starter":""}" data-id="${id}"><span class="pos ${p.pos}">${p.pos}</span><span class="nm"><b>${esc(p.name)}${badge} <small>${tm(p.team)}${p.rookie?" · R":""}</small></b>${oppLine(id)}${ex.join("")}</span><span class="proj"><span class="pts${v?"":" zero"}">${st==="ok"||(st==="none"&&v)?fmt(v):"—"}</span><span class="act">${on?"Starting":"Start"}</span></span></button>`;
+  return`<button class="row${on?" starter":""}" data-id="${id}"><span class="pos ${p.pos}">${p.pos}</span><span class="nm"><b>${esc(p.name)}${badge} <small>${tm(p.team)}${p.rookie?" · R":""}</small></b>${oppLine(id)}${ex.join("")}</span>${(()=>{const g=pst(l,"me",id);if(g.started&&st!=="bye"&&st!=="fa")return`<span class="proj"><span class="pts live">${fmt(g.actual)}</span><span class="act">${g.final?"Final":"Live"}${v?` · proj ${fmt(v)}`:""}</span></span>`;return`<span class="proj"><span class="pts${v?"":" zero"}">${st==="ok"||(st==="none"&&v)?fmt(v):"—"}</span><span class="act">${on?"Starting":"Start"}</span></span>`})()}</button>`;
 }
 function render(){
   if(!D)return;
@@ -233,7 +245,7 @@ function render(){
   const status=issues.length?["bad",issues[0]]:dead.length?["warn",`${dead.length} starter${dead.length>1?"s":""} out or at 0`]:["ok","Lineup ready"];
   const sf=lim(l,"QB")[1]>1,mine=me(l);
   const faab=[...l.franchises].filter(f=>f.faab!=null).sort((a,b)=>b.faab-a.faab),fmax=Math.max(...faab.map(f=>f.faab),1);
-  v.innerHTML=`
+  v.innerHTML=`${matchupCard(l)}
   <section class="panel">
     <div class="head"><div><h2>${esc(mine.name||"Your team")}</h2><div class="meta">${esc(l.name)} · ${sf?"Superflex":"1-QB"} · ${l.teBonus?"TE premium":"No TE bonus"}</div></div>
       <span class="status ${status[0]}">${esc(status[1])}</span></div>
@@ -255,6 +267,77 @@ function render(){
     <table>${faab.map(f=>`<tr class="${f.id===l.fid?"me":""}"><td>${esc(f.name)}</td><td style="width:35%"><div class="bar"><i style="width:${f.faab/fmax*100}%"></i></div></td><td class="n">$${f.faab}</td></tr>`).join("")}</table>
   </section>`;
 }
+// ---- Matchup and live scoring ----
+function pst(l,side,id){
+  const p=l.live&&l.live[side]&&l.live[side].players[id],g=G[P(id).team];
+  const kicked=g?Date.now()>=g.t*1000:false;
+  const secs=p&&p.secs!=null?p.secs:null;
+  const started=secs!=null?secs<3600:kicked;
+  return{started,final:started&&(secs===0||(secs==null&&g&&Date.now()>g.t*1000+4*3600e3)),secs,actual:p&&p.score!=null?p.score:0};
+}
+function starters(l,side){
+  const s=l.live&&l.live[side];if(!s)return{ids:[],set:false};
+  const ids=Object.entries(s.players).filter(([,p])=>p.starter).map(([id])=>id);
+  return{ids,set:ids.length>0};
+}
+function sideTotals(l,side,ids){
+  let live=0,proj=0,started=0,left=0,playing=0;
+  ids.forEach(id=>{
+    const pl=P(id);if(pl.team==="FA"||D.byes.includes(pl.team))return;
+    const st=pst(l,side,id),pr=l.proj[id]||0;
+    if(st.started){live+=st.actual;started++;proj+=st.actual+(st.final?0:pr*Math.max(0,st.secs??0)/3600);if(!st.final){left++;playing++}}
+    else{proj+=pr;left++}
+  });
+  return{live,proj,started,left,playing};
+}
+function matchupCard(l){
+  const lv=l.live;
+  if(!lv||!lv.opp)return`<section class="panel"><div class="head"><h2>Matchup</h2><span class="meta">Week ${week}</span></div><p class="note">${lv?"No opponent this week.":"MFL didn't return a matchup for this week."}</p></section>`;
+  const mine=starters(l,"me"),theirs=starters(l,"opp");
+  const myIds=mine.set?mine.ids:[...lineups[l.id]];
+  const a=sideTotals(l,"me",myIds),b=theirs.set?sideTotals(l,"opp",theirs.ids):null;
+  const anyLive=a.started>0||(b&&b.started>0);
+  const opp=l.franchises.find(f=>f.id===lv.opp.id)||{name:"Opponent"};
+  const big=s=>s?(anyLive?s.live:s.proj):null;
+  const A=big(a),B=big(b);
+  const sc=(v,lead)=>`<span class="sc${lead?" lead":""}">${v==null?"—":fmt(v)}</span>`;
+  const sub=s=>s?(anyLive?`Proj final ${fmt(s.proj)}`:"Projected"):"Lineup not set";
+  const liveNow=a.playing>0||(b&&b.playing>0);
+  const oppRows=theirs.set?POS.flatMap(p=>theirs.ids.filter(id=>P(id).pos===p)).map(id=>{
+    const pl=P(id),st=pst(l,"opp",id),pr=l.proj[id]||0;
+    return`<div class="row" style="cursor:default"><span class="pos ${pl.pos}">${pl.pos}</span><span class="nm"><b>${esc(pl.name)} <small>${tm(pl.team)}</small></b>${oppLine(id)}</span><span class="proj"><span class="pts${st.started?" live":pr?"":" zero"}">${st.started?fmt(st.actual):pr?fmt(pr):"—"}</span><span class="act">${st.started?(st.final?"Final":"Live")+` · proj ${fmt(pr)}`:"Proj"}</span></span></div>`}).join(""):"";
+  return`<section class="panel">
+    <div class="head"><h2>${liveNow?`<span class="livedot" aria-hidden="true"></span>`:""}Matchup</h2><span class="meta">Week ${week}${anyLive?` · ${a.left+(b?b.left:0)} players left`:""}</span></div>
+    <div class="mu">
+      <div class="side"><span class="tn">${esc(me(l).name||"You")}</span>${sc(A,B!=null&&A>B)}<span class="meta">${sub(a)}</span></div>
+      <span class="vs">vs</span>
+      <div class="side r"><span class="tn">${esc(opp.name)}</span>${sc(B,B!=null&&B>A)}<span class="meta">${sub(b)}</span></div>
+    </div>
+    ${mine.set?"":`<p class="note">Your lineup isn't set on MFL for this week, so your side uses the lineup in this app. Send it to MFL to lock it in.</p>`}
+    ${anyLive?`<p class="note">Live points from MFL. Players still to play count their projection, scaled to the time left in their game.</p>`:""}
+    ${oppRows?`<details><summary>Their lineup</summary><div class="list" style="margin-top:6px">${oppRows}</div></details>`:""}
+    <div class="btns"><button class="btn sm" data-act="liveref">Refresh scores</button>${D.liveAt?`<span class="meta" style="align-self:center">Updated ${new Date(D.liveAt).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}</span>`:""}</div>
+  </section>`;
+}
+async function refreshLive(quiet){
+  if(!D)return;
+  try{
+    const r=await api("GET",null,null,`action=live&w=${week}&leagues=${encodeURIComponent(D.leagues.map(l=>`${l.id}~${l.host}~${l.fid}`).join(","))}`);
+    if(r.week!==week)return;
+    r.leagues.forEach(x=>{const l=D.leagues.find(y=>y.id===x.id);if(l&&x.live)l.live=x.live});
+    D.liveAt=r.at;store.set("dd-data",D);
+    const typing=document.activeElement&&/INPUT|SELECT/.test(document.activeElement.tagName);
+    if(!(faSel||claimUI||confirming||typing))render();
+    if(!quiet)toast("Scores updated");
+  }catch(e){if(!quiet&&e.message!=="PIN"&&e.message!=="PIN needed")toast(e.message)}
+}
+function gameWindow(){
+  if(!D||!D.games.length)return false;
+  const ks=D.games.map(g=>g.kickoff*1000),now=Date.now();
+  return now>=Math.min(...ks)-600e3&&now<=Math.max(...ks)+4.5*3600e3;
+}
+setInterval(()=>{if(document.visibilityState==="visible"&&gameWindow()&&!busy)refreshLive(true)},90e3);
+
 let bidDraft={amt:"",drop:""};
 async function loadFA(l){
   const k=faKey(l);FA[k]={loading:true};
@@ -262,11 +345,35 @@ async function loadFA(l){
   catch(e){FA[k]={error:e.message==="PIN needed"||e.message==="PIN"?"Enter your PIN to load free agents.":e.message}}
   if(cur===l.id&&mode==="fa")render();
 }
-function claimLine(s){
-  const m=s.match(/(\d+)_([\d.]+)_(\d+)/);
-  if(!m)return`<div><span>${esc(s.replace(/\d{4,6}/g,id=>P(id).name))}</span></div>`;
-  const drop=+m[3]?` · drop ${esc(P(m[3]).name)}`:"";
-  return`<div><span>Add ${esc(P(m[1]).name)}${drop}</span><b>$${esc(m[2])}</b></div>`;
+let claimUI=null;
+const parseClaim=s=>{const m=String(s).match(/(\d+)_([\d.]+)_(\d+)/);return m?{add:m[1],bid:String(Math.round(+m[2])),drop:+m[3]?m[3]:""}:null};
+const pickOf=c=>`${c.add}_${c.bid}_${c.drop||"0000"}`;
+function claimsBlock(l,claims){
+  const parsed=claims.map(parseClaim),editable=parsed.every(Boolean);
+  return`<div class="claims">${claims.map((s,i)=>{
+    const c=parsed[i];
+    if(!c)return`<div><span>${esc(s.replace(/\d{4,6}/g,id=>P(id).name))}</span></div>`;
+    const line=`<div><span>Add ${esc(P(c.add).name)}${c.drop?` · drop ${esc(P(c.drop).name)}`:""}</span><span style="display:flex;gap:6px;align-items:center"><b>$${esc(c.bid)}</b>${editable&&!claimUI?`<button class="btn sm" data-claim="edit" data-i="${i}">Edit</button><button class="btn sm" data-claim="cancel" data-i="${i}">Cancel</button>`:""}</span></div>`;
+    if(!claimUI||claimUI.i!==i)return line;
+    const others=claims.length>1?`<span class="note">Your other ${claims.length-1} claim${claims.length>2?"s":""} get re-sent too, so they lose their place if a tie-break comes down to who bid first.</span>`:"";
+    if(claimUI.kind==="cancel")return line+`<div class="bidform"><b>Cancel your $${esc(c.bid)} claim on ${esc(P(c.add).name)}?</b>${others}<div class="btns"><button class="btn primary" data-claim="docancel"${busy?" disabled":""}>${busy?"Cancelling…":"Yes, cancel it"}</button><button class="btn" data-claim="close"${busy?" disabled":""}>Keep it</button></div></div>`;
+    const full=l.rosterSize&&l.roster.length>=l.rosterSize,drops=[...l.roster].sort((a,b)=>pts(l,a)-pts(l,b)),bal=me(l).faab;
+    return line+`<div class="bidform"><div class="bidrow">
+      <label for="cbid">Bid ($)<input type="number" id="cbid" inputmode="numeric" min="0" step="1" value="${esc(c.bid)}"></label>
+      <label for="cdrop">Drop<select id="cdrop">${full?"":`<option value="">No drop</option>`}${drops.map(d=>`<option value="${d}"${c.drop===d?" selected":""}>${P(d).pos} ${esc(P(d).name)} · ${fmt(pts(l,d))}</option>`).join("")}</select></label></div>
+      ${others}<div class="btns"><button class="btn primary" data-claim="dosave"${busy?" disabled":""}>${busy?"Saving…":"Save changes"}</button><button class="btn" data-claim="close"${busy?" disabled":""}>Back</button></div>
+      <span class="note">You have $${bal??"?"} left.</span></div>`;
+  }).join("")}</div>${editable?"":`<p class="note">Some claims are in a format the app can't edit. Change those on the MFL site.</p>`}`;
+}
+async function saveClaims(l,picks,done){
+  const f=FA[faKey(l)];busy=true;render();
+  try{const r=await api("POST",{action:"claims",league:l.id,host:l.host,picks});
+    if(f)f.pending=r.pending;
+    if(r.ok)toast(done);
+    else if(r.error&&!picks.length)toast(`MFL wouldn't clear your last claim (${r.error}). Cancel it on the MFL site.`);
+    else toast(`Your claims on MFL don't match what was intended${r.error?` (${r.error})`:""}. Check the list below.`);
+  }catch(err){if(err.message!=="PIN"&&err.message!=="PIN needed")toast(err.message)}
+  busy=false;claimUI=null;render();
 }
 function faPanel(l){
   const f=FA[faKey(l)];
@@ -276,7 +383,7 @@ function faPanel(l){
   return`<div class="total"><div><div class="lbl">FAAB left</div><div class="num">$${mine.faab??"—"}</div></div>
     <div class="meta" style="text-align:right">Roster ${l.roster.length}${l.rosterSize?"/"+l.rosterSize:""}${full?`<br><b style="color:var(--warn)">Full, so each bid needs a drop</b>`:""}</div></div>
   <div class="section-label"><span>Your pending claims</span></div>
-  ${claims==null?`<p class="note">Couldn't read your pending claims. Check them on the MFL site.</p>`:claims.length?`<div class="claims">${claims.map(claimLine).join("")}</div>`:`<p class="note">No pending claims.</p>`}
+  ${claims==null?`<p class="note">Couldn't read your pending claims. Check them on the MFL site.</p>`:claims.length?claimsBlock(l,claims):`<p class="note">No pending claims.</p>`}
   <input type="text" id="fasearch" placeholder="Search free agents" value="${esc(faQ)}" autocomplete="off" aria-label="Search free agents">
   <div class="chips">${["ALL",...POS].map(p=>`<button class="chip" data-pos="${p}" aria-pressed="${faPos===p}">${p==="ALL"?"All":p}</button>`).join("")}</div>
   <div id="falist">${faList(l)}</div>`;
@@ -322,11 +429,29 @@ function renderAll(){
 function toast(t){const e=$("toast");e.textContent=t;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>e.hidden=true,2600)}
 
 document.addEventListener("click",async e=>{
-  const tab=e.target.closest(".tab");if(tab){cur=tab.dataset.k;confirming=false;faSel=null;bidConfirm=false;store.set("dd-tab",cur);render();return}
+  const tab=e.target.closest(".tab");if(tab){cur=tab.dataset.k;confirming=false;faSel=null;bidConfirm=false;claimUI=null;store.set("dd-tab",cur);render();return}
   if(!D)return;
   const l=D.leagues.find(x=>x.id===cur);if(!l)return;
+  const cb=e.target.closest("[data-claim]");
+  if(cb&&!busy){
+    const f=FA[faKey(l)],claims=(f&&f.pending)||[],parsed=claims.map(parseClaim),k=cb.dataset.claim;
+    if(k==="edit"||k==="cancel"){claimUI={kind:k,i:+cb.dataset.i};faSel=null;bidConfirm=false;render();return}
+    if(k==="close"){claimUI=null;render();return}
+    if(!claimUI||parsed.some(c=>!c))return;
+    const c=parsed[claimUI.i];
+    if(k==="docancel"){saveClaims(l,parsed.filter((_,i)=>i!==claimUI.i).map(pickOf),`Cancelled your claim on ${P(c.add).name}`);return}
+    if(k==="dosave"){
+      const amt=($("cbid")?.value||"").trim(),drop=$("cdrop")?.value||"",bal=me(l).faab,full=l.rosterSize&&l.roster.length>=l.rosterSize;
+      if(!/^\d+$/.test(amt)){toast("Enter a whole-dollar bid, like 12");return}
+      if(bal!=null&&+amt>bal){toast(`You only have $${bal} left`);return}
+      if(full&&!drop){toast("Your roster is full. Pick someone to drop.");return}
+      const next=parsed.map((x,i)=>i===claimUI.i?{add:x.add,bid:String(+amt),drop}:x);
+      saveClaims(l,next.map(pickOf),`Updated your claim on ${P(c.add).name}`);return;
+    }
+    return;
+  }
   const md=e.target.closest("[data-mode]");
-  if(md){mode=md.dataset.mode;faSel=null;bidConfirm=false;render();return}
+  if(md){mode=md.dataset.mode;faSel=null;bidConfirm=false;claimUI=null;render();return}
   const ch=e.target.closest("[data-pos]");
   if(ch){faPos=ch.dataset.pos;faShow=50;faSel=null;bidConfirm=false;render();return}
   const fr=e.target.closest("button[data-fa]");
@@ -357,6 +482,7 @@ document.addEventListener("click",async e=>{
   if(r&&!busy){const s=lineups[l.id],id=r.dataset.id;s.has(id)?s.delete(id):s.add(id);confirming=false;store.set(lk(l),[...s]);render();return}
   const a=e.target.closest("[data-act]");if(!a)return;
   const act=a.dataset.act;
+  if(act==="liveref"){refreshLive(false);return}
   if(act==="best"){lineups[l.id]=best(l);store.set(lk(l),[...lineups[l.id]]);render();toast("Best projected lineup set")}
   if(act==="ask"){confirming=true;render()}
   if(act==="cancel"){confirming=false;render()}
