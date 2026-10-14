@@ -232,15 +232,12 @@ async function pending(host, league) {
   try {
     const p = await mfl(exportUrl(host, "pendingWaivers", { L: league }));
     // Collect every claim MFL lists for your franchise, whatever its exact shape.
+    // MFL can pack several bids into one entry (e.g. "a_14_b,c_6_d"), so pull out every player_bid_drop it lists.
     const out = [];
     const walk = (x) => {
+      if (typeof x === "string") { for (const m of x.matchAll(/(\d{3,6})_(\d+(?:\.\d+)?)_(\d{3,6}|0)/g)) out.push(m[0]); return; }
       if (Array.isArray(x)) return x.forEach(walk);
-      if (x && typeof x === "object") {
-        const strs = Object.values(x).filter((v) => typeof v === "string");
-        const t = strs.find((s) => /\d{3,6}_[\d.]+_\d{3,6}/.test(s)) || (x.transaction ?? null);
-        if (t) out.push(String(t));
-        Object.values(x).forEach((v) => typeof v === "object" && walk(v));
-      }
+      if (x && typeof x === "object") Object.values(x).forEach(walk);
     };
     walk(p.pendingWaivers);
     return [...new Set(out)];
