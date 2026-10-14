@@ -176,6 +176,7 @@ async function loadWeek(week) {
           id: f.id,
           name: String(f.name || "").replace(/<[^>]*>/g, "").trim(),
           faab: f.bbidAvailableBalance != null ? +f.bbidAvailableBalance : null,
+          icon: (f.icon || f.logo || "").replace(/^http:\/\//, "https://") || null,
           waiver: +f.waiverSortOrder || null,
         })),
         faabLimit: +lg.bbidSeasonLimit || null,
