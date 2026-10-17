@@ -17,6 +17,41 @@ const NFL = ["ARI","ATL","BAL","BUF","CAR","CHI","CIN","CLE","DAL","DEN","DET","
 
 let cookie = null; // reused while this function instance stays warm
 
+// ---- Go easy on MFL ----
+// MFL answers 429 ("too many requests") when calls come too fast, so every call goes
+// through one gate: at most 2 at a time, spaced out, with a short wait and one retry on 429.
+// Read-only exports are also kept for a while (while this instance stays warm), and a saved
+// copy is served if MFL is limiting us.
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+let active = 0, nextAt = 0;
+const queue = [];
+async function gate() {
+  while (active >= 2) await new Promise((r) => queue.push(r));
+  active++;
+  const wait = nextAt - Date.now();
+  nextAt = Math.max(Date.now(), nextAt) + 120;
+  if (wait > 0) await sleep(wait);
+}
+function release() { active--; const w = queue.shift(); if (w) w(); }
+const LIMITED = "MFL is limiting how often the app can ask for data right now. Give it a minute or two, then refresh.";
+async function mflFetch(url, opts = {}) {
+  for (let attempt = 0; ; attempt++) {
+    await gate();
+    let res;
+    try { res = await fetch(url, opts); } finally { release(); }
+    if (res.status !== 429) return res;
+    if (attempt >= 1) throw httpError(429, LIMITED);
+    const ra = +res.headers?.get?.("retry-after");
+    await sleep(Math.min(2000, ra > 0 ? ra * 1000 : 1500));
+  }
+}
+const CACHE = new Map();
+// How long each kind of read stays fresh (ms). Live scores stay short; slow-changing data longer.
+const TTL = { myleagues: 6 * 3600e3, nflSchedule: 30 * 60e3, league: 20 * 60e3, rules: 12 * 3600e3, rosters: 60e3,
+  projectedScores: 20 * 60e3, players: 6 * 3600e3, injuries: 30 * 60e3, liveScoring: 25e3, schedule: 3600e3,
+  leagueStandings: 10 * 60e3, freeAgents: 3 * 60e3, pendingWaivers: 0 };
+const ttlFor = (url) => TTL[new URL(url).searchParams.get("TYPE")] ?? 0;
+
 // MFL returns a single object instead of a one-item list; normalize to arrays.
 const arr = (x) => (x == null ? [] : Array.isArray(x) ? x : [x]);
 
@@ -31,7 +66,7 @@ async function login() {
   if (!user || !pass) throw httpError(500, "MFL_USERNAME or MFL_PASSWORD isn't reaching the function. Check both are set for Production in Netlify, then redeploy.");
   const params = new URLSearchParams({ USERNAME: user, PASSWORD: pass, XML: "1" });
   const tryLogin = async (method) => {
-    const res = await fetch(method === "GET" ? `${API}/login?${params}` : `${API}/login`, {
+    const res = await mflFetch(method === "GET" ? `${API}/login?${params}` : `${API}/login`, {
       method,
       headers: { "user-agent": UA, ...(method === "POST" ? { "content-type": "application/x-www-form-urlencoded" } : {}) },
       body: method === "POST" ? params : undefined,
@@ -57,9 +92,22 @@ function httpError(status, message) {
   return e;
 }
 
-async function mfl(url, { auth = true, retry = true } = {}) {
+async function mfl(url, { auth = true, retry = true, fresh = false } = {}) {
+  const ttl = fresh ? 0 : ttlFor(url), hit = CACHE.get(url);
+  if (hit && Date.now() - hit.t < ttl) return hit.v;
+  try {
+    const data = await mflRaw(url, { auth, retry });
+    if (ttlFor(url)) CACHE.set(url, { t: Date.now(), v: data });
+    return data;
+  } catch (e) {
+    if (hit && (e.status === 429 || e.status === 502)) return hit.v; // MFL busy: use the copy we have
+    throw e;
+  }
+}
+
+async function mflRaw(url, { auth = true, retry = true } = {}) {
   if (auth && !cookie) await login();
-  const res = await fetch(url, {
+  const res = await mflFetch(url, {
     headers: { "user-agent": UA, ...(auth ? { cookie: `MFL_USER_ID=${cookie}` } : {}) },
   });
   const text = await res.text();
@@ -69,7 +117,7 @@ async function mfl(url, { auth = true, retry = true } = {}) {
     const msg = typeof data.error === "string" ? data.error : data.error.$t || JSON.stringify(data.error);
     if (auth && retry && /login|cookie|authorized|permission/i.test(msg)) {
       cookie = null;
-      return mfl(url, { auth, retry: false });
+      return mflRaw(url, { auth, retry: false });
     }
     throw httpError(502, `MFL: ${msg}`);
   }
@@ -118,7 +166,30 @@ async function liveAll(week, list) {
   return Promise.all(list.map(async ({ id, host, fid }) => ({ id, live: await liveFor(host, id, fid, week) })));
 }
 
+// Headshots: MFL has no player photos, so look up each player's Sleeper and ESPN IDs in
+// DynastyProcess's public ID table (matched by MFL ID). Kept for a day; photos are optional.
+const IDS_URL = "https://raw.githubusercontent.com/dynastyprocess/data/master/files/db_playerids.csv";
+let idTable = null;
+async function photoIds() {
+  if (idTable && Date.now() - idTable.t < 24 * 3600e3) return idTable.map;
+  try {
+    const res = await fetch(IDS_URL, { signal: AbortSignal.timeout(6000) });
+    if (!res.ok) return idTable?.map || null;
+    const lines = (await res.text()).split("\n");
+    const head = lines[0].split(","), iM = head.indexOf("mfl_id"), iS = head.indexOf("sleeper_id"), iE = head.indexOf("espn_id");
+    const ok = (v) => v && v !== "NA" && /^\d+$/.test(v);
+    const map = new Map();
+    for (let i = 1; i < lines.length; i++) {
+      const c = lines[i].split(",", Math.max(iM, iS, iE) + 1);
+      if (ok(c[iM]) && (ok(c[iS]) || ok(c[iE]))) map.set(c[iM], { s: ok(c[iS]) ? c[iS] : null, e: ok(c[iE]) ? c[iE] : null });
+    }
+    idTable = { t: Date.now(), map };
+    return map;
+  } catch { return idTable?.map || null; }
+}
+
 async function loadWeek(week) {
+  const photosP = photoIds(); // runs alongside the MFL calls
   // Your leagues, with your franchise in each and the server MFL currently hosts it on.
   const my = await mfl(exportUrl(API_HOST, "myleagues", { FRANCHISE_NAMES: "1" }));
   const mine = arr(my.leagues?.league).map((l) => ({
@@ -181,6 +252,7 @@ async function loadWeek(week) {
         })),
         faabLimit: +lg.bbidSeasonLimit || null,
         rosterSize: +lg.rosterSize || null,
+        playoffTeams: +lg.playoffTeams || null,
         waiverType: lg.currentWaiverType || "",
         roster,
         proj,
@@ -199,6 +271,9 @@ async function loadWeek(week) {
     });
   }));
 
+  const photos = await photosP;
+  if (photos) for (const id of Object.keys(players)) { const x = photos.get(id); if (x) { if (x.s) players[id].sl = x.s; if (x.e) players[id].es = x.e; } }
+
   const injuries = {};
   try {
     const inj = await mfl(exportUrl(API_HOST, "injuries", { W: wk }), { auth: false });
@@ -213,7 +288,7 @@ async function submitLineup({ league, host, week, starters }) {
   if (!okHost(host)) throw httpError(400, "Unknown league server.");
   if (!cookie) await login();
   const send = () =>
-    fetch(`${host}/${YEAR}/import`, {
+    mflFetch(`${host}/${YEAR}/import`, {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded", "user-agent": UA, cookie: `MFL_USER_ID=${cookie}` },
       body: new URLSearchParams({ TYPE: "lineup", L: league, W: String(week), STARTERS: starters.join(",") }),
@@ -278,7 +353,7 @@ async function submitBid({ league, host, add, bid, drop }) {
   if (drop && !/^\d+$/.test(String(drop))) throw httpError(400, "Unknown drop player.");
   if (!cookie) await login();
   const send = () =>
-    fetch(`${host}/${YEAR}/import`, {
+    mflFetch(`${host}/${YEAR}/import`, {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded", "user-agent": UA, cookie: `MFL_USER_ID=${cookie}` },
       body: new URLSearchParams({ TYPE: "blindBidWaiverRequest", L: league, PICKS: `${add}_${amt}_${drop || "0000"}` }),
@@ -298,7 +373,7 @@ async function bbidImport(host, league, pick, replace) {
   const params = { TYPE: "blindBidWaiverRequest", L: league, PICKS: pick };
   if (replace) params.REPLACE = "1";
   const send = () =>
-    fetch(`${host}/${YEAR}/import`, {
+    mflFetch(`${host}/${YEAR}/import`, {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded", "user-agent": UA, cookie: `MFL_USER_ID=${cookie}` },
       body: new URLSearchParams(params),
@@ -326,6 +401,18 @@ async function setClaims({ league, host, picks }) {
   return { ok: !error && matched, matched, error, pending: now, wanted: picks };
 }
 
+async function standings({ league, host }) {
+  if (!okHost(host)) throw httpError(400, "Unknown league server.");
+  const st = await mfl(exportUrl(host, "leagueStandings", { L: league }));
+  // Pass each franchise's fields through as-is; MFL's columns differ by league setup.
+  const rows = arr(st.leagueStandings?.franchise).map((f) => {
+    const o = {};
+    for (const [k, v] of Object.entries(f)) if (typeof v === "string" || typeof v === "number") o[k] = v;
+    return o;
+  });
+  return { league, rows };
+}
+
 export default async (req) => {
   const pin = process.env.APP_PIN;
   if (!pin) return json(500, { error: "APP_PIN is not set in Netlify." });
@@ -346,6 +433,10 @@ export default async (req) => {
         .filter((x) => /^\d+$/.test(x.id) && okHost(x.host) && /^\d{4}$/.test(x.fid));
       if (!list.length) return json(400, { error: "No leagues given." });
       return json(200, { week: +w, at: Date.now(), leagues: await liveAll(w, list) });
+    }
+    if (q.get("action") === "standings") {
+      if (!/^\d+$/.test(q.get("L") || "")) return json(400, { error: "Missing league." });
+      return json(200, await standings({ league: q.get("L"), host: q.get("host") }));
     }
     if (q.get("action") === "fa") {
       if (!/^\d+$/.test(q.get("L") || "") || !/^\d{1,2}$/.test(w || "")) return json(400, { error: "Missing league or week." });
