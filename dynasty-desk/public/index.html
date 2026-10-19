@@ -106,6 +106,8 @@ h1{font:800 27px/1 var(--display);letter-spacing:.01em;margin:0;white-space:nowr
 .field-key{display:flex;justify-content:space-between;font-size:13px;font-stretch:75%;color:var(--muted);margin-top:-6px;font-variant-numeric:tabular-nums}
 .field-key b{color:var(--sig);font-weight:700}
 .board-note{margin:0;font-size:13.5px;color:var(--muted);line-height:1.5}
+.board-alert{margin:0;display:flex;gap:9px;align-items:flex-start;padding:10px 12px;border-radius:var(--r-sm);background:color-mix(in srgb,var(--bad) 14%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--bad) 35%,transparent);color:var(--bad);font-size:13.5px;font-weight:600;line-height:1.4}
+.board-alert svg{width:16px;height:16px;flex:none;margin-top:1px}
 .board-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12.5px;font-stretch:75%;color:var(--muted)}
 .ghost{white-space:nowrap;flex:none;border:1px solid rgb(255 255 255 / .14);background:rgb(255 255 255 / .05);border-radius:var(--r-md);padding:8px 13px;font-size:13.5px;font-weight:600;cursor:pointer;display:inline-flex;gap:7px;align-items:center;transition:background .2s,transform .12s var(--ease)}
 .ghost:hover{background:rgb(255 255 255 / .1)}
@@ -224,6 +226,8 @@ h1{font:800 27px/1 var(--display);letter-spacing:.01em;margin:0;white-space:nowr
 .btn.wide{width:100%}
 .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
 .note{font-size:13.5px;color:var(--muted);margin:0;line-height:1.5}
+.foot{display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:6px;font-size:12px;font-stretch:75%;color:var(--faint);text-align:center}
+.foot .warn{color:var(--warn)}
 
 /* Action bar */
 .actionbar{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));pointer-events:none}
@@ -324,36 +328,39 @@ h1{font:800 27px/1 var(--display);letter-spacing:.01em;margin:0;white-space:nowr
 .wpbar i+i{background:var(--op)}
 .mv .mvh .team:not(.r) .score{color:var(--me)}
 .mv-in{max-width:620px;margin:0 auto;padding:2px 10px 0;display:flex;flex-direction:column;gap:6px}
-.brow{display:grid;grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr);min-height:94px}
-.bslot{display:grid;place-items:center;font:700 17px/1 var(--bc);letter-spacing:.06em;color:var(--muted)}
-.bcell{display:grid;grid-template-columns:38px minmax(0,1fr) auto;grid-template-areas:"h n n" "g g p" "s s q";column-gap:8px;row-gap:2px;align-items:center;min-width:0;padding:10px 8px 10px 12px;border-radius:14px 5px 5px 14px}
-.bcell.r{grid-template-columns:auto minmax(0,1fr) 38px;grid-template-areas:"n n h" "p g g" "q s s";padding:10px 12px 10px 8px;border-radius:5px 14px 14px 5px;text-align:right}
-.hs{grid-area:h;position:relative;width:38px;height:38px;align-self:center;margin-bottom:4px}
-.hsi{position:absolute;inset:0;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:linear-gradient(160deg,#2A2D35,#1A1C21);box-shadow:inset 0 0 0 1.5px rgb(255 255 255 / .14);font:700 14px/1 var(--bc);color:var(--faint)}
+.brow{display:grid;grid-template-columns:minmax(0,1fr) 40px minmax(0,1fr)}
+.bslot{display:grid;place-items:center;font:700 16px/1 var(--bc);letter-spacing:.06em;color:var(--muted)}
+/* Two lines per player: photo + name, then opponent/status opposite the points. */
+.bcell{display:grid;grid-template-columns:34px minmax(0,1fr) auto;grid-template-areas:"h n n" "m m p";column-gap:8px;row-gap:5px;align-items:center;min-width:0;padding:9px 9px 10px 10px;border-radius:12px 4px 4px 12px}
+.bcell.r{grid-template-columns:auto minmax(0,1fr) 34px;grid-template-areas:"n n h" "p m m";padding:9px 10px 10px 9px;border-radius:4px 12px 12px 4px;text-align:right}
+.hs{grid-area:h;position:relative;width:34px;height:34px}
+.hsi{position:absolute;inset:0;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:linear-gradient(160deg,#2A2D35,#1A1C21);box-shadow:inset 0 0 0 1.5px rgb(255 255 255 / .14);font:700 13px/1 var(--bc);color:var(--faint)}
 .hsi img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 15%;background:#22252B}
-.hsb{position:absolute;right:-6px;bottom:-4px;width:20px;height:20px;border-radius:50%;background:#0D0E12;display:grid;place-items:center;box-shadow:0 0 0 1.5px #0D0E12}
-.bcell.r .hsb{right:auto;left:-6px}
+.hsb{position:absolute;right:-5px;bottom:-3px;width:18px;height:18px;border-radius:50%;background:#0D0E12;display:grid;place-items:center;box-shadow:0 0 0 1.5px #0D0E12}
+.bcell.r .hsb{right:auto;left:-5px}
 .hsb .tl{box-shadow:none}
 .bcell>*{min-width:0}
-.bn{grid-area:n;display:flex;align-items:center;gap:5px;font:700 20px/1.05 var(--bc);margin-bottom:4px!important;text-transform:uppercase;letter-spacing:.01em;color:#fff;margin-bottom:3px}
+.bn{grid-area:n;display:flex;align-items:center;gap:5px;font:700 20px/1 var(--bc);text-transform:uppercase;letter-spacing:.01em;color:#fff}
 .bcell.r .bn{justify-content:flex-end}
 .bn>span:first-child{overflow:hidden;text-overflow:clip;white-space:nowrap;min-width:0}
-.bg,.bs{font-size:14px;line-height:1.3;color:var(--muted);font-stretch:87.5%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bg{grid-area:g;align-self:end}.bs{grid-area:s;align-self:start}
+.bm{grid-area:m;display:flex;flex-direction:column;gap:2px;min-width:0}
+.bcell.r .bm{align-items:flex-end}
+.bg,.bs{font-size:14px;line-height:1.2;color:var(--muted);font-stretch:87.5%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .bs.on{display:block;overflow:hidden;color:var(--clock);font-variant-numeric:tabular-nums}
-
 .bs.on i{display:inline-block;vertical-align:.12em;margin-right:5px;width:7px;height:7px;border-radius:50%;background:var(--live)}
-.bp{grid-area:p;justify-self:end;font:700 28px/1 var(--bc);font-variant-numeric:tabular-nums;color:#C3C6CD;letter-spacing:-.005em;border-radius:4px}
-.bcell.r .bp{justify-self:start}
-.bp.nil{color:var(--faint)}
-.bq{grid-area:q;justify-self:end;font-size:14px;line-height:1.3;color:var(--muted);font-stretch:87.5%;white-space:nowrap;font-variant-numeric:tabular-nums}
-.bcell.r .bq{justify-self:start}
+.bpq{grid-area:p;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.bcell.r .bpq{align-items:flex-start}
+.bp{font:700 26px/.95 var(--bc);font-variant-numeric:tabular-nums;color:#C3C6CD;letter-spacing:-.005em;border-radius:4px}
+.bq{font-size:13px;line-height:1.2;color:var(--muted);font-stretch:87.5%;white-space:nowrap;font-variant-numeric:tabular-nums}
+.bpq.pre .bq{font-size:14px}
+.bpq.pre .bq b{font:700 17px/1 var(--bc);color:#D7D9DE;margin-left:3px;letter-spacing:.01em}
 .bcell.win{background:linear-gradient(90deg,rgb(var(--me-rgb) / .2),rgb(var(--me-rgb) / .04));box-shadow:inset 3px 0 0 var(--me)}
 .bcell.r.win{background:linear-gradient(270deg,rgb(var(--op-rgb) / .2),rgb(var(--op-rgb) / .04));box-shadow:inset -3px 0 0 var(--op)}
 .bcell.win .bp{color:var(--me-ink)}
 .bcell.r.win .bp{color:var(--op-ink)}
 .bcell.lean{background:linear-gradient(90deg,rgb(var(--me-rgb) / .09),transparent 85%);box-shadow:inset 2px 0 0 rgb(var(--me-rgb) / .5)}
 .bcell.r.lean{background:linear-gradient(270deg,rgb(var(--op-rgb) / .09),transparent 85%);box-shadow:inset -2px 0 0 rgb(var(--op-rgb) / .5)}
+.bcell.empty{grid-template-areas:"n n n"}
 .bcell.empty .bg{grid-area:n;color:var(--faint)}
 .bench .hsi img{filter:saturate(.7) brightness(.9)}
 .benchbtn{margin-top:14px;display:flex;justify-content:center;align-items:center;gap:14px;width:100%;padding:18px 16px;border-radius:18px;border:1px solid var(--line);background:var(--surface);color:#fff;font:700 18px/1 var(--bc);letter-spacing:.09em;text-transform:uppercase;cursor:pointer}
@@ -362,7 +369,7 @@ h1{font:800 27px/1 var(--display);letter-spacing:.01em;margin:0;white-space:nowr
 .benchbtn[aria-expanded="true"] svg{transform:rotate(180deg)}
 .benchbtn span{color:var(--muted)}
 .bench{display:flex;flex-direction:column;gap:6px;margin-top:6px}
-.bench .brow{min-height:84px}
+
 .bench .bn{color:rgb(255 255 255 / .82)}
 .mnote{font-size:13.5px;color:var(--muted);margin:10px 0 0;padding-inline:6px;line-height:1.5;text-align:center}
 .bcell .inj{font-family:var(--text)}
@@ -394,7 +401,7 @@ h1{font:800 27px/1 var(--display);letter-spacing:.01em;margin:0;white-space:nowr
 .pin .mark svg{width:28px;height:30px}
 .pin h2{font:800 30px/1 var(--display);margin:4px 0 0}
 .pin form{display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;margin-top:6px}
-.pin input{text-align:center;letter-spacing:.35em;font:800 28px var(--display);padding:12px;border-radius:var(--r-md);border:1px solid var(--line);background:var(--sunk);color:var(--ink);width:100%}
+.pin input{text-align:center;letter-spacing:.2em;font:800 24px var(--display);padding:12px;border-radius:var(--r-md);border:1px solid var(--line);background:var(--sunk);color:var(--ink);width:100%}
 .pin input:focus{outline:none;border-color:var(--ink)}
 .sk{border-radius:var(--r-lg);background:linear-gradient(100deg,var(--sunk) 35%,color-mix(in srgb,var(--sunk) 40%,var(--surface)) 50%,var(--sunk) 65%) 0 0/300% 100%;animation:shimmer 1.5s linear infinite}
 @keyframes shimmer{from{background-position:100% 0}to{background-position:-50% 0}}
@@ -432,9 +439,9 @@ body.has-bar .toast{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
   <section class="panel pin" id="pinbox" hidden>
     <span class="mark" aria-hidden="true"><svg viewBox="0 0 20 22" fill="none" stroke="#C6F432" stroke-width="2.4" stroke-linecap="round"><path d="M3 2v8h14V2M10 10v11"/></svg></span>
     <h2>Enter your PIN</h2>
-    <p class="note">The APP_PIN you set in Netlify. This device remembers it after the first time.</p>
+    <p class="note">The APP_PIN you set in Netlify (8 or more characters is safest). This device remembers it after the first time.</p>
     <form id="pinform">
-      <input type="password" id="pin" inputmode="numeric" autocomplete="off" aria-label="PIN">
+      <input type="password" id="pin" autocomplete="current-password" autocapitalize="off" spellcheck="false" aria-label="PIN">
       <button class="btn primary wide" type="submit">Unlock</button>
     </form>
   </section>
@@ -442,6 +449,7 @@ body.has-bar .toast{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
   <div class="banner" id="err" hidden><span id="errmsg"></span><button class="btn sm quiet" id="retry">Try again</button></div>
   <nav class="tabs" role="tablist" id="tabs"></nav>
   <main id="view" style="display:flex;flex-direction:column;gap:14px"></main>
+  <footer class="foot" id="foot"></footer>
 </div>
 <div id="mu"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -456,7 +464,6 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 const fmt=n=>n.toFixed(2);
 const ord=n=>{const s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])};
 const whenShort=t=>{try{const d=new Date(t*1000),day=d.toLocaleString("en-US",{timeZone:"America/New_York",weekday:"short"}),tt=d.toLocaleString("en-US",{timeZone:"America/New_York",hour:"numeric",minute:"2-digit"});return`${day} ${tt.replace(":00","").replace(/ ?([AP])M/,(m,x)=>x.toLowerCase())}`}catch(e){return""}};
-const when=t=>{try{return new Date(t*1000).toLocaleString("en-US",{timeZone:"America/New_York",weekday:"short",hour:"numeric",minute:"2-digit"})}catch(e){return""}};
 const RM=typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motion: reduce)").matches;
 const TC={ARI:"#97233F",ATL:"#A71930",BAL:"#241773",BUF:"#00338D",CAR:"#0085CA",CHI:"#0B162A",CIN:"#FB4F14",CLE:"#311D00",DAL:"#003594",DEN:"#FB4F14",DET:"#0076B6",GB:"#203731",HOU:"#03202F",IND:"#002C5F",JAX:"#006778",KC:"#E31837",LAC:"#0080C6",LAR:"#003594",LV:"#000000",MIA:"#008E97",MIN:"#4F2683",NE:"#002244",NO:"#9F8958",NYG:"#0B2265",NYJ:"#125740",PHI:"#004C54",PIT:"#101820",SEA:"#002244",SF:"#AA0000",TB:"#D50A0A",TEN:"#0C2340",WAS:"#5A1414"};
 function logo(t,sz){const a=tm(t);if(!TC[a])return"";const e=a==="WAS"?"wsh":a.toLowerCase();return`<span class="tl" style="--tc:${TC[a]};--sz:${sz||20}px"><b>${a}</b><img src="https://a.espncdn.com/i/teamlogos/nfl/500/${e}.png" alt="" loading="lazy" decoding="async" onload="this.parentNode.classList.add('ok')" onerror="this.remove()"></span>`}
@@ -482,10 +489,21 @@ let mode="lineup",FA={},faPos="ALL",faQ="",faShow=50,faSel=null,bidConfirm=false
 let liveHold=0; // after MFL says "too many requests", auto-refresh pauses for 5 minutes
 let G={},owned={},seen=new Set(),intro=false,flashId=null,lastSegI=0,lastMode="lineup",liveBusy=false;
 
+// Version of this page. The server sends its own version, so a mismatch means one file wasn't uploaded.
+const APP_VERSION="v11";
+let srvVer=null,pinWeak=false;
+function renderFoot(){
+  const el=$("foot");if(!el)return;
+  const lines=[`Dynasty Desk ${APP_VERSION}`];
+  if(srvVer&&srvVer!==APP_VERSION)lines.push(`<span class="warn">The server file is ${srvVer==="old"?"an older version":srvVer}. Upload the matching mfl.mjs too.</span>`);
+  if(pinWeak)lines.push(`<span class="warn">Your PIN is under 8 characters. Make it longer in Netlify (APP_PIN) to keep strangers out.</span>`);
+  el.innerHTML=lines.map(x=>`<span>${x}</span>`).join("");
+}
 async function api(method,body,w,qs){
   const pin=store.get("dd-pin");
   if(!pin){showPin();throw new Error("PIN needed")}
   const res=await fetch("/api/mfl"+(qs?`?${qs}`:w?`?w=${w}`:""),{method,headers:{"x-app-pin":pin,...(body?{"content-type":"application/json"}:{})},body:body?JSON.stringify(body):undefined});
+  if(res.headers.get("content-type")?.includes("json")){srvVer=res.headers.get("x-dd-version")||"old";pinWeak=res.headers.get("x-dd-pin-weak")==="1";renderFoot()}
   const data=await res.json().catch(()=>({error:"The server sent an unreadable reply."}));
   if(res.status===401&&data.error==="Wrong PIN."){store.del("dd-pin");showPin("That PIN didn't match. Try again.");throw new Error("PIN")}
   if(!res.ok){const e=new Error(data.error||`Request failed (${res.status})`);e.status=res.status;if(res.status===429)liveHold=Date.now()+300e3;throw e}
@@ -509,12 +527,37 @@ function prepare(){
   week=D.week;G={};
   D.games.forEach(g=>{G[g.away.id]={opp:g.home,home:false,t:g.kickoff};G[g.home.id]={opp:g.away,home:true,t:g.kickoff}});
   owned={};D.leagues.forEach(l=>l.roster.forEach(id=>(owned[id]=owned[id]||[]).push(key(l))));
-  lineups={};D.leagues.forEach(l=>{const s=store.get(lk(l));lineups[l.id]=Array.isArray(s)?new Set(s.filter(id=>l.roster.includes(id))):best(l)});
+  lineups={};D.leagues.forEach(l=>reconcile(l));
+  pruneDrafts();
   if(!D.leagues.some(l=>l.id===cur)&&cur!=="all")cur=D.leagues[0]?.id;
   $("weekbar").hidden=false;$("wklbl").textContent=`Week ${week}`;
   $("sub").textContent=`Updated ${new Date(D.generated).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})} from MFL`;
 }
 const lk=l=>`dd-lu-${D.year}-${week}-${l.id}`;
+// MFL is the source of truth for your lineup. A lineup you edit here is saved as a draft along with
+// the MFL lineup it started from ("base"). The draft is kept only while MFL still has that same lineup;
+// if MFL changes (you set it on the MFL site or another device), the app follows MFL instead.
+const mflKey=l=>{const m=starters(l,"me");return m.set?m.ids.filter(id=>l.roster.includes(id)).sort().join(","):""};
+// Drafts from earlier weeks or seasons are never needed again; clear them so they don't pile up.
+function pruneDrafts(){
+  try{
+    for(let i=localStorage.length-1;i>=0;i--){
+      const k=localStorage.key(i),m=k&&k.match(/^dd-lu-(\d{4})-(\d+)-/);
+      if(m&&(m[1]!==String(D.year)||+m[2]<week-1))localStorage.removeItem(k);
+    }
+  }catch(e){}
+}
+function saveDraft(l){store.set(lk(l),{ids:[...lineups[l.id]],base:mflKey(l)})}
+function reconcile(l){
+  const m=starters(l,"me"),base=mflKey(l),d=store.get(lk(l));
+  let ids;
+  if(d&&!Array.isArray(d)&&Array.isArray(d.ids)&&d.base===base)ids=d.ids;  // your unsent edits to this MFL lineup
+  else if(m.set)ids=m.ids;                                                  // follow what's actually set on MFL
+  else if(d)ids=Array.isArray(d)?d:d.ids;                                   // nothing set on MFL yet: keep your draft
+  if(m.set&&ids===m.ids&&d)store.del(lk(l));                                // an outdated draft: drop it
+  ids=(ids||[]).filter(id=>l.roster.includes(id));
+  lineups[l.id]=ids.length?new Set(ids):best(l);
+}
 const faKey=l=>`${l.id}-${week}`;
 const P=id=>D.players[id]||Object.values(FA).find(f=>f.players&&f.players[id])?.players[id]||{name:`Player ${id}`,pos:"?",team:"?"};
 const pts=(l,id)=>l.proj[id]||0;
@@ -538,6 +581,19 @@ function check(l){
   if(issues[0])issues[0]=issues[0][0].toUpperCase()+issues[0].slice(1);
   const dead=[...set].filter(id=>state(id,l)!=="ok");
   return{c,issues,dead,n};
+}
+function alerts(l){
+  const now=Date.now();
+  return[...lineups[l.id]].filter(id=>{
+    const st=state(id,l);if(st!=="out"&&st!=="bye"&&st!=="fa")return false;
+    const g=G[P(id).team];return!g||now<g.t*1000;
+  }).map(id=>{const st=state(id,l),inj=D.injuries[id];return{id,why:st==="bye"?"on bye":st==="fa"?"not on a team":/^ir/i.test(inj?.status||"")?"on IR":(inj?.status||"Out").toLowerCase()}});
+}
+function alertLine(l){
+  const a=alerts(l);if(!a.length)return"";
+  const nm=x=>esc(shortName(P(x.id).name));
+  const txt=a.length===1?`${nm(a[0])} is ${esc(a[0].why)}. Swap him before kickoff.`:`${a.length} starters can't play: ${a.map(x=>`${nm(x)} (${esc(x.why)})`).join(", ")}. Swap them before kickoff.`;
+  return`<p class="board-alert" role="alert"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8 15 14H1z"/><path d="M8 6.5v3.2M8 11.8v.01"/></svg><span>${txt}</span></p>`;
 }
 function oppLine(id){
   const p=P(id);
@@ -571,7 +627,7 @@ function render(){
   const tabsEl=$("tabs"),items=[...D.leagues.map(l=>l.id),"all"];
   tabsEl.style.setProperty("--n",items.length);
   tabsEl.style.setProperty("--i",Math.max(0,items.indexOf(cur)));
-  tabsEl.innerHTML=D.leagues.map(l=>`<button class="tab" role="tab" aria-selected="${l.id===cur}" data-k="${l.id}"><b>${esc(key(l))}</b><span>${fmt(total(l))}${check(l).issues.length?`<i class="fixdot" aria-label="needs attention"></i>`:""}</span></button>`).join("")+`<button class="tab" role="tab" aria-selected="${cur==="all"}" data-k="all"><b>All</b><span>Overview</span></button>`;
+  tabsEl.innerHTML=D.leagues.map(l=>`<button class="tab" role="tab" aria-selected="${l.id===cur}" data-k="${l.id}"><b>${esc(key(l))}</b><span>${fmt(total(l))}${check(l).issues.length||alerts(l).length?`<i class="fixdot" aria-label="needs attention"></i>`:""}</span></button>`).join("")+`<button class="tab" role="tab" aria-selected="${cur==="all"}" data-k="all"><b>All</b><span>Overview</span></button>`;
   const v=$("view");
   if(cur==="all"){document.body.classList.remove("has-bar");v.innerHTML=renderAll();muOpen=null;renderMU();return}
   const l=D.leagues.find(x=>x.id===cur);if(!l)return;
@@ -653,14 +709,10 @@ function sideTotals(l,side,ids){
   return{live,proj,started,left,playing};
 }
 function synced(l){const m=starters(l,"me");if(!m.set)return false;const a=new Set(m.ids),b=lineups[l.id];return a.size===b.size&&[...b].every(x=>a.has(x))}
-function staticRow(l,side,id){
-  const pl=P(id);
-  return`<div class="row static"><span class="ptag ${pl.pos}">${pl.pos}</span><span class="nm">${nameLine(pl,id,"")}${oppLine(id)}</span><span class="pv">${pointsCol(l,side,id).html}</span></div>`;
-}
 function matchupCard(l){
   const lv=l.live;
   const foot=`<div class="board-foot"><button class="ghost${liveBusy?" spin":""}" data-act="liveref">${ICON_REFRESH}Refresh scores</button><span>${D.liveAt?`Scores as of ${new Date(D.liveAt).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`:"Auto-updates during games"}</span></div>`;
-  if(!lv||!lv.opp)return`<section class="board"><div class="board-top"><span class="board-label">Week ${week}</span></div><p class="board-note">${lv?"You don't have an opponent this week.":"MFL didn't send a matchup for this week. Refresh to try again."}</p>${foot}</section>`;
+  if(!lv||!lv.opp)return`<section class="board"><div class="board-top"><span class="board-label">Week ${week}</span></div>${alertLine(l)}<p class="board-note">${lv?"You don't have an opponent this week.":"MFL didn't send a matchup for this week. Refresh to try again."}</p>${foot}</section>`;
   const mine=starters(l,"me"),theirs=starters(l,"opp");
   const myIds=mine.set?mine.ids:[...lineups[l.id]];
   const a=sideTotals(l,"me",myIds),b=theirs.set?sideTotals(l,"opp",theirs.ids):null;
@@ -679,6 +731,7 @@ function matchupCard(l){
   const left=a.left+(b?b.left:0);
   return`<section class="board${intro?" intro":""}">
     <div class="board-top"><span class="board-label">${liveNow?`<i class="livedot"></i>Live, week ${week}`:anyLive?`Week ${week} in progress`:`Week ${week} matchup`}</span><span>${anyLive?`${left} player${left===1?"":"s"} left`:""}</span></div>
+    ${alertLine(l)}
     <div class="teams tap" data-act="openmu" role="button" tabindex="0" aria-label="Open full matchup">
       <div class="team${B!=null&&A>B?" lead":""}"><span class="tid">${ficon(me(l))}<span class="tname">${esc(me(l).name||"You")}</span></span>${sc(A,"me")}<span class="tsub">${mySub}</span></div>
       <div class="team r${B!=null&&B>A?" lead":""}"><span class="tid">${ficon(opp)}<span class="tname">${esc(opp.name)}</span></span>${sc(B,"opp")}<span class="tsub">${sub(b)}</span></div>
@@ -696,8 +749,14 @@ async function refreshLive(quiet){
   try{
     const r=await api("GET",null,null,`action=live&w=${week}&leagues=${encodeURIComponent(D.leagues.map(l=>`${l.id}~${l.host}~${l.fid}`).join(","))}`);
     if(r.week!==week)return;
-    r.leagues.forEach(x=>{const l=D.leagues.find(y=>y.id===x.id);if(l&&x.live)l.live=x.live});
+    const moved=[];
+    r.leagues.forEach(x=>{const l=D.leagues.find(y=>y.id===x.id);if(!l||!x.live)return;
+      const was=[...lineups[l.id]].sort().join(","),wasBase=mflKey(l);l.live=x.live;
+      if(!(confirming&&l.id===cur))reconcile(l);
+      if(wasBase&&mflKey(l)!==wasBase&&[...lineups[l.id]].sort().join(",")!==was)moved.push(key(l))});
+    if(r.injuries)D.injuries=r.injuries;
     D.liveAt=r.at;store.set("dd-data",D);
+    if(moved.length)toast(`Lineup changed on MFL for league ${moved.join(", ")}. Showing it now.`);
     if(!quiet)toast("Scores updated");
   }catch(e){if(!quiet&&e.message!=="PIN"&&e.message!=="PIN needed")toast(e.message)}
   finally{
@@ -838,16 +897,16 @@ const p1=v=>(Math.round((v||0)*10)/10).toFixed(1);
 function bInfo(l,side,id){
   const pl=P(id),pr=l.proj[id]||0,g=G[pl.team],st=pst(l,side,id);
   const off=pl.team==="FA"||D.byes.includes(pl.team);
-  let status="",pts,proj=`<small class="bq">proj ${p1(pr)}</small>`;
-  if(off){pts=`<b class="bp nil">—</b>`;status=`<small class="bs">${pl.team==="FA"?"No team":"Bye week"}</small>`;proj=""}
+  let status="",right="";
+  if(off){status=`<small class="bs">${pl.team==="FA"?"No team":"Bye week"}</small>`}
   else if(st.started){
-    pts=`<b class="bp" data-pk="${side}-${l.id}-${id}" data-pv="${st.actual}">${fmt(st.actual)}</b>`;
     status=st.final?`<small class="bs">Final</small>`:`<small class="bs on"><i></i>${(clock(st.secs)||"Live").replace(/^Q(\d) /,"Q$1 · ")}</small>`;
-  }else{pts=`<b class="bp nil">—</b>`;status=`<small class="bs"></small>`}
+    right=`<span class="bpq"><b class="bp" data-pk="${side}-${l.id}-${id}" data-pv="${st.actual}">${fmt(st.actual)}</b><small class="bq">proj ${p1(pr)}</small></span>`;
+  }else right=`<span class="bpq pre"><small class="bq">proj<b>${p1(pr)}</b></small></span>`;
   // Just the opponent; the logo badge on the photo already shows the player's own team.
-  const game=off?"&nbsp;":g?`${g.home?"vs":"@"} ${tm(g.opp.id)}`:"&nbsp;";
+  const game=off||!g?"":`<small class="bg">${g.home?"vs":"@"} ${tm(g.opp.id)}</small>`;
   return{started:!off&&st.started,v:off?0:st.started?st.actual:0,pr:off?0:pr,
-    html:(r,cls)=>`<div class="bcell${r?" r":""}${cls?" "+cls:""}">${shotOf(pl,id)}<b class="bn"><span class="fit" data-last="${esc(String(pl.name).split(" ").slice(1).join(" ")||pl.name)}">${esc(shortName(pl.name))}</span>${badgeFor(id,state(id,l))}</b><small class="bg">${game}</small>${status}${pts}${proj}</div>`};
+    html:(r,cls)=>`<div class="bcell${r?" r":""}${cls?" "+cls:""}">${shotOf(pl,id)}<b class="bn"><span class="fit" data-last="${esc(String(pl.name).split(" ").slice(1).join(" ")||pl.name)}">${esc(shortName(pl.name))}</span>${badgeFor(id,state(id,l))}</b><span class="bm">${game}${status}</span>${right}</div>`};
 }
 // Player photo with a small team-logo badge. Sleeper's photo first, ESPN's if that fails, initials if neither loads.
 function shotOf(pl,id){
@@ -1091,17 +1150,18 @@ document.addEventListener("click",async e=>{
     return;
   }
   const r=e.target.closest("button.row[data-id]");
-  if(r&&!busy){const s=lineups[l.id],id=r.dataset.id,before=r.getBoundingClientRect();s.has(id)?s.delete(id):s.add(id);confirming=false;flashId=id;store.set(lk(l),[...s]);render();glide(id,before);return}
+  if(r&&!busy){const s=lineups[l.id],id=r.dataset.id,before=r.getBoundingClientRect();s.has(id)?s.delete(id):s.add(id);confirming=false;flashId=id;saveDraft(l);render();glide(id,before);return}
   const a=e.target.closest("[data-act]");if(!a)return;
   const act=a.dataset.act;
   if(act==="liveref"){refreshLive(false);return}
-  if(act==="best"){lineups[l.id]=best(l);store.set(lk(l),[...lineups[l.id]]);render();toast("Best projected lineup set")}
+  if(act==="best"){lineups[l.id]=best(l);saveDraft(l);render();toast("Best projected lineup set")}
   if(act==="ask"){confirming=true;render()}
   if(act==="cancel"){confirming=false;render()}
   if(act==="send"){
     busy=true;render();
     try{await api("POST",{action:"lineup",league:l.id,host:l.host,week,starters:[...lineups[l.id]]});
       if(l.live&&l.live.me){const pl=l.live.me.players;Object.keys(pl).forEach(k=>pl[k].starter=lineups[l.id].has(k));lineups[l.id].forEach(k=>{if(!pl[k])pl[k]={score:null,secs:null,starter:true}});store.set("dd-data",D)}
+      store.del(lk(l)); // MFL now has exactly this lineup, so there's no draft to keep
       toast(`Lineup sent to MFL for league ${key(l)}`)}
     catch(err){if(err.message!=="PIN"&&err.message!=="PIN needed")toast(err.message)}
     busy=false;confirming=false;render();
@@ -1112,6 +1172,7 @@ $("retry").addEventListener("click",()=>load(week));
 $("prev").addEventListener("click",()=>{if(week>1)load(week-1)});
 $("next").addEventListener("click",()=>{if(week<18)load(week+1)});
 if(D){try{prepare();render()}catch(e){D=null}}
+renderFoot();
 load(null);
 </script>
 </body>
