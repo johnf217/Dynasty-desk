@@ -6,12 +6,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Dynasty Desk">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/icon-192.png">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F4F4F2">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0C0C0E">
 <title>Dynasty Desk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700;1,800&family=Big+Shoulders+Display:wght@700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700;1,800&display=swap">
 <style>
 /* Dynasty Desk — broadcast graphics system.
    One idea: Sunday-TV scorebugs. Tall condensed numerals (Big Shoulders) for anything you'd see on a scoreboard,
@@ -27,7 +31,7 @@
   --board:#141518; --board-2:#2A2C33; --board-ink:#F3F3F5; --board-muted:#A3A5AD; --field-a:#2C2E35; --field-b:#272930;
   --shadow-2:0 24px 48px -24px rgb(18 18 22 / .55),0 2px 6px rgb(18 18 22 / .10);
   --r-lg:22px; --r-md:12px; --r-sm:10px;
-  --display:"Big Shoulders Display","Oswald","Arial Narrow",sans-serif;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
   --text:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
   --ease:cubic-bezier(.2,.8,.2,1);
   color-scheme:light;
@@ -115,7 +119,6 @@ h1{font:800 27px/1 var(--display);letter-spacing:.01em;margin:0;white-space:nowr
 .ghost svg{width:14px;height:14px}
 .spin svg{animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.board .mvopen{width:100%;justify-content:center;padding-block:11px;background:rgb(255 255 255 / .08);border-color:rgb(255 255 255 / .16)}
 .livedot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--live);flex:none;animation:ping 1.8s ease-out infinite}
 @keyframes ping{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--live) 55%,transparent)}80%,100%{box-shadow:0 0 0 6px transparent}}
 
@@ -155,18 +158,23 @@ h1{font:800 27px/1 var(--display);letter-spacing:.01em;margin:0;white-space:nowr
 .list-head{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;font-weight:600;padding-inline:2px;margin-bottom:-6px}
 .list-head small{font-size:13px;font-stretch:75%;font-weight:400;color:var(--muted);margin-left:6px}
 .list{display:flex;flex-direction:column;margin-inline:-8px}
-.row{display:grid;grid-template-columns:38px minmax(0,1fr) auto 26px;align-items:center;gap:12px;width:100%;min-height:72px;padding:13px 8px;border:0;background:none;border-radius:var(--r-md);text-align:left;cursor:pointer;position:relative;transition:background .18s,transform .12s var(--ease)}
-.row+.row::before,.row+.sheet+.row::before{content:"";position:absolute;top:0;left:58px;right:8px;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:36px minmax(0,1fr) auto 26px;align-items:center;gap:11px;width:100%;min-height:58px;padding:8px 8px;border:0;background:none;border-radius:var(--r-md);text-align:left;cursor:pointer;position:relative;transition:background .18s,transform .12s var(--ease)}
+.row+.row::before,.row+.sheet+.row::before{content:"";position:absolute;top:0;left:55px;right:8px;border-top:1px solid var(--line)}
 .row:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
 .row:active{transform:scale(.985)}
-.row.static{grid-template-columns:38px minmax(0,1fr) auto;cursor:default}
+.row.static{grid-template-columns:36px minmax(0,1fr) auto;cursor:default}
 .row.static:hover{background:none}.row.static:active{transform:none}
-.row.fa{grid-template-columns:38px minmax(0,1fr) auto auto}
+.row.fa{grid-template-columns:36px minmax(0,1fr) auto auto}
 .row.sel{background:var(--sunk)}
 .ptag{--pc:var(--faint);height:32px;border-radius:var(--r-sm);display:grid;place-items:center;font:800 15px/1 var(--display);letter-spacing:.05em;color:#fff;background:var(--pc)}
 .ptag.QB{--pc:var(--qb)}.ptag.RB{--pc:var(--rb)}.ptag.WR{--pc:var(--wr)}.ptag.TE{--pc:var(--te)}
-.nm{display:flex;flex-direction:column;gap:5px;min-width:0}
-.pn{display:flex;align-items:center;gap:7px;min-width:0;font-weight:600;font-size:16px;line-height:1.2}
+.nm{display:flex;flex-direction:column;gap:3px;min-width:0}
+.row .hs{grid-area:auto;width:36px;height:36px}
+.row .hsi{background:var(--sunk);box-shadow:inset 0 0 0 1px var(--line);color:var(--muted)}
+.row .hsb{background:var(--surface);box-shadow:0 0 0 1.5px var(--surface)}
+.pos{font:700 13px/1 var(--display);letter-spacing:.05em;color:var(--pc)}
+.pn{display:flex;align-items:center;gap:7px;min-width:0;font:700 19px/1.05 var(--display);text-transform:uppercase;letter-spacing:.01em}
+.pn .inj,.pn .rk,.pn .stk{text-transform:none;letter-spacing:0;font-family:var(--text)}
 .pn .nmx{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pn>*:not(.nmx){flex:none}
 .rk{font-size:12px;font-stretch:75%;font-weight:600;color:var(--muted);box-shadow:inset 0 0 0 1px var(--line);padding:0 5px;border-radius:5px;line-height:17px}
@@ -179,7 +187,7 @@ h1{font:800 27px/1 var(--display);letter-spacing:.01em;margin:0;white-space:nowr
 .opp .dr.tough{color:var(--bad)}
 .opp .out{color:var(--bad);font-weight:500}
 .pv{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
-.pts{font:800 22px/1 var(--display);font-variant-numeric:tabular-nums;border-radius:4px}
+.pts{font:700 23px/1 var(--display);font-variant-numeric:tabular-nums;border-radius:4px}
 .pts.zero{color:var(--faint)}
 .gs{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-stretch:75%;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 .gs.on{color:var(--ink);font-weight:600}
@@ -258,6 +266,13 @@ h1{font:800 27px/1 var(--display);letter-spacing:.01em;margin:0;white-space:nowr
 .claim .cr{display:flex;align-items:center;gap:8px;flex:none}
 .claim .amt{font:800 24px/1 var(--display);font-variant-numeric:tabular-nums;margin-right:4px}
 .claim-sheet{margin:0 0 6px}
+.bhl{display:flex;flex-direction:column}
+.bh{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:10px;padding:9px 2px}
+.bh+.bh{border-top:1px solid var(--line)}
+.bhn{display:flex;flex-direction:column;min-width:0}
+.bhn b{font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bhn small{font-size:12.5px;font-stretch:75%;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bh .amt{font:700 20px/1 var(--display);font-variant-numeric:tabular-nums}
 .search{position:relative;display:block}
 .search svg{position:absolute;left:13px;top:50%;width:18px;height:18px;margin-top:-9px;color:var(--muted);pointer-events:none}
 .search input{width:100%;font:400 16px var(--text);padding:12px 12px 12px 40px;border-radius:var(--r-md);border:1px solid transparent;background:var(--sunk);color:var(--ink);transition:background .2s,border-color .2s}
@@ -373,6 +388,18 @@ h1{font:800 27px/1 var(--display);letter-spacing:.01em;margin:0;white-space:nowr
 .bench .bn{color:rgb(255 255 255 / .82)}
 .mnote{font-size:13.5px;color:var(--muted);margin:10px 0 0;padding-inline:6px;line-height:1.5;text-align:center}
 .bcell .inj{font-family:var(--text)}
+.lb{margin-top:16px;display:flex;flex-direction:column;gap:2px}
+.lb h4{margin:0 4px 6px;font:700 15px/1 var(--bc);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.lbrow{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;padding:9px 10px;border-radius:12px;background:var(--surface)}
+.lbrow.me{box-shadow:inset 3px 0 0 var(--me);background:linear-gradient(90deg,rgb(var(--me-rgb) / .1),var(--surface) 60%)}
+.lbt{display:flex;align-items:center;gap:7px;min-width:0;font-size:13.5px;font-weight:600}
+.lbt.r{flex-direction:row-reverse;text-align:right}
+.lbn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.lbs{display:grid;grid-template-columns:auto 34px auto;align-items:center;gap:4px;text-align:center}
+.lbs b{min-width:44px;font:700 19px/1 var(--bc);font-variant-numeric:tabular-nums;color:var(--muted)}
+.lbs b.w{color:#fff}
+.lbs i{font-style:normal;font-size:10.5px;line-height:1.1;font-stretch:87.5%;white-space:normal!important;color:var(--faint);white-space:nowrap}
+.lbrow .ft.sm{background:var(--sunk);box-shadow:inset 0 0 0 1px var(--line);color:var(--muted)}
 
 /* Standings */
 .stbox{overflow-x:auto;margin-inline:-16px;padding-inline:16px;scrollbar-width:none}
@@ -490,7 +517,7 @@ let liveHold=0; // after MFL says "too many requests", auto-refresh pauses for 5
 let G={},owned={},seen=new Set(),intro=false,flashId=null,lastSegI=0,lastMode="lineup",liveBusy=false;
 
 // Version of this page. The server sends its own version, so a mismatch means one file wasn't uploaded.
-const APP_VERSION="v11";
+const APP_VERSION="v12";
 let srvVer=null,pinWeak=false;
 function renderFoot(){
   const el=$("foot");if(!el)return;
@@ -597,13 +624,14 @@ function alertLine(l){
 }
 function oppLine(id){
   const p=P(id);
-  if(p.team==="FA")return`<span class="opp"><span class="out">Free agent</span></span>`;
-  if(D.byes.includes(p.team))return`<span class="opp">${logo(p.team,18)}<span class="out">Bye week</span></span>`;
-  const g=G[p.team];if(!g)return`<span class="opp">${logo(p.team,18)}</span>`;
+  const ps=`<span class="pos ${esc(p.pos)}">${esc(p.pos)}</span>`;
+  if(p.team==="FA")return`<span class="opp">${ps}<span class="out">Free agent</span></span>`;
+  if(D.byes.includes(p.team))return`<span class="opp">${ps}<span class="out">Bye week</span></span>`;
+  const g=G[p.team];if(!g)return`<span class="opp">${ps}</span>`;
   const r=p.pos==="RB"?g.opp.rushD:g.opp.passD;
-  return`<span class="opp">${logo(p.team,18)}<span class="vs">${g.home?"vs":"@"} ${tm(g.opp.id)}</span>${r?`<span class="dr${r<=8?" tough":""}" title="${ord(r)} ${p.pos==="RB"?"run":"pass"} defense">${ord(r)} D</span>`:""}</span>`;
+  return`<span class="opp">${ps}<span class="vs">${g.home?"vs":"@"} ${tm(g.opp.id)}</span>${r?`<span class="dr${r<=8?" tough":""}" title="${ord(r)} ${p.pos==="RB"?"run":"pass"} defense">${ord(r)} D</span>`:""}</span>`;
 }
-function nameLine(p,id,st,extra){return`<span class="pn"><span class="nmx">${esc(p.name)}</span>${badgeFor(id,st)}${p.rookie?`<span class="rk">R</span>`:""}${extra||""}</span>`}
+function nameLine(p,id,st,extra){return`<span class="pn"><span class="nmx">${esc(shortName(p.name))}</span>${badgeFor(id,st)}${p.rookie?`<span class="rk">R</span>`:""}${extra||""}</span>`}
 function badgeFor(id,st){
   const inj=D.injuries[id];if(!inj)return"";
   const s=inj.status||"";
@@ -614,13 +642,13 @@ function pointsCol(l,side,id){
   if(pl.team==="FA"||D.byes.includes(pl.team))return{html:`<span class="pts zero">—</span><span class="gs">${pl.team==="FA"?"No team":"Bye"}</span>`,v:0,live:false};
   if(st.started){const live=!st.final;return{html:`<span class="pts" data-pk="${side}-${l.id}-${id}" data-pv="${st.actual}">${fmt(st.actual)}</span><span class="gs${live?" on":""}">${live?`<i class="livedot"></i>${clock(st.secs)||"Live"}`:"Final"}</span>`,v:st.actual,live}}
   const g=G[pl.team];
-  return{html:`<span class="pts${pr?"":" zero"}">${pr||s0==="ok"?fmt(pr):"—"}</span><span class="gs">${g?whenShort(g.t):""}</span>`,v:pr,live:false};
+  return{html:`<span class="pts${pr?"":" zero"}">${pr||s0==="ok"?fmt(pr):"—"}</span><span class="gs">proj</span>`,v:pr,live:false};
 }
 function row(l,id,on){
   const p=P(id),st=state(id,l);
   let stk="";
   if(on&&p.pos==="QB"){const m=l.roster.find(o=>o!==id&&lineups[l.id].has(o)&&P(o).pos==="QB"&&P(o).team===p.team);if(m)stk=`<span class="stk" title="${esc(P(m).name)} is also starting">Same team</span>`}
-  return`<button class="row${on?" on":""}${id===flashId?" flash":""}" data-id="${id}" aria-pressed="${on}" aria-label="${esc(p.name)}, ${on?"starting. Tap to bench":"on bench. Tap to start"}"><span class="ptag ${p.pos}">${p.pos}</span><span class="nm">${nameLine(p,id,st,stk)}${oppLine(id)}</span><span class="pv">${pointsCol(l,"me",id).html}</span><span class="tg" aria-hidden="true"></span></button>`;
+  return`<button class="row${on?" on":""}${id===flashId?" flash":""}" data-id="${id}" aria-pressed="${on}" aria-label="${esc(p.name)}, ${on?"starting. Tap to bench":"on bench. Tap to start"}">${shotOf(p,id)}<span class="nm">${nameLine(p,id,st,stk)}${oppLine(id)}</span><span class="pv">${pointsCol(l,"me",id).html}</span><span class="tg" aria-hidden="true"></span></button>`;
 }
 function render(){
   if(!D)return;
@@ -654,7 +682,7 @@ function render(){
     <div class="seg" role="group" aria-label="View" style="--i:${lastSegI}"><button data-mode="lineup" aria-pressed="${mode==="lineup"}">Lineup</button><button data-mode="fa" aria-pressed="${mode==="fa"}">Free agents</button><button data-mode="st" aria-pressed="${mode==="st"}">Standings</button></div>
     <div class="swap${lastMode!==mode?" in":""}">${mode==="fa"?faPanel(l):mode==="st"?standingsPanel(l):lineupBody}</div>
   </section>
-  ${mode==="st"?"":`<section class="panel">
+  ${mode!=="fa"?"":`<section class="panel">
     <div class="panel-head"><h3>FAAB budgets</h3><span>${mine.waiver?`You're ${ord(mine.waiver)} in waiver order`:""}</span></div>
     <div class="faab">${faab.map(f=>`<div class="frow${f.id===l.fid?" me":""}">${ficon(f,"sm")}<span class="fn">${esc(f.name)}</span><span class="fbar"><i style="width:${Math.max(2,f.faab/fmax*100)}%"></i></span><span class="fv">$${f.faab}</span></div>`).join("")}</div>
   </section>`}
@@ -724,10 +752,10 @@ function matchupCard(l){
   const sub=s=>s?(anyLive?`Proj final ${fmt(s.proj)}`:"Projected"):"Lineup not set";
   const mySub=mine.set?(anyLive?sub(a):"Projected, as set on MFL"):"Not set on MFL yet";
   const sc=(v,k)=>`<span class="score"${intro&&v!=null?` data-count="${v}"`:anyLive&&v!=null?` data-pk="board-${l.id}-${k}" data-pv="${v}"`:""}>${v==null?"—":fmt(v)}</span>`;
-  let share=null;
-  if(B!=null){const x=anyLive&&A+B>0?[A,B]:[a.proj,b.proj];share=x[0]+x[1]>0?x[0]/(x[0]+x[1]):.5}
-  const pct=share==null?null:Math.round(share*100);
-  const pos=pct==null?null:8+share*84;
+  // Same win-chance estimate as the full matchup screen (uses their best guess lineup if they haven't set one).
+  const oppIds=theirs.set?theirs.ids:bestOf(l,Object.keys(lv.opp.players));
+  const pct=oppIds.length?winChance(l,myIds,oppIds):null;
+  const pos=pct==null?null:8+pct/100*84;
   const left=a.left+(b?b.left:0);
   return`<section class="board${intro?" intro":""}">
     <div class="board-top"><span class="board-label">${liveNow?`<i class="livedot"></i>Live, week ${week}`:anyLive?`Week ${week} in progress`:`Week ${week} matchup`}</span><span>${anyLive?`${left} player${left===1?"":"s"} left`:""}</span></div>
@@ -736,10 +764,8 @@ function matchupCard(l){
       <div class="team${B!=null&&A>B?" lead":""}"><span class="tid">${ficon(me(l))}<span class="tname">${esc(me(l).name||"You")}</span></span>${sc(A,"me")}<span class="tsub">${mySub}</span></div>
       <div class="team r${B!=null&&B>A?" lead":""}"><span class="tid">${ficon(opp)}<span class="tname">${esc(opp.name)}</span></span>${sc(B,"opp")}<span class="tsub">${sub(b)}</span></div>
     </div>
-    ${pct!=null?`<div class="field" data-act="openmu" role="img" aria-label="You have ${pct} percent of the ${anyLive?"points":"projected points"} in this matchup"><span class="ez l"></span><span class="ez r"></span><span class="mid"></span><span class="fill" style="width:${pos}%"></span><span class="ball" style="left:${pos}%"></span></div>
-    <div class="field-key"><span><b>${pct}%</b> of the ${anyLive?"points":"projected points"}</span><span>${100-pct}%</span></div>`:""}
-    
-    <button class="ghost mvopen" data-act="openmu" style="justify-content:center">View full matchup<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5"/></svg></button>
+    ${pct!=null?`<div class="field" data-act="openmu" role="img" aria-label="Estimated ${pct} percent chance you win"><span class="ez l"></span><span class="ez r"></span><span class="mid"></span><span class="fill" style="width:${pos}%"></span><span class="ball" style="left:${pos}%"></span></div>
+    <div class="field-key"><span><b>${pct}%</b> win chance</span><span>Tap for full matchup ›</span></div>`:""}
     ${foot}
   </section>`;
 }
@@ -827,9 +853,32 @@ function faPanel(l){
     </div>
     <div class="list-head"><span>Pending claims<small>${claims?claims.length:""}</small></span></div>
     ${claims==null?`<p class="note">Couldn't read your pending claims. Check them on the MFL site.</p>`:claims.length?claimsBlock(l,claims):`<p class="note">No pending claims. Tap Bid on a player below to add one.</p>`}
+    ${bidsBlock(l)}
     <label class="search">${ICON_SEARCH}<input type="text" id="fasearch" placeholder="Search free agents" value="${esc(faQ)}" autocomplete="off" aria-label="Search free agents"></label>
     <div class="chips">${["ALL",...POS].map(p=>`<button class="chip${p==="ALL"?"":" "+p}" data-pos="${p}" aria-pressed="${faPos===p}">${p==="ALL"?"All":p}</button>`).join("")}</div>
     <div id="falist" style="display:flex;flex-direction:column;gap:14px">${faList(l)}</div>`;
+}
+// Recent winning blind bids in this league, with typical prices by position.
+const BH={};let bhAll=false;
+async function loadBH(l){
+  BH[l.id]={loading:true};
+  try{BH[l.id]=await api("GET",null,null,`action=bids&L=${l.id}&host=${encodeURIComponent(l.host)}`)}
+  catch(e){BH[l.id]={error:e.message}}
+  if(cur===l.id&&mode==="fa")render();
+}
+function bidsBlock(l){
+  const h=BH[l.id];
+  if(!h){setTimeout(()=>loadBH(l));return""}
+  if(h.loading||h.error||!h.bids)return h.error?`<p class="note">Couldn't load past winning bids (${esc(h.error)}).</p>`:"";
+  if(!h.bids.length)return`<div class="list-head"><span>Winning bids</span></div><p class="note">No blind bids have cleared in this league yet.</p>`;
+  const med=a=>{const s=[...a].sort((x,y)=>x-y),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2};
+  const fr=id=>(l.franchises.find(f=>f.id===id)||{}).name||"";
+  const cells=POS.map(p=>{const a=h.bids.filter(b=>b.pos===p).map(b=>b.amt);return a.length?`<div class="cell ${p}"><span class="k"><i></i>${p} usual</span><b>$${Math.round(med(a))}</b><span class="s">high $${Math.max(...a)}</span></div>`:""}).join("");
+  const list=(bhAll?h.bids:h.bids.slice(0,6)).map(b=>`<div class="bh"><span class="pos ${esc(b.pos)}">${esc(b.pos)}</span><span class="bhn"><b>${esc(b.name)}</b><small>${esc(fr(b.fid))}${b.t?` · ${new Date(b.t*1000).toLocaleDateString([],{month:"short",day:"numeric"})}`:""}</small></span><span class="amt">$${b.amt}</span></div>`).join("");
+  return`<div class="list-head"><span>Winning bids<small>this season</small></span></div>
+    <div class="strip">${cells}</div>
+    <div class="bhl">${list}</div>
+    ${h.bids.length>6?`<button class="btn quiet sm" data-act="bhmore">${bhAll?"Show fewer":`Show all ${h.bids.length}`}</button>`:""}`;
 }
 function faList(l){
   const f=FA[faKey(l)];if(!f||!f.players)return"";
@@ -842,7 +891,7 @@ function faList(l){
 }
 function faRow(l,f,id){
   const p=f.players[id],v=f.proj[id],bye=D.byes.includes(p.team),inj=D.injuries[id],out=inj&&/out|ir|suspend/i.test(inj.status),g=G[p.team];
-  return`<button class="row fa${id===faSel?" sel":""}" data-fa="${id}" aria-expanded="${id===faSel}"><span class="ptag ${p.pos}">${p.pos}</span><span class="nm">${nameLine(p,id,out?"out":"")}${oppLine(id)}</span><span class="pv"><span class="pts${v&&!bye?"":" zero"}">${v&&!bye?fmt(v):"—"}</span><span class="gs">${bye?"Bye":g?whenShort(g.t):""}</span></span><span class="bidpill">${id===faSel?"Close":"Bid"}</span></button>`;
+  return`<button class="row fa${id===faSel?" sel":""}" data-fa="${id}" aria-expanded="${id===faSel}">${shotOf(p,id)}<span class="nm">${nameLine(p,id,out?"out":"")}${oppLine(id)}</span><span class="pv"><span class="pts${v&&!bye?"":" zero"}">${v&&!bye?fmt(v):"—"}</span><span class="gs">${bye?"Bye":"proj"}</span></span><span class="bidpill">${id===faSel?"Close":"Bid"}</span></button>`;
 }
 function bidForm(l,f,id){
   const mine=me(l),full=l.rosterSize&&l.roster.length>=l.rosterSize;
@@ -949,6 +998,20 @@ function fitNames(root){
   });
 }
 addEventListener("resize",()=>fitNames(document.querySelector("#mu .mv")));
+// Every matchup in the league this week, yours highlighted.
+function leagueBoard(l){
+  const all=l.live&&l.live.all;if(!all||all.length<2)return"";
+  const fr=id=>l.franchises.find(f=>f.id===id)||{name:"Team "+id};
+  const anyScore=all.some(m=>m.some(t=>t.score));
+  const side=(t,r)=>`<span class="lbt${r?" r":""}">${ficon(fr(t.id),"sm")}<span class="lbn">${esc(fr(t.id).name)}</span></span>`;
+  const rows=all.filter(m=>m.length===2).map(m=>{
+    const[a,b]=m.some(t=>t.id===l.fid)?(m[0].id===l.fid?m:[m[1],m[0]]):m,mine=a.id===l.fid;
+    const sc=t=>anyScore?fmt(t.score||0):"—",lead=t=>anyScore&&t.score>(t===a?b:a).score;
+    const left=a.yet+a.playing+b.yet+b.playing;
+    return`<div class="lbrow${mine?" me":""}">${side(a)}<span class="lbs"><b class="${lead(a)?"w":""}">${sc(a)}</b><i>${anyScore&&left?`${left}<br>left`:anyScore?"Final":"vs"}</i><b class="${lead(b)?"w":""}">${sc(b)}</b></span>${side(b,true)}</div>`;
+  }).join("");
+  return`<section class="lb"><h4>Around the league</h4>${rows}</section>`;
+}
 let muBench=false,vtBusy=false,muPending=false;
 // Re-renders that arrive mid-morph (live scores, standings) wait until it finishes, or they'd cut it short.
 function renderMU(){if(vtBusy){muPending=true;return}drawMU()}
@@ -992,6 +1055,7 @@ function drawMU(){
       ${theirs.set?"":`<p class="mnote" style="margin:0 0 4px">${esc(oppF.name)} hasn't set a lineup, so this shows their highest-projected players.</p>`}
       ${rows}
       ${bn?`<button class="benchbtn" data-act="mubench" aria-expanded="${muBench}"><b>${muBench?"Hide":"Show"} bench<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3.5 6 4.5 4.5L12.5 6"/></svg></b><span>${benchA.length} players · ${p1(benchPts)} pts</span></button>${muBench?`<div class="bench">${bench}</div>`:""}`:""}
+      ${leagueBoard(l)}
       ${done?"":`<p class="mnote">Win chance is an estimate: points so far plus what each side is still projected to score.</p>`}
     </div></div>`;
   const mv=host.querySelector(".mv");
@@ -1091,7 +1155,7 @@ function renderAll(){
   ${byeNames?`<p class="note">On bye this week: ${esc(byeNames)}.</p>`:""}</section>
   <section class="panel"><div class="panel-head"><h3>Shared players</h3><span>${shared.length} on two or more teams</span></div>
   <p class="note">An injury to one of these players hits more than one league.</p>
-  <div class="list">${shared.map(([id,ks])=>{const p=P(id);return`<div class="row static"><span class="ptag ${p.pos}">${p.pos}</span><span class="nm">${nameLine(p,id,"")}${oppLine(id)}</span><span class="pv"><span class="gs">${ks.join(", ")}</span></span></div>`}).join("")}</div></section>`;
+  <div class="list">${shared.map(([id,ks])=>{const p=P(id);return`<div class="row static">${shotOf(p,id)}<span class="nm">${nameLine(p,id,"")}${oppLine(id)}</span><span class="pv"><span class="gs">${ks.join(", ")}</span></span></div>`}).join("")}</div></section>`;
 }
 function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("show"),2800)}
 
@@ -1128,6 +1192,7 @@ document.addEventListener("click",async e=>{
   const fr=e.target.closest("button[data-fa]");
   if(fr&&!busy){const id=fr.dataset.fa;faSel=faSel===id?null:id;bidDraft={amt:"",drop:""};bidConfirm=false;renderFAList();if(faSel){const inp=$("bidamt");if(inp)inp.focus({preventScroll:true})}return}
   const fa=e.target.closest("[data-act]");
+  if(fa&&fa.dataset.act==="bhmore"){bhAll=!bhAll;render();return}
   if(fa&&["famore","fareload","bidask","bidcancel","bidsend"].includes(fa.dataset.act)){
     const k=faKey(l),f=FA[k];
     if(fa.dataset.act==="famore"){faShow+=50;renderFAList()}
