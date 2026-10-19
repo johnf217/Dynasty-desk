@@ -12,7 +12,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 export const config = { path: "/api/mfl" };
 
 // Shown in the app's footer so you can tell which version of this file is deployed.
-const VERSION = "v11";
+const VERSION = "v12";
 
 const YEAR = process.env.MFL_YEAR || "2026";
 const API_HOST = "https://api.myfantasyleague.com";
@@ -54,7 +54,21 @@ const CACHE = new Map();
 // How long each kind of read stays fresh (ms). Live scores stay short; slow-changing data longer.
 const TTL = { myleagues: 6 * 3600e3, nflSchedule: 30 * 60e3, league: 20 * 60e3, rules: 12 * 3600e3, rosters: 60e3,
   projectedScores: 20 * 60e3, players: 6 * 3600e3, injuries: 10 * 60e3, liveScoring: 25e3, schedule: 3600e3,
-  leagueStandings: 10 * 60e3, freeAgents: 3 * 60e3, pendingWaivers: 0 };
+  leagueStandings: 10 * 60e3, freeAgents: 3 * 60e3, pendingWaivers: 0, transactions: 10 * 60e3 };
+
+// Netlify Blobs: a small key-value store that survives between requests, so slow-changing MFL data
+// (players, rules, schedule, projections) and the photo ID table don't have to be fetched again on
+// every cold start. Optional: if the package isn't available, everything still works from memory.
+let blobs;
+async function blobStore() {
+  if (blobs !== undefined) return blobs;
+  try { const { getStore } = await import("@netlify/blobs"); blobs = getStore("dynasty-desk-cache"); }
+  catch { blobs = null; }
+  return blobs;
+}
+const blobKey = (s) => createHash("sha256").update(s).digest("hex");
+async function blobGet(key) { const b = await blobStore(); if (!b) return null; try { return await b.get(blobKey(key), { type: "json" }); } catch { return null; } }
+async function blobSet(key, value) { const b = await blobStore(); if (!b) return; try { await b.setJSON(blobKey(key), value); } catch { /* optional */ } }
 const ttlFor = (url) => TTL[new URL(url).searchParams.get("TYPE")] ?? 0;
 
 // MFL returns a single object instead of a one-item list; normalize to arrays.
@@ -121,11 +135,13 @@ function httpError(status, message) {
 }
 
 async function mfl(url, { auth = true, retry = true, fresh = false } = {}) {
-  const ttl = fresh ? 0 : ttlFor(url), hit = CACHE.get(url);
+  const ttl = fresh ? 0 : ttlFor(url), durable = ttlFor(url) >= 5 * 60e3;
+  let hit = CACHE.get(url);
   if (hit && Date.now() - hit.t < ttl) return hit.v;
+  if (!hit && durable) { hit = await blobGet(url); if (hit) { CACHE.set(url, hit); if (Date.now() - hit.t < ttl) return hit.v; } }
   try {
     const data = await mflRaw(url, { auth, retry });
-    if (ttlFor(url)) CACHE.set(url, { t: Date.now(), v: data });
+    if (ttlFor(url)) { const e = { t: Date.now(), v: data }; CACHE.set(url, e); if (durable) await blobSet(url, e); }
     return data;
   } catch (e) {
     if (hit && (e.status === 429 || e.status === 502)) return hit.v; // MFL busy: use the copy we have
@@ -170,9 +186,12 @@ async function liveFor(host, league, fid, week) {
   });
   try {
     const ls = await mfl(exportUrl(host, "liveScoring", { L: league, W: week, DETAILS: "1" }));
-    for (const m of arr(ls.liveScoring?.matchup)) {
+    const ms = arr(ls.liveScoring?.matchup);
+    // Every matchup in the league this week (just teams, scores and players left), for the league scoreboard.
+    const all = ms.map((m) => arr(m.franchise).map((f) => ({ id: f.id, score: f.score === "" || f.score == null ? null : +f.score, yet: +f.playersYetToPlay || 0, playing: +f.playersCurrentlyPlaying || 0 })));
+    for (const m of ms) {
       const fs = arr(m.franchise), me = fs.find((f) => f.id === fid);
-      if (me) { const opp = fs.find((f) => f.id !== fid); return { me: side(me), opp: opp ? side(opp) : null }; }
+      if (me) { const opp = fs.find((f) => f.id !== fid); return { me: side(me), opp: opp ? side(opp) : null, all }; }
     }
   } catch { /* fall back to the schedule below */ }
   try {
@@ -200,6 +219,8 @@ const IDS_URL = "https://raw.githubusercontent.com/dynastyprocess/data/master/fi
 let idTable = null;
 async function photoIds() {
   if (idTable && Date.now() - idTable.t < 24 * 3600e3) return idTable.map;
+  const saved = await blobGet("photo-ids");
+  if (saved && Date.now() - saved.t < 24 * 3600e3) { idTable = { t: saved.t, map: new Map(saved.m) }; return idTable.map; }
   try {
     const res = await fetch(IDS_URL, { signal: AbortSignal.timeout(6000) });
     if (!res.ok) return idTable?.map || null;
@@ -212,6 +233,7 @@ async function photoIds() {
       if (ok(c[iM]) && (ok(c[iS]) || ok(c[iE]))) map.set(c[iM], { s: ok(c[iS]) ? c[iS] : null, e: ok(c[iE]) ? c[iE] : null });
     }
     idTable = { t: Date.now(), map };
+    await blobSet("photo-ids", { t: idTable.t, m: [...map] });
     return map;
   } catch { return idTable?.map || null; }
 }
@@ -371,6 +393,8 @@ async function freeAgents({ league, host, week }) {
       players[p.id] = { name: first ? `${first} ${last}` : p.name, pos: p.position, team: p.team, rookie: p.status === "R" };
     });
   }));
+  const photos = await photoIds();
+  if (photos) for (const id of Object.keys(players)) { const x = photos.get(id); if (x) { if (x.s) players[id].sl = x.s; if (x.e) players[id].es = x.e; } }
   const keep = Object.keys(players);
   const proj = {};
   await Promise.all(chunks(keep, 250).map(async (c) => {
@@ -435,6 +459,29 @@ async function setClaims({ league, host, picks }) {
   return { ok: !error && matched, matched, error, pending: now, wanted: picks };
 }
 
+// Winning blind bids in this league (most recent first), to help size your own bids.
+// MFL lists each as "addedId,|amount|droppedIds," under TRANS_TYPE=BBID_WAIVER.
+async function bidHistory({ league, host }) {
+  if (!okHost(host)) throw httpError(400, "Unknown league server.");
+  const t = await mfl(exportUrl(host, "transactions", { L: league, TRANS_TYPE: "BBID_WAIVER" }));
+  const bids = [];
+  for (const x of arr(t.transactions?.transaction)) {
+    if (!/BBID/i.test(x.type || "")) continue;
+    const m = String(x.transaction || "").match(/^(\d+),?\|([\d.]+)\|/);
+    if (m) bids.push({ id: m[1], amt: +m[2], fid: x.franchise, t: +x.timestamp || 0 });
+  }
+  bids.sort((a, b) => b.t - a.t);
+  const ids = [...new Set(bids.map((b) => b.id))], players = {};
+  await Promise.all(chunks(ids, 300).map(async (c) => {
+    const pl = await mfl(exportUrl(API_HOST, "players", { PLAYERS: c.join(",") }), { auth: false });
+    arr(pl.players?.player).forEach((p) => {
+      const [last, first] = String(p.name).split(", ");
+      players[p.id] = { name: first ? `${first} ${last}` : p.name, pos: p.position, team: p.team };
+    });
+  }));
+  return { league, bids: bids.filter((b) => players[b.id]).map((b) => ({ ...b, ...players[b.id] })) };
+}
+
 async function standings({ league, host }) {
   if (!okHost(host)) throw httpError(400, "Unknown league server.");
   const st = await mfl(exportUrl(host, "leagueStandings", { L: league }));
@@ -476,6 +523,10 @@ export default async (req, context) => {
       if (!list.length) return json(400, { error: "No leagues given." });
       const [leagues, injuries] = await Promise.all([liveAll(w, list), injuryMap(w)]);
       return json(200, { week: +w, at: Date.now(), leagues, injuries });
+    }
+    if (q.get("action") === "bids") {
+      if (!/^\d+$/.test(q.get("L") || "")) return json(400, { error: "Missing league." });
+      return json(200, await bidHistory({ league: q.get("L"), host: q.get("host") }));
     }
     if (q.get("action") === "standings") {
       if (!/^\d+$/.test(q.get("L") || "")) return json(400, { error: "Missing league." });
