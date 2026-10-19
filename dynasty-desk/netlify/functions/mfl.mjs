@@ -7,7 +7,12 @@
 //   APP_PIN       any PIN you choose; the app asks for it once per device
 //   MFL_YEAR      optional, defaults to 2026
 
+import { createHash, timingSafeEqual } from "node:crypto";
+
 export const config = { path: "/api/mfl" };
+
+// Shown in the app's footer so you can tell which version of this file is deployed.
+const VERSION = "v11";
 
 const YEAR = process.env.MFL_YEAR || "2026";
 const API_HOST = "https://api.myfantasyleague.com";
@@ -48,7 +53,7 @@ async function mflFetch(url, opts = {}) {
 const CACHE = new Map();
 // How long each kind of read stays fresh (ms). Live scores stay short; slow-changing data longer.
 const TTL = { myleagues: 6 * 3600e3, nflSchedule: 30 * 60e3, league: 20 * 60e3, rules: 12 * 3600e3, rosters: 60e3,
-  projectedScores: 20 * 60e3, players: 6 * 3600e3, injuries: 30 * 60e3, liveScoring: 25e3, schedule: 3600e3,
+  projectedScores: 20 * 60e3, players: 6 * 3600e3, injuries: 10 * 60e3, liveScoring: 25e3, schedule: 3600e3,
   leagueStandings: 10 * 60e3, freeAgents: 3 * 60e3, pendingWaivers: 0 };
 const ttlFor = (url) => TTL[new URL(url).searchParams.get("TYPE")] ?? 0;
 
@@ -58,8 +63,31 @@ const arr = (x) => (x == null ? [] : Array.isArray(x) ? x : [x]);
 const json = (status, body) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { "content-type": "application/json", "cache-control": "no-store" },
+    headers: {
+      "content-type": "application/json",
+      "cache-control": "no-store",
+      "x-dd-version": VERSION,
+      ...((process.env.APP_PIN || "").length < 8 ? { "x-dd-pin-weak": "1" } : {}),
+    },
   });
+
+// ---- PIN guard ----
+// Compare PINs in constant time, slow down every wrong guess, and lock an address out for
+// 15 minutes after 5 wrong PINs in 10 minutes. (Counts live while this function instance is
+// warm, so this mostly slows guessing down; a PIN of 8+ characters is what really keeps people out.)
+const samePin = (a, b) => {
+  const h = (x) => createHash("sha256").update(String(x)).digest();
+  return timingSafeEqual(h(a), h(b));
+};
+const misses = new Map();
+const lockedUntil = (ip) => { const m = misses.get(ip); return m && m.until > Date.now() ? m.until : 0; };
+function missed(ip) {
+  const now = Date.now();
+  let m = misses.get(ip);
+  if (!m || now - m.first > 10 * 60e3) m = { n: 0, first: now, until: 0 };
+  if (++m.n >= 5) m.until = now + 15 * 60e3;
+  misses.set(ip, m);
+}
 
 async function login() {
   const user = (process.env.MFL_USERNAME || "").trim(), pass = (process.env.MFL_PASSWORD || "").trim();
@@ -274,13 +302,19 @@ async function loadWeek(week) {
   const photos = await photosP;
   if (photos) for (const id of Object.keys(players)) { const x = photos.get(id); if (x) { if (x.s) players[id].sl = x.s; if (x.e) players[id].es = x.e; } }
 
-  const injuries = {};
-  try {
-    const inj = await mfl(exportUrl(API_HOST, "injuries", { W: wk }), { auth: false });
-    arr(inj.injuries?.injury).forEach((i) => { injuries[i.id] = { status: i.status, details: i.details || "" }; });
-  } catch { /* injuries are optional */ }
+  const injuries = (await injuryMap(wk)) || {};
 
   return { year: YEAR, week: +wk, generated: Date.now(), games, byes, players, injuries, leagues };
+}
+
+// Injury designations for the week (Out, Doubtful, Questionable, IR...). Optional: null if MFL doesn't answer.
+async function injuryMap(week) {
+  try {
+    const inj = await mfl(exportUrl(API_HOST, "injuries", { W: week }), { auth: false });
+    const out = {};
+    arr(inj.injuries?.injury).forEach((i) => { out[i.id] = { status: i.status, details: i.details || "" }; });
+    return out;
+  } catch { return null; }
 }
 
 async function submitLineup({ league, host, week, starters }) {
@@ -413,10 +447,18 @@ async function standings({ league, host }) {
   return { league, rows };
 }
 
-export default async (req) => {
+export default async (req, context) => {
   const pin = process.env.APP_PIN;
   if (!pin) return json(500, { error: "APP_PIN is not set in Netlify." });
-  if (req.headers.get("x-app-pin") !== pin) return json(401, { error: "Wrong PIN." });
+  const ip = context?.ip || req.headers.get("x-nf-client-connection-ip") || "unknown";
+  const until = lockedUntil(ip);
+  if (until) return json(429, { error: `Too many wrong PINs. Try again in ${Math.ceil((until - Date.now()) / 60e3)} minutes.` });
+  if (!samePin(req.headers.get("x-app-pin") || "", pin)) {
+    missed(ip);
+    await sleep(1200);
+    return json(401, { error: "Wrong PIN." });
+  }
+  misses.delete(ip);
   try {
     if (req.method === "POST") {
       const body = await req.json().catch(() => ({}));
@@ -432,7 +474,8 @@ export default async (req) => {
       const list = (q.get("leagues") || "").split(",").map((s) => { const [id, host, fid] = s.split("~"); return { id, host, fid }; })
         .filter((x) => /^\d+$/.test(x.id) && okHost(x.host) && /^\d{4}$/.test(x.fid));
       if (!list.length) return json(400, { error: "No leagues given." });
-      return json(200, { week: +w, at: Date.now(), leagues: await liveAll(w, list) });
+      const [leagues, injuries] = await Promise.all([liveAll(w, list), injuryMap(w)]);
+      return json(200, { week: +w, at: Date.now(), leagues, injuries });
     }
     if (q.get("action") === "standings") {
       if (!/^\d+$/.test(q.get("L") || "")) return json(400, { error: "Missing league." });
