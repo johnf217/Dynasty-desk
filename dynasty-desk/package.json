@@ -1,0 +1,8 @@
+{
+  "name": "dynasty-desk",
+  "private": true,
+  "description": "Netlify installs this so the server function can keep a cache between requests.",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}
