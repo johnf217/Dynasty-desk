@@ -15,7 +15,7 @@
 <title>Dynasty Desk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700;1,800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700;1,800&family=Big+Shoulders+Display:wght@700;800&display=swap">
 <style>
 /* Dynasty Desk — broadcast graphics system.
    One idea: Sunday-TV scorebugs. Tall condensed numerals (Big Shoulders) for anything you'd see on a scoreboard,
@@ -31,7 +31,7 @@
   --board:#141518; --board-2:#2A2C33; --board-ink:#F3F3F5; --board-muted:#A3A5AD; --field-a:#2C2E35; --field-b:#272930;
   --shadow-2:0 24px 48px -24px rgb(18 18 22 / .55),0 2px 6px rgb(18 18 22 / .10);
   --r-lg:22px; --r-md:12px; --r-sm:10px;
-  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --display:"Big Shoulders Display","Oswald","Arial Narrow",sans-serif;
   --text:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
   --ease:cubic-bezier(.2,.8,.2,1);
   color-scheme:light;
@@ -173,7 +173,7 @@ h1{font:800 27px/1 var(--display);letter-spacing:.01em;margin:0;white-space:nowr
 .row .hsi{background:var(--sunk);box-shadow:inset 0 0 0 1px var(--line);color:var(--muted)}
 .row .hsb{background:var(--surface);box-shadow:0 0 0 1.5px var(--surface)}
 .pos{font:700 13px/1 var(--display);letter-spacing:.05em;color:var(--pc)}
-.pn{display:flex;align-items:center;gap:7px;min-width:0;font:700 19px/1.05 var(--display);text-transform:uppercase;letter-spacing:.01em}
+.pn{display:flex;align-items:center;gap:7px;min-width:0;font-weight:600;font-size:16px;line-height:1.2}
 .pn .inj,.pn .rk,.pn .stk{text-transform:none;letter-spacing:0;font-family:var(--text)}
 .pn .nmx{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pn>*:not(.nmx){flex:none}
@@ -187,7 +187,7 @@ h1{font:800 27px/1 var(--display);letter-spacing:.01em;margin:0;white-space:nowr
 .opp .dr.tough{color:var(--bad)}
 .opp .out{color:var(--bad);font-weight:500}
 .pv{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
-.pts{font:700 23px/1 var(--display);font-variant-numeric:tabular-nums;border-radius:4px}
+.pts{font:800 22px/1 var(--display);font-variant-numeric:tabular-nums;border-radius:4px}
 .pts.zero{color:var(--faint)}
 .gs{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-stretch:75%;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 .gs.on{color:var(--ink);font-weight:600}
@@ -447,6 +447,57 @@ body.has-bar .toast{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
 .teams.tap,.field[data-act]{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .teams.tap:active{transform:scale(.985);transition:transform .12s}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* Compact matchup rows: one line per player each side, position and point gap in the middle */
+.mv-in{max-width:620px;margin:0 auto;padding:0;display:flex;flex-direction:column;gap:0}
+.brow{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto 42px auto minmax(0,1fr);align-items:center;column-gap:6px;padding:7px 8px;border-top:1px solid var(--line)}
+.brow.wa{background:linear-gradient(90deg,rgb(var(--me-rgb) / .13),transparent 55%)}
+.brow.wa::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:0 2px 2px 0;background:var(--me)}
+.brow.wb{background:linear-gradient(270deg,rgb(var(--op-rgb) / .13),transparent 55%)}
+.brow.wb::after{content:"";position:absolute;right:0;top:8px;bottom:8px;width:3px;border-radius:2px 0 0 2px;background:var(--op)}
+.brow.pre.wa,.brow.pre.wb{background:none}.brow.pre::before,.brow.pre::after{opacity:.4}
+.pw{display:flex;align-items:center;gap:6px;min-width:0;overflow:hidden}
+.pw.r{flex-direction:row-reverse;text-align:right}
+.pw .hs{grid-area:auto;width:32px;height:32px;flex:none}
+.pw .hsb{width:16px;height:16px;right:-4px}.pw.r .hsb{left:-4px}
+.pt{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.pt .bn{max-width:100%;min-width:0}
+.pt .bn .fit{overflow:hidden}
+.pw.r .pt{align-items:flex-end}
+.pt .bn{font:700 17px/1.05 var(--bc);margin:0}
+.bm{display:block;font-size:12.5px;font-stretch:87.5%;line-height:1.2;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-variant-numeric:tabular-nums}
+.bm .dot{opacity:.6}
+.bm.on{color:var(--ink)}
+.bm i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--live);margin-right:3px;vertical-align:.1em}
+.pp{display:flex;flex-direction:column;align-items:flex-end;gap:1px;min-width:0}
+.pp.r{align-items:flex-start}
+.pp b{font:700 20px/1 var(--bc);font-variant-numeric:tabular-nums;color:#9DA1AA;border-radius:4px}
+.pp b.nil{color:var(--faint)}
+.pp small{font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums}
+.brow.wa .pp:not(.r) b{color:var(--me)}
+.brow.wb .pp.r b{color:#fff}
+.brow.pre .pp b{color:var(--faint)}
+.bslot{display:flex;flex-direction:column;align-items:center;gap:4px}
+.bslot .chip{padding:3px 0;width:38px;text-align:center;border-radius:6px;background:var(--sunk);font:700 12px/1 var(--bc);letter-spacing:.08em;color:var(--muted)}
+.gap{font:700 12.5px/1 var(--bc);font-variant-numeric:tabular-nums;white-space:nowrap}
+.gap.a{color:var(--me)}.gap.b{color:#E6E8EC}
+.bench .brow{opacity:.8}
+.bench{margin-top:0;gap:0}
+.benchbtn{margin:12px 12px 0;width:auto;padding:13px 16px;font-size:15px;border-radius:14px}
+.lb{margin:16px 12px 0}
+.mnote{margin:10px 12px 0}
+/* Compact header */
+.mvhero{padding:62px 16px 14px}
+.mv .board.mvh{gap:12px}
+.mvh .team .tid{min-height:0}
+.mvh .ft{--sz:36px;font-size:14px}
+.mvh .tname{font-size:18px;max-height:2em}
+.trec{font-size:13px}
+.mvh .score,.mvh .team.lead .score{font-size:min(54px,13vw);margin-top:8px}
+.mvh .tsub{font-size:13px}
+.mvh .vs{top:66px;font-size:17px}
+.wp{font-size:15px}
+.wpbar{height:6px;margin-top:4px}
 </style>
 </head>
 <body>
@@ -517,7 +568,7 @@ let liveHold=0; // after MFL says "too many requests", auto-refresh pauses for 5
 let G={},owned={},seen=new Set(),intro=false,flashId=null,lastSegI=0,lastMode="lineup",liveBusy=false;
 
 // Version of this page. The server sends its own version, so a mismatch means one file wasn't uploaded.
-const APP_VERSION="v12";
+const APP_VERSION="v14";
 let srvVer=null,pinWeak=false;
 function renderFoot(){
   const el=$("foot");if(!el)return;
@@ -943,20 +994,6 @@ function recOf(l,fid){
 }
 const p1=v=>(Math.round((v||0)*10)/10).toFixed(1);
 // One side of a matchup row: who, their game, and points.
-function bInfo(l,side,id){
-  const pl=P(id),pr=l.proj[id]||0,g=G[pl.team],st=pst(l,side,id);
-  const off=pl.team==="FA"||D.byes.includes(pl.team);
-  let status="",right="";
-  if(off){status=`<small class="bs">${pl.team==="FA"?"No team":"Bye week"}</small>`}
-  else if(st.started){
-    status=st.final?`<small class="bs">Final</small>`:`<small class="bs on"><i></i>${(clock(st.secs)||"Live").replace(/^Q(\d) /,"Q$1 · ")}</small>`;
-    right=`<span class="bpq"><b class="bp" data-pk="${side}-${l.id}-${id}" data-pv="${st.actual}">${fmt(st.actual)}</b><small class="bq">proj ${p1(pr)}</small></span>`;
-  }else right=`<span class="bpq pre"><small class="bq">proj<b>${p1(pr)}</b></small></span>`;
-  // Just the opponent; the logo badge on the photo already shows the player's own team.
-  const game=off||!g?"":`<small class="bg">${g.home?"vs":"@"} ${tm(g.opp.id)}</small>`;
-  return{started:!off&&st.started,v:off?0:st.started?st.actual:0,pr:off?0:pr,
-    html:(r,cls)=>`<div class="bcell${r?" r":""}${cls?" "+cls:""}">${shotOf(pl,id)}<b class="bn"><span class="fit" data-last="${esc(String(pl.name).split(" ").slice(1).join(" ")||pl.name)}">${esc(shortName(pl.name))}</span>${badgeFor(id,state(id,l))}</b><span class="bm">${game}${status}</span>${right}</div>`};
-}
 // Player photo with a small team-logo badge. Sleeper's photo first, ESPN's if that fails, initials if neither loads.
 function shotOf(pl,id){
   const ini=String(pl.name||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
@@ -965,16 +1002,26 @@ function shotOf(pl,id){
   const fb=pl.sl&&es?`if(!this.dataset.f){this.dataset.f=1;this.src='${es}'}else this.remove()`:"this.remove()";
   return`<span class="hs"><span class="hsi">${esc(ini)}${src?`<img src="${src}" alt="" loading="lazy" decoding="async" onerror="${fb}">`:""}</span>${pl.team&&pl.team!=="FA"?`<span class="hsb">${logo(pl.team,16)}</span>`:""}</span>`;
 }
-const bEmpty=r=>`<div class="bcell empty${r?" r":""}"><small class="bg">Empty</small></div>`;
+// One player in a matchup row: photo, name, opponent and game status, points.
+function bInfo(l,side,id){
+  const pl=P(id),pr=l.proj[id]||0,g=G[pl.team],st=pst(l,side,id);
+  const off=pl.team==="FA"||D.byes.includes(pl.team),started=!off&&st.started;
+  const opp=off?(pl.team==="FA"?"No team":"Bye"):g?`${g.home?"vs":"@"} ${tm(g.opp.id)}`:"";
+  const stat=off||!started?"":st.final?"Final":`<i></i>${(clock(st.secs)||"Live").replace(/^Q(\d) /,"Q$1 ")}`;
+  const live=started&&!st.final;
+  const v=off?0:started?st.actual:0;
+  return{started,v,pr:off?0:pr,live,
+    who:r=>`<span class="pw${r?" r":""}">${shotOf(pl,id)}<span class="pt"><b class="bn"><span class="fit" data-last="${esc(String(pl.name).split(" ").slice(1).join(" ")||pl.name)}">${esc(shortName(pl.name))}</span>${badgeFor(id,state(id,l))}</b><small class="bm${live?" on":""}">${esc(opp)}${stat?` <span class="dot">·</span> ${stat}`:""}</small></span></span>`,
+    pts:r=>`<span class="pp${r?" r":""}">${started?`<b data-pk="${side}-${l.id}-${id}" data-pv="${st.actual}">${fmt(st.actual)}</b>`:`<b class="nil">—</b>`}<small>${off?"":p1(pr)}</small></span>`};
+}
 function bRow(l,slot,x,y,bench){
   const A=x&&bInfo(l,"me",x),B=y&&bInfo(l,"opp",y);
-  let ca="",cb="";
-  if(!bench){
-    if((A&&A.started)||(B&&B.started)){const va=A?A.v:0,vb=B?B.v:0;if(va>vb&&va>0)ca="win";else if(vb>va&&vb>0)cb="win"}
-    else{const pa=A?A.pr:0,pb=B?B.pr:0;if(pa>pb)ca="lean";else if(pb>pa)cb="lean"}
-  }
-  const blank=r=>bench?`<div class="bcell${r?" r":""}"></div>`:bEmpty(r);
-  return`<div class="brow">${A?A.html(false,ca):blank(false)}<span class="bslot">${slot}</span>${B?B.html(true,cb):blank(true)}</div>`;
+  const anyStart=(A&&A.started)||(B&&B.started);
+  const va=A?(anyStart?A.v:A.pr):0,vb=B?(anyStart?B.v:B.pr):0,d=Math.abs(va-vb);
+  const w=bench||d<.005?"":va>vb?"a":"b";
+  const gap=bench||d<.005?"":`<span class="gap ${w}">${w==="b"?"":"‹ "}${p1(d)}${w==="b"?" ›":""}</span>`;
+  const none=r=>`<span class="pw${r?" r":""}"><small class="bm">${bench?"":"Empty"}</small></span><span class="pp${r?" r":""}"></span>`;
+  return`<div class="brow${w?" w"+w:""}${anyStart?"":" pre"}">${A?A.who(false)+A.pts(false):none(false)}<span class="bslot"><span class="chip">${slot==="FLEX"?"FLX":slot}</span>${gap}</span>${B?B.pts(true)+B.who(true):none(true)}</div>`;
 }
 // Names never get cut off: shrink a long name to fit its space, and if it still won't fit, use the last name only.
 function fitNames(root){
