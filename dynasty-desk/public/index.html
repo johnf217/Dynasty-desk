@@ -133,8 +133,8 @@ h1{font:800 27px/1 var(--display);letter-spacing:.01em;margin:0;white-space:nowr
 .status i{width:8px;height:8px;border-radius:2px;background:currentColor}
 .s-ok{color:var(--ink)}.s-ok i{background:var(--sig)}
 .s-warn{color:var(--warn)}.s-bad{color:var(--bad)}
-.seg{position:relative;display:grid;grid-template-columns:1fr 1fr 1fr;background:var(--sunk);border-radius:var(--r-md);padding:3px}
-.seg::before{content:"";position:absolute;top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / 3);background:var(--surface);border-radius:9px;box-shadow:0 1px 2px rgb(0 0 0 / .08),0 3px 10px -5px rgb(0 0 0 / .3);transform:translateX(calc(var(--i,0) * 100%));transition:transform .35s var(--ease)}
+.seg{position:relative;display:grid;grid-template-columns:repeat(5,auto);justify-content:space-between;background:var(--sunk);border-radius:var(--r-md);padding:3px}
+.seg::before{content:"";position:absolute;top:3px;bottom:3px;left:3px;width:var(--sw,20%);left:var(--sx,3px);background:var(--surface);border-radius:9px;box-shadow:0 1px 2px rgb(0 0 0 / .08),0 3px 10px -5px rgb(0 0 0 / .3);transform:translateX(calc(var(--i,0) * 100%));transition:transform .35s var(--ease)}
 .seg button{position:relative;z-index:1;border:0;background:none;padding:9px 4px;font-weight:600;font-size:14px;color:var(--muted);cursor:pointer;transition:color .25s}
 .seg button[aria-pressed="true"]{color:var(--ink)}
 .swap{display:flex;flex-direction:column;gap:14px}
@@ -498,6 +498,118 @@ body.has-bar .toast{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
 .mvh .vs{top:66px;font-size:17px}
 .wp{font-size:15px}
 .wpbar{height:6px;margin-top:4px}
+.row:has(.dv){grid-template-columns:36px minmax(0,1fr) auto auto 26px}
+.row.fa:has(.dv){grid-template-columns:36px minmax(0,1fr) auto auto auto}
+.dv{display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:46px;padding-right:10px;margin-right:-1px;box-shadow:inset -1px 0 0 var(--line);font-variant-numeric:tabular-nums}
+.dv b{font:800 16px/1 var(--display);letter-spacing:.01em;color:var(--ink)}
+.dv i{font-style:normal;font-size:11px;font-weight:600;font-stretch:87.5%;line-height:1;white-space:nowrap}
+.dv i.up{color:var(--sig-ink)}.dv i.dn{color:var(--bad)}.dv i.flat{color:var(--faint)}
+.dv.none b{color:var(--faint)}
+.seg button{font-size:12.5px;padding-inline:5px;white-space:nowrap;letter-spacing:-.015em}
+.seg::before{transform:none!important;transition:left .35s var(--ease),width .35s var(--ease)!important}
+.rk-sort .chip{padding:6px 12px}
+.rk-legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;font-stretch:87.5%;color:var(--muted)}
+.rk-legend span,.rk-split span{display:inline-flex;align-items:center;gap:5px}
+.rk-legend i,.rk-split i{width:9px;height:9px;border-radius:2px}
+.rk-QB{background:var(--qb)}.rk-RB{background:var(--rb)}.rk-WR{background:var(--wr)}.rk-TE{background:var(--te)}.rk-PK{background:#8A8F9C}
+.rk-list{display:flex;flex-direction:column;margin-inline:-8px}
+.rk{border-radius:var(--r-md)}
+.rk+.rk{box-shadow:inset 0 1px 0 var(--line)}
+.rk.me{background:color-mix(in srgb,var(--sig) 10%,transparent);box-shadow:inset 3px 0 0 var(--sig)}
+.rk-row{display:grid;grid-template-columns:20px 22px minmax(0,1fr);align-items:center;gap:9px;width:100%;padding:10px 8px;border:0;background:none;text-align:left;cursor:pointer;color:inherit}
+.rk-n{font:800 17px/1 var(--display);color:var(--faint);text-align:center}
+.rk.me .rk-n{color:var(--ink)}
+.rk-main{display:flex;flex-direction:column;gap:5px;min-width:0}
+.rk-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;min-width:0}
+.rk-name{font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.rk-tot{font:800 18px/1 var(--display);font-variant-numeric:tabular-nums;flex:none}
+.rk-bar{display:flex;height:7px;border-radius:4px;overflow:hidden;background:var(--sunk);gap:1px}
+.rk-bar i{display:block;height:100%;min-width:2px}
+.rk-sub{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;font-stretch:87.5%;color:var(--muted);font-variant-numeric:tabular-nums}
+.rk-tag{font-size:11.5px;font-weight:600;padding:1px 7px;border-radius:99px;flex:none;box-shadow:inset 0 0 0 1px var(--line)}
+.rk-tag.contender{color:var(--sig-ink);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sig-ink) 45%,transparent)}
+.rk-tag.rebuilder{color:var(--warn);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--warn) 45%,transparent)}
+.rk-more{padding:0 10px 12px 59px;display:flex;flex-direction:column;gap:9px}
+.rk-split{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;font-stretch:87.5%;color:var(--muted)}
+.rk-split b{color:var(--ink);font-weight:600}
+.rk-assets{display:flex;flex-direction:column}
+.rk-assets div{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:8px;padding:5px 0;font-size:13.5px}
+.rk-assets div+div{border-top:1px solid var(--line)}
+.rk-assets .pos:not(.QB):not(.RB):not(.WR):not(.TE){color:var(--muted)}
+.rk-an{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.rk-an small{margin-left:6px;color:var(--faint);font-size:11.5px}
+.rk-assets b{font:800 15px/1 var(--display);font-variant-numeric:tabular-nums}
+.rk-dim{color:var(--faint)}
+.tpick{display:grid;grid-template-columns:1fr 1.4fr;gap:8px}
+.tpick label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-stretch:87.5%;color:var(--muted);min-width:0}
+.tpick select{font:500 15px var(--text);padding:10px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);color:var(--ink);width:100%;min-width:0}
+.tside{display:flex;flex-direction:column;gap:9px;padding:12px;border-radius:var(--r-md);background:var(--sunk)}
+.tside-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-weight:600;font-size:14px;min-width:0}
+.tside-h span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tside-h b{font:800 20px/1 var(--display);font-variant-numeric:tabular-nums}
+.tchips{display:flex;flex-wrap:wrap;gap:6px}
+.tchip{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:6px 8px 6px 9px;border:0;border-radius:99px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);font-size:13px;font-weight:600;cursor:pointer;min-width:0}
+.tchip b{font:800 14px/1 var(--display);font-variant-numeric:tabular-nums;color:var(--muted)}
+.tchip i{font-style:normal;color:var(--faint);font-size:15px;line-height:1}
+.tchip .pos,.topt .pos{font-size:11px}
+.tsearch input{padding-block:10px;background:var(--surface)}
+.tlist{display:flex;flex-direction:column;max-height:250px;overflow-y:auto;margin:0 -4px}
+.topt{display:grid;grid-template-columns:34px minmax(0,1fr) auto 16px;align-items:center;gap:8px;padding:8px 4px;border:0;background:none;text-align:left;cursor:pointer;font-size:14px;border-radius:8px}
+.topt+.topt{box-shadow:inset 0 1px 0 var(--line)}
+.topt:active{background:var(--surface)}
+.topt .tn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.topt b{font:800 15px/1 var(--display);font-variant-numeric:tabular-nums}
+.topt i{font-style:normal;color:var(--sig-ink);font-weight:700;text-align:center}
+.pos:not(.QB):not(.RB):not(.WR):not(.TE){color:var(--muted)}
+.tbal{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:5;display:flex;flex-direction:column;gap:7px;padding:12px 14px;border-radius:var(--r-lg);background:color-mix(in srgb,var(--surface) 88%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--line);box-shadow:0 16px 36px -18px rgb(0 0 0 / .45)}
+.tbal-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12.5px;color:var(--muted);font-stretch:87.5%}
+.tbal-top b{font:800 18px/1 var(--display);color:var(--ink);font-variant-numeric:tabular-nums}
+.tbal-top strong{font-size:14px;font-stretch:100%;color:var(--ink);text-align:center}
+.tbal.fair strong{color:var(--sig-ink)}.tbal.lean strong{color:var(--warn)}.tbal.lop strong{color:var(--bad)}
+.tbar{position:relative;height:8px;border-radius:4px;background:color-mix(in srgb,var(--muted) 30%,transparent);overflow:hidden}
+.tbar i{display:block;height:100%;background:var(--sig);transition:width .35s var(--ease)}
+.tbal.lean .tbar i{background:var(--warn)}.tbal.lop .tbar i{background:var(--bad)}
+.tmid{position:absolute;left:50%;top:-2px;bottom:-2px;width:2px;margin-left:-1px;background:var(--ink);opacity:.5}
+.tbal-sub{font-size:12.5px;color:var(--muted);font-stretch:87.5%}
+.tadj{color:var(--ink);font-weight:600;cursor:help;border-bottom:1px dotted var(--muted)}
+.tbal-foot{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.tbal-foot .btn{flex:none}
+.tideas{display:flex;flex-direction:column;gap:8px}
+.tidea{padding:11px 12px;border-radius:var(--r-md);box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:9px}
+.tid-sides{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tid-sides div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.tid-sides small{font-size:11.5px;color:var(--muted);font-stretch:87.5%}
+.tid-sides span{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tid-sides i{font-style:normal;font-size:11px;margin-right:5px}
+.tid-sides b{font:800 14px/1 var(--display);color:var(--muted)}
+.tid-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);font-stretch:87.5%}
+.stsub .chip{padding:6px 12px}
+.st.compact{min-width:0}
+.st.compact th,.st.compact td{padding-inline:5px}
+.st.compact td.tm .tmw{max-width:118px}
+.st td.odds{min-width:48px;font-variant-numeric:tabular-nums}
+.st td.odds span{display:block;font-weight:600;font-size:13px}
+.st td.odds i{display:block;height:4px;border-radius:2px;margin-top:3px;background:var(--sunk);overflow:hidden}
+.st td.odds i b{display:block;height:100%;background:var(--sig)}
+.st tr:not(.me) td.odds i b{background:color-mix(in srgb,var(--muted) 70%,transparent)}
+.osk{display:block;height:12px;width:36px;margin-left:auto;border-radius:4px}
+.st td.tm .tmw>span:not(.srk){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.clm{font-style:normal;font-size:10.5px;font-weight:700;padding:0 4px;border-radius:4px;flex:none;line-height:15px}
+.clm.x,.clm.y{color:var(--sig-ink);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sig-ink) 50%,transparent)}
+.clm.e{color:var(--faint);box-shadow:inset 0 0 0 1px var(--line)}
+.stfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);font-stretch:87.5%}
+.stfoot span{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pklist{display:flex;flex-direction:column;margin-inline:-8px}
+.pkrow{display:grid;grid-template-columns:22px minmax(0,1fr) auto;align-items:center;gap:10px;padding:10px 8px;border-radius:var(--r-md)}
+.pkrow+.pkrow{box-shadow:inset 0 1px 0 var(--line)}
+.pkrow.me{background:color-mix(in srgb,var(--sig) 10%,transparent);box-shadow:inset 3px 0 0 var(--sig)}
+.pkn{display:flex;flex-direction:column;min-width:0;font-weight:600;font-size:14px}
+.pkn,.pkn small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pkn small{font-weight:400;font-size:12px;color:var(--muted);font-stretch:87.5%}
+.pks{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px;max-width:190px}
+.pk{display:inline-flex;flex-direction:column;align-items:center;padding:3px 8px;border-radius:7px;background:var(--sunk);font:800 14px/1.1 var(--display);letter-spacing:.02em}
+.pk.via{box-shadow:inset 0 0 0 1px var(--line);background:none}
+.pk small{font:500 10px/1.2 var(--text);font-stretch:75%;color:var(--muted);max-width:70px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0}
 </style>
 </head>
 <body>
@@ -568,12 +680,13 @@ let liveHold=0; // after MFL says "too many requests", auto-refresh pauses for 5
 let G={},owned={},seen=new Set(),intro=false,flashId=null,lastSegI=0,lastMode="lineup",liveBusy=false;
 
 // Version of this page. The server sends its own version, so a mismatch means one file wasn't uploaded.
-const APP_VERSION="v14";
+const APP_VERSION="v19";
 let srvVer=null,pinWeak=false;
 function renderFoot(){
   const el=$("foot");if(!el)return;
   const lines=[`Dynasty Desk ${APP_VERSION}`];
   if(srvVer&&srvVer!==APP_VERSION)lines.push(`<span class="warn">The server file is ${srvVer==="old"?"an older version":srvVer}. Upload the matching mfl.mjs too.</span>`);
+  if(valErr)lines.push(`<span class="warn">Dynasty values couldn't load, so they're hidden for now.</span>`);
   if(pinWeak)lines.push(`<span class="warn">Your PIN is under 8 characters. Make it longer in Netlify (APP_PIN) to keep strangers out.</span>`);
   el.innerHTML=lines.map(x=>`<span>${x}</span>`).join("");
 }
@@ -594,7 +707,7 @@ function skeleton(){return`<div class="sk" style="height:212px"></div><div class
 async function load(w){
   $("err").hidden=true;$("sub").textContent="Loading from MFL";
   if(!D&&$("pinbox").hidden)$("view").innerHTML=skeleton();
-  try{D=await api("GET",null,w);store.set("dd-data",D);$("pinbox").hidden=true;prepare();render()}
+  try{D=await api("GET",null,w);store.set("dd-data",D);$("pinbox").hidden=true;prepare();render();loadValues()}
   catch(e){if(e.message!=="PIN needed"&&e.message!=="PIN"){$("errmsg").textContent=e.message;$("err").hidden=false}
     if(D){prepare();render();$("sub").textContent=`Saved copy from ${new Date(D.generated).toLocaleString([],{weekday:"short",hour:"numeric",minute:"2-digit"})}`}
     else if(e.message!=="PIN needed"&&e.message!=="PIN")$("view").innerHTML=""}
@@ -673,6 +786,36 @@ function alertLine(l){
   const txt=a.length===1?`${nm(a[0])} is ${esc(a[0].why)}. Swap him before kickoff.`:`${a.length} starters can't play: ${a.map(x=>`${nm(x)} (${esc(x.why)})`).join(", ")}. Swap them before kickoff.`;
   return`<p class="board-alert" role="alert"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8 15 14H1z"/><path d="M8 6.5v3.2M8 11.8v.01"/></svg><span>${txt}</span></p>`;
 }
+// ---- Dynasty values (FantasyCalc, via /api/mfl?type=values) ----
+// One value set per QB/PPR format; kept in localStorage for 24 hours. If loading fails, chips stay hidden.
+const VALS={},VALP={};let valErr=false;
+const valParams=l=>({qbs:lim(l,"QB")[1]>1?2:1,ppr:l.ppr??1});
+const valKey=l=>{const p=valParams(l);return`${p.qbs}-${p.ppr}`};
+async function loadValues(){
+  if(!D)return;
+  const keys=[...new Set(D.leagues.map(valKey))],now=Date.now();let changed=false;
+  await Promise.all(keys.map(async k=>{
+    if(VALS[k])return;
+    const c=store.get(`dd-val-${k}`);
+    if(c&&c.values&&now-c.t<24*3600e3){VALS[k]=c.values;VALP[k]=c.picks||{};changed=true;return}
+    const[qbs,ppr]=k.split("-");
+    try{const r=await api("GET",null,null,`type=values&qbs=${qbs}&ppr=${ppr}`);VALS[k]=r.values;VALP[k]=r.picks||{};store.set(`dd-val-${k}`,{t:now,values:r.values,picks:VALP[k]});changed=true}
+    catch(e){if(e.message!=="PIN"&&e.message!=="PIN needed"){valErr=true;renderFoot()}}
+  }));
+  if(!changed)return;
+  if(valErr&&keys.every(k=>VALS[k])){valErr=false;renderFoot()}
+  const typing=document.activeElement&&/INPUT|SELECT/.test(document.activeElement.tagName);
+  if(!typing&&!busy){render();renderMU()}
+}
+const valOf=(l,id)=>{const v=VALS[valKey(l)];return v?(v[id]||null):undefined};
+// Value column: dynasty value on top, 30-day trend under it. Empty while values are missing; "—" if the player has none.
+function valChip(l,id){
+  const v=valOf(l,id);if(v===undefined)return"";
+  if(!v)return`<span class="dv none" title="No dynasty value"><b>—</b></span>`;
+  const[n,t]=v,dir=t>0?"up":t<0?"dn":"flat";
+  return`<span class="dv" title="Dynasty value, 30-day change ${t>0?"+":""}${t}"><b>${n.toLocaleString("en-US")}</b><i class="${dir}">${dir==="up"?"▲ ":dir==="dn"?"▼ ":""}${t?Math.abs(t).toLocaleString("en-US"):"—"}</i></span>`;
+}
+const valCol=id=>{const l=D.leagues.find(x=>x.id===cur);return l&&VALS[valKey(l)]?valChip(l,id):""};
 function oppLine(id){
   const p=P(id);
   const ps=`<span class="pos ${esc(p.pos)}">${esc(p.pos)}</span>`;
@@ -699,7 +842,7 @@ function row(l,id,on){
   const p=P(id),st=state(id,l);
   let stk="";
   if(on&&p.pos==="QB"){const m=l.roster.find(o=>o!==id&&lineups[l.id].has(o)&&P(o).pos==="QB"&&P(o).team===p.team);if(m)stk=`<span class="stk" title="${esc(P(m).name)} is also starting">Same team</span>`}
-  return`<button class="row${on?" on":""}${id===flashId?" flash":""}" data-id="${id}" aria-pressed="${on}" aria-label="${esc(p.name)}, ${on?"starting. Tap to bench":"on bench. Tap to start"}">${shotOf(p,id)}<span class="nm">${nameLine(p,id,st,stk)}${oppLine(id)}</span><span class="pv">${pointsCol(l,"me",id).html}</span><span class="tg" aria-hidden="true"></span></button>`;
+  return`<button class="row${on?" on":""}${id===flashId?" flash":""}" data-id="${id}" aria-pressed="${on}" aria-label="${esc(p.name)}, ${on?"starting. Tap to bench":"on bench. Tap to start"}">${shotOf(p,id)}<span class="nm">${nameLine(p,id,st,stk)}${oppLine(id)}</span>${valCol(id)}<span class="pv">${pointsCol(l,"me",id).html}</span><span class="tg" aria-hidden="true"></span></button>`;
 }
 function render(){
   if(!D)return;
@@ -715,7 +858,7 @@ function render(){
   const byPos=ids=>POS.flatMap(p=>ids.filter(id=>P(id).pos===p).sort((a,b)=>pts(l,b)-pts(l,a)));
   const starters=byPos(l.roster.filter(id=>set.has(id))),bench=byPos(l.roster.filter(id=>!set.has(id)));
   const status=issues.length?["bad",issues[0]]:dead.length?["warn",`${dead.length} starter${dead.length>1?"s":""} at 0`]:["ok","Lineup ready"];
-  const sf=lim(l,"QB")[1]>1,mine=me(l),segI=mode==="fa"?1:mode==="st"?2:0,sync=synced(l);
+  const sf=lim(l,"QB")[1]>1,mine=me(l),segI=mode==="fa"?1:mode==="st"?2:mode==="rk"?3:mode==="tr"?4:0,sync=synced(l);
   const faab=[...l.franchises].filter(f=>f.faab!=null).sort((a,b)=>b.faab-a.faab),fmax=Math.max(...faab.map(f=>f.faab),1);
   const lineupBody=`
     <div class="strip">${POS.map(p=>{const[a,b]=lim(l,p),off=c[p]<a||c[p]>b;return`<div class="cell ${p}${off?" off":""}"><span class="k"><i></i>${p}</span><b>${c[p]}<small>of ${a===b?a:a+"–"+b}</small></b></div>`}).join("")}</div>
@@ -730,8 +873,8 @@ function render(){
   v.innerHTML=`${matchupCard(l)}
   <section class="panel">
     <div class="tp-head"><span class="status s-${status[0]}"><i></i>${esc(status[1])}</span><span class="fmt">${sf?"Superflex":"1 QB"}, ${l.teBonus?"TE premium":"standard TE"}</span></div>
-    <div class="seg" role="group" aria-label="View" style="--i:${lastSegI}"><button data-mode="lineup" aria-pressed="${mode==="lineup"}">Lineup</button><button data-mode="fa" aria-pressed="${mode==="fa"}">Free agents</button><button data-mode="st" aria-pressed="${mode==="st"}">Standings</button></div>
-    <div class="swap${lastMode!==mode?" in":""}">${mode==="fa"?faPanel(l):mode==="st"?standingsPanel(l):lineupBody}</div>
+    <div class="seg" role="group" aria-label="View" style="--i:${lastSegI}"><button data-mode="lineup" aria-pressed="${mode==="lineup"}">Lineup</button><button data-mode="fa" aria-pressed="${mode==="fa"}">Free agents</button><button data-mode="st" aria-pressed="${mode==="st"}">Standings</button><button data-mode="rk" aria-pressed="${mode==="rk"}">Rankings</button><button data-mode="tr" aria-pressed="${mode==="tr"}">Trade</button></div>
+    <div class="swap${lastMode!==mode?" in":""}">${mode==="fa"?faPanel(l):mode==="st"?standingsPanel(l):mode==="rk"?rankingsPanel(l):mode==="tr"?tradePanel(l):lineupBody}</div>
   </section>
   ${mode!=="fa"?"":`<section class="panel">
     <div class="panel-head"><h3>FAAB budgets</h3><span>${mine.waiver?`You're ${ord(mine.waiver)} in waiver order`:""}</span></div>
@@ -740,7 +883,7 @@ function render(){
   ${mode==="lineup"?`<div class="actionbar">${bar}</div>`:""}`;
   document.body.classList.toggle("has-bar",mode==="lineup");
   const seg=v.querySelector(".seg");
-  if(seg&&lastSegI!==segI){void seg.offsetWidth;seg.style.setProperty("--i",segI)}
+  if(seg){const bs=seg.querySelectorAll("button"),mv=(i,anim)=>{const b=bs[i];if(!b)return;if(!anim)seg.style.transition="none";seg.style.setProperty("--sx",b.offsetLeft+"px");seg.style.setProperty("--sw",b.offsetWidth+"px")};mv(lastSegI,false);void seg.offsetWidth;mv(segI,true)}
   lastSegI=segI;lastMode=mode;
   if(intro){seen.add(ik);countUp(v)}
   flashId=null;
@@ -863,8 +1006,10 @@ let claimUI=null;
 const parseClaim=s=>{const m=String(s).match(/(\d+)_([\d.]+)_(\d+)/);return m?{add:m[1],bid:String(Math.round(+m[2])),drop:+m[3]?m[3]:""}:null};
 const pickOf=c=>`${c.add}_${c.bid}_${c.drop||"0000"}`;
 function dropOptions(l,sel,full){
-  const drops=[...l.roster].sort((a,b)=>pts(l,a)-pts(l,b));
-  return`${full?"":`<option value="">No drop</option>`}${drops.map(d=>`<option value="${d}"${sel===d?" selected":""}>${P(d).pos} ${esc(P(d).name)} (${fmt(pts(l,d))})</option>`).join("")}`;
+  const byVal=VALS[valKey(l)],dv=d=>(byVal&&byVal[d]?byVal[d][0]:0);
+  const drops=[...l.roster].sort(byVal?(a,b)=>dv(a)-dv(b)||pts(l,a)-pts(l,b):(a,b)=>pts(l,a)-pts(l,b));
+  const tag=d=>byVal?(byVal[d]?byVal[d][0].toLocaleString("en-US"):"—"):fmt(pts(l,d));
+  return`${full?"":`<option value="">No drop</option>`}${drops.map(d=>`<option value="${d}"${sel===d?" selected":""}>${P(d).pos} ${esc(P(d).name)} (${tag(d)})</option>`).join("")}`;
 }
 function claimsBlock(l,claims){
   const parsed=claims.map(parseClaim),editable=parsed.every(Boolean);
@@ -942,7 +1087,7 @@ function faList(l){
 }
 function faRow(l,f,id){
   const p=f.players[id],v=f.proj[id],bye=D.byes.includes(p.team),inj=D.injuries[id],out=inj&&/out|ir|suspend/i.test(inj.status),g=G[p.team];
-  return`<button class="row fa${id===faSel?" sel":""}" data-fa="${id}" aria-expanded="${id===faSel}">${shotOf(p,id)}<span class="nm">${nameLine(p,id,out?"out":"")}${oppLine(id)}</span><span class="pv"><span class="pts${v&&!bye?"":" zero"}">${v&&!bye?fmt(v):"—"}</span><span class="gs">${bye?"Bye":"proj"}</span></span><span class="bidpill">${id===faSel?"Close":"Bid"}</span></button>`;
+  return`<button class="row fa${id===faSel?" sel":""}" data-fa="${id}" aria-expanded="${id===faSel}">${shotOf(p,id)}<span class="nm">${nameLine(p,id,out?"out":"")}${oppLine(id)}</span>${valCol(id)}<span class="pv"><span class="pts${v&&!bye?"":" zero"}">${v&&!bye?fmt(v):"—"}</span><span class="gs">${bye?"Bye":"proj"}</span></span><span class="bidpill">${id===faSel?"Close":"Bid"}</span></button>`;
 }
 function bidForm(l,f,id){
   const mine=me(l),full=l.rosterSize&&l.roster.length>=l.rosterSize;
@@ -953,7 +1098,7 @@ function bidForm(l,f,id){
     <label for="bidamt">Bid ($)<input type="number" id="bidamt" inputmode="numeric" min="0" step="1" ${mine.faab!=null?`max="${mine.faab}"`:""} value="${esc(bidDraft.amt)}" placeholder="0"></label>
     <label for="biddrop">Drop<select id="biddrop">${dropOptions(l,bidDraft.drop,full)}</select></label></div>
     <div class="btns"><button class="btn primary" data-act="bidask">Review bid</button></div>
-    <p class="note">You have $${mine.faab??"?"} left. Your lowest projected players are listed first.</p></div>`;
+    <p class="note">You have $${mine.faab??"?"} left. ${VALS[valKey(l)]?"Your lowest dynasty value players are listed first.":"Your lowest projected players are listed first."}</p></div>`;
 }
 // ---- Full matchup screen ----
 let muOpen=null;
@@ -1152,15 +1297,96 @@ async function loadST(l){
   ST[l.id]={loading:true};
   try{ST[l.id]=await api("GET",null,null,`action=standings&L=${l.id}&host=${encodeURIComponent(l.host)}`)}
   catch(e){ST[l.id]={error:e.message==="PIN needed"||e.message==="PIN"?"Enter your PIN to load standings.":e.message}}
-  if(cur===l.id&&mode==="st")render();
+  if(cur===l.id&&(mode==="st"||mode==="rk"||mode==="tr"))render();
   if(muOpen===l.id)renderMU();
 }
 const num=v=>{const n=parseFloat(v);return isFinite(n)?n:null};
 const pick=(r,keys)=>{for(const k of keys)if(r[k]!=null&&r[k]!=="")return r[k];return null};
+// ---- Playoff and bye odds: 10,000 simulations of the rest of the regular season in a Web Worker ----
+const PO={},ODDS={};let stMore=false,stView="table",pkYear=null;
+const SIMS=10000;
+const WORKER_SRC=`onmessage=e=>{const{teams,games,spots,byes,sims}=e.data,n=teams.length,po=new Float64Array(n),by=new Float64Array(n),W=new Float64Array(n),P=new Float64Array(n),ord=[...Array(n).keys()];
+let spare=null;const rn=()=>{if(spare!==null){const s=spare;spare=null;return s}let u,v,s;do{u=Math.random()*2-1;v=Math.random()*2-1;s=u*u+v*v}while(!s||s>=1);const m=Math.sqrt(-2*Math.log(s)/s);spare=v*m;return u*m};
+for(let k=0;k<sims;k++){for(let i=0;i<n;i++){W[i]=teams[i].w;P[i]=teams[i].pf}
+for(const[a,b]of games){const x=teams[a].mean+teams[a].sd*rn(),y=teams[b].mean+teams[b].sd*rn();P[a]+=x;P[b]+=y;if(x>y)W[a]++;else if(y>x)W[b]++;else{W[a]+=.5;W[b]+=.5}}
+ord.sort((i,j)=>W[j]-W[i]||P[j]-P[i]);for(let r=0;r<spots;r++)po[ord[r]]++;for(let r=0;r<byes;r++)by[ord[r]]++}
+postMessage({po:Array.from(po,x=>x/sims),bye:Array.from(by,x=>x/sims)})}`;
+let workerURL=null;
+function simulate(input){
+  return new Promise((res,rej)=>{
+    try{workerURL=workerURL||URL.createObjectURL(new Blob([WORKER_SRC],{type:"text/javascript"}));
+      const w=new Worker(workerURL),t=setTimeout(()=>{w.terminate();rej(new Error("The simulation took too long."))},15000);
+      w.onmessage=e=>{clearTimeout(t);w.terminate();res(e.data)};w.onerror=e=>{clearTimeout(t);w.terminate();rej(new Error(e.message||"The simulation failed."))};w.postMessage(input)}
+    catch(e){rej(e)}
+  });
+}
+async function loadPO(l){
+  PO[l.id]={loading:true};
+  try{PO[l.id]=await api("GET",null,null,`action=playoff&L=${l.id}&host=${encodeURIComponent(l.host)}&w=${week}`)}
+  catch(e){PO[l.id]={error:e.message==="PIN needed"||e.message==="PIN"?"Enter your PIN to load playoff odds.":e.message}}
+  if(cur===l.id&&mode==="st")render();
+}
+// Inputs: current standings plus the remaining regular-season games. Cached per league and week; re-run when they change.
+async function runOdds(l,rows,d){
+  const spots=d.playoffTeams||l.playoffTeams||6,byes=d.byes??(spots===6?2:spots===7?1:0);
+  const idx={};rows.forEach((r,i)=>idx[r.id]=i);
+  const rem=d.games.filter(g=>!g.done&&g.week<=d.lastRegWeek&&idx[g.a]!=null&&idx[g.b]!=null);
+  const scores={};d.games.filter(g=>g.done).forEach(g=>{(scores[g.a]||=[]).push(g.sa);(scores[g.b]||=[]).push(g.sb)});
+  const teams=rows.map(r=>{
+    const gp=r.w+r.l+r.t,ppg=gp?(r.pf||0)/gp:0,proj=d.projected[r.id];
+    // Mean: points per game blended with this week's projection (projection counts like 3 games). SD: their own week-to-week spread, else 18%.
+    const mean=gp&&proj?(gp*ppg+3*proj)/(gp+3):gp?ppg:proj||100;
+    const sc=scores[r.id]||[],m=sc.length?sc.reduce((a,b)=>a+b,0)/sc.length:0;
+    const sdObs=sc.length>=4?Math.sqrt(sc.reduce((a,b)=>a+(b-m)**2,0)/(sc.length-1)):null;
+    const sd=sdObs?Math.min(.3*mean,Math.max(.08*mean,sdObs)):.18*mean;
+    return{id:r.id,w:r.w+r.t/2,pf:r.pf||0,mean,sd};
+  });
+  const key=JSON.stringify([teams.map(t=>[t.id,t.w,Math.round(t.pf)]),rem.length,spots,byes]);
+  const ck=`dd-po-${l.id}-${week}`,c=store.get(ck);
+  if(c&&c.key===key){ODDS[l.id]=c;return}
+  ODDS[l.id]={running:true,key};
+  const t0=performance.now();
+  try{
+    const r=rem.length?await simulate({teams,games:rem.map(g=>[idx[g.a],idx[g.b]]),spots,byes,sims:SIMS})
+      :(()=>{const o=[...teams.keys()].sort((i,j)=>teams[j].w-teams[i].w||teams[j].pf-teams[i].pf);return{po:teams.map((_,i)=>o.indexOf(i)<spots?1:0),bye:teams.map((_,i)=>o.indexOf(i)<byes?1:0)}})();
+    // Exact clinch / elimination by wins alone (ties count against the team, so these are safe calls).
+    const left={};rem.forEach(g=>{left[g.a]=(left[g.a]||0)+1;left[g.b]=(left[g.b]||0)+1});
+    const maxW=t=>t.w+(left[t.id]||0),mark={};
+    teams.forEach((t,i)=>{
+      const others=teams.filter(o=>o!==t),canReach=others.filter(o=>maxW(o)>=t.w).length,ahead=others.filter(o=>o.w>maxW(t)).length;
+      if(canReach<byes){mark[t.id]="y";r.po[i]=1;r.bye[i]=1}else if(canReach<spots){mark[t.id]="x";r.po[i]=1}
+      else if(ahead>=spots){mark[t.id]="e";r.po[i]=0;r.bye[i]=0}
+      if(ahead>=byes)r.bye[i]=0;
+    });
+    const out={key,at:Date.now(),ms:Math.round(performance.now()-t0),sims:rem.length?SIMS:0,left:rem.length,spots,byes,assumed:!d.playoffTeams,
+      odds:Object.fromEntries(teams.map((t,i)=>[t.id,[r.po[i],r.bye[i]]])),mark};
+    ODDS[l.id]=out;store.set(ck,out);
+  }catch(e){ODDS[l.id]={error:e.message,key}}
+  if(cur===l.id&&mode==="st")render();
+}
+// Picks each team owns, from MFL futureDraftPicks (same data as Rankings).
+function picksPanel(l){
+  const d=RK[l.id];
+  if(!d){setTimeout(()=>loadRK(l))}
+  if(!d||d.loading)return`<div class="sk" style="height:40px;border-radius:12px"></div>${'<div class="sk" style="height:54px;border-radius:12px"></div>'.repeat(5)}`;
+  if(d.error)return`<div class="banner"><span>${esc(d.error)}</span><button class="btn sm quiet" data-act="rkreload">Try again</button></div>`;
+  const years=[...new Set(d.teams.flatMap(t=>t.picks.map(p=>p.year)))].sort();
+  if(!years.length)return`<p class="note empty">MFL didn't list any future picks for this league.</p>`;
+  if(!years.includes(pkYear))pkYear=years[0];
+  const fr=id=>(l.franchises.find(f=>f.id===id)||{name:"Team "+id});
+  const teams=[...d.teams].sort((a,b)=>(b.id===l.fid)-(a.id===l.fid)||fr(a.id).name.localeCompare(fr(b.id).name));
+  return`<div class="chips">${years.map(y=>`<button class="chip" data-pkyear="${y}" aria-pressed="${y===pkYear}">${y}</button>`).join("")}</div>
+    <div class="pklist">${teams.map(t=>{const ps=t.picks.filter(p=>p.year===pkYear).sort((a,b)=>a.round-b.round);
+      return`<div class="pkrow${t.id===l.fid?" me":""}">${ficon(fr(t.id),"sm")}<span class="pkn">${esc(fr(t.id).name)}<small>${ps.length} pick${ps.length===1?"":"s"}</small></span>
+        <span class="pks">${ps.length?ps.map(p=>`<span class="pk${p.from!==t.id?" via":""}" title="${p.from!==t.id?`Originally ${esc(fr(p.from).name)}'s pick`:"Own pick"}">R${p.round}${p.from!==t.id?`<small>${esc(fr(p.from).name)}</small>`:""}</span>`).join(""):`<span class="note">None</span>`}</span></div>`}).join("")}</div>
+    <p class="note">Picks with a team name under them were acquired; the name is the original owner.</p>`;
+}
 function standingsPanel(l){
   const s=ST[l.id];
   if(!s||s.loading){if(!s)setTimeout(()=>loadST(l));return`<div class="sk" style="height:76px;border-radius:12px"></div><div class="sk" style="height:420px;border-radius:12px"></div>`}
   if(s.error)return`<div class="banner"><span>${esc(s.error)}</span><button class="btn sm quiet" data-act="streload">Try again</button></div>`;
+  const sub=`<div class="chips stsub"><button class="chip" data-stview="table" aria-pressed="${stView==="table"}">Standings &amp; odds</button><button class="chip" data-stview="picks" aria-pressed="${stView==="picks"}">Draft picks</button></div>`;
+  if(stView==="picks")return sub+picksPanel(l);
   const rows=s.rows.map(r=>{
     const w=num(pick(r,["h2hw","w","wins"]))??0,lo=num(pick(r,["h2hl","l","losses"]))??0,t=num(pick(r,["h2ht","t","ties"]))??0;
     const ap=[num(pick(r,["all_play_w","allplayw"])),num(pick(r,["all_play_l","allplayl"]))];
@@ -1176,19 +1402,195 @@ function standingsPanel(l){
   const rec=r=>`${r.w}–${r.l}${r.t?`–${r.t}`:""}`;
   const f2=v=>v==null?"—":v.toFixed(1);
   const cut=l.playoffTeams||6;
-  const cols=1+1+(has("pf")?1:0)+(has("max")?1:0)+(has("pa")?1:0)+(hasAP?1:0)+(has("strk")?1:0);
+  // Odds: fetch the schedule once, then simulate (cached per league + week, re-run when standings change).
+  const pd=PO[l.id];if(!pd)setTimeout(()=>loadPO(l));
+  const od=ODDS[l.id];
+  if(pd&&pd.games&&(!od||(!od.running&&!od.error&&od.key===undefined)))setTimeout(()=>runOdds(l,rows,pd));
+  if(pd&&pd.games&&od&&!od.running&&od.key&&!od.error){const spots=pd.playoffTeams||l.playoffTeams||6;const k0=JSON.parse(od.key)[0].map(x=>x.join()).join("|"),k1=rows.map(r=>[r.id,r.w+r.t/2,Math.round(r.pf||0)].join()).join("|");if(k0!==k1)setTimeout(()=>runOdds(l,rows,pd))}
+  const oddsOk=od&&od.odds,oddsCell=(id,j)=>{if(pd&&pd.error)return`<td class="odds">—</td>`;if(!oddsOk)return`<td class="odds"><span class="sk osk"></span></td>`;const v=od.odds[id]?od.odds[id][j]:0,p=Math.round(v*1000)/10;return`<td class="odds"><span>${p>=99.95?"100":p<.05?"0":p.toFixed(p<10?1:0)}%</span><i><b style="width:${v*100}%"></b></i></td>`};
+  const markOf=id=>oddsOk&&od.mark[id]?`<em class="clm ${od.mark[id]}" title="${od.mark[id]==="y"?"Clinched a bye":od.mark[id]==="x"?"Clinched a playoff spot":"Eliminated"}">${od.mark[id]}</em>`:"";
+  const more=stMore;
+  const cols=1+1+2+(has("pf")?1:0)+(more?(has("max")?1:0)+(has("pa")?1:0)+(hasAP?1:0)+(has("strk")?1:0):0);
   return`${meR?`<div class="strip">
       <div class="cell"><span class="k">Place</span><b>${ord(mineI+1)}<small>of ${rows.length}</small></b></div>
       <div class="cell"><span class="k">Record</span><b>${rec(meR)}</b>${meR.strk?`<span class="s">Streak ${esc(meR.strk)}</span>`:""}</div>
       <div class="cell"><span class="k">Points for</span><b>${f2(meR.pf)}</b>${pfRank?`<span class="s">${ord(pfRank)} in league</span>`:""}</div>
     </div>`:""}
-    <div class="stbox"><table class="st"><thead><tr><th class="tm">Team</th><th>W-L</th>${has("pf")?"<th>PF</th>":""}${has("max")?"<th>Max PF</th>":""}${has("pa")?"<th>PA</th>":""}${hasAP?"<th>All-play</th>":""}${has("strk")?"<th>Streak</th>":""}</tr></thead><tbody>
-    ${rows.map((r,i)=>{const f=fr(r.id),sk=r.strk.match(/^([WLT])/i);return`<tr class="${r.id===l.fid?"me":""}"><td class="tm"><div class="tmw"><span class="srk">${i+1}</span>${ficon(f,"sm")}<span>${esc(f.name)}</span></div></td><td class="b">${rec(r)}</td>${has("pf")?`<td class="fig">${f2(r.pf)}</td>`:""}${has("max")?`<td>${f2(r.max)}</td>`:""}${has("pa")?`<td>${f2(r.pa)}</td>`:""}${hasAP?`<td>${r.ap[0]??"—"}-${r.ap[1]??"—"}</td>`:""}${has("strk")?`<td class="strk ${sk?sk[1].toLowerCase():""}">${esc(r.strk)}</td>`:""}</tr>${i===cut-1&&rows.length>cut?`<tr class="cutrow"><td class="tm" colspan="${cols}"><span>Playoff line</span></td></tr>`:""}`}).join("")}
-    </tbody></table></div>`;
+    ${sub}
+    <div class="stbox"><table class="st${more?"":" compact"}"><thead><tr><th class="tm">Team</th><th>W-L</th><th>Playoff</th><th>Bye</th>${has("pf")?"<th>PF</th>":""}${more&&has("max")?"<th>Max PF</th>":""}${more&&has("pa")?"<th>PA</th>":""}${more&&hasAP?"<th>All-play</th>":""}${more&&has("strk")?"<th>Streak</th>":""}</tr></thead><tbody>
+    ${rows.map((r,i)=>{const f=fr(r.id),sk=r.strk.match(/^([WLT])/i);return`<tr class="${r.id===l.fid?"me":""}"><td class="tm"><div class="tmw"><span class="srk">${i+1}</span>${ficon(f,"sm")}<span>${esc(f.name)}</span>${markOf(r.id)}</div></td><td class="b">${rec(r)}</td>${oddsCell(r.id,0)}${oddsCell(r.id,1)}${has("pf")?`<td class="fig">${f2(r.pf)}</td>`:""}${more&&has("max")?`<td>${f2(r.max)}</td>`:""}${more&&has("pa")?`<td>${f2(r.pa)}</td>`:""}${more&&hasAP?`<td>${r.ap[0]??"—"}-${r.ap[1]??"—"}</td>`:""}${more&&has("strk")?`<td class="strk ${sk?sk[1].toLowerCase():""}">${esc(r.strk)}</td>`:""}</tr>${i===cut-1&&rows.length>cut?`<tr class="cutrow"><td class="tm" colspan="${cols}"><span>Playoff line</span></td></tr>`:""}`}).join("")}
+    </tbody></table></div>
+    <div class="stfoot"><button class="btn sm quiet" data-act="stmore">${more?"Fewer columns":"More columns"}</button>
+      <span>${pd&&pd.error?`Odds unavailable: ${esc(pd.error)} <button class="btn sm quiet" data-act="poreload">Retry</button>`:od&&od.error?`Odds failed: ${esc(od.error)} <button class="btn sm quiet" data-act="poreload">Retry</button>`:oddsOk?(od.left?`Updated ${new Date(od.at).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})} · ${od.sims.toLocaleString("en-US")} sims · ${od.left} games left`:`No remaining games. Final regular-season standings.`):"Simulating the rest of the season…"}</span></div>
+    ${oddsOk?`<p class="note">x clinched playoffs · y clinched a bye · e eliminated. ${od.spots} playoff teams, ${od.byes} byes${od.assumed?" (MFL doesn't publish this, so it's assumed)":""}; ties go to points for.</p>`:""}`;
 }
 
+// ---- Rankings: every team by total dynasty value ----
+const RK={};let rkSort="total",rkOpen=null;
+const RK_PARTS=["QB","RB","WR","TE","PK"];
+// Fallback pick values by round when FantasyCalc has no value for that year and round.
+const PICK_FALLBACK={1:3500,2:1500,3:650,4:300};
+async function loadRK(l){
+  RK[l.id]={loading:true};
+  try{RK[l.id]=await api("GET",null,null,`action=rankings&L=${l.id}&host=${encodeURIComponent(l.host)}`)}
+  catch(e){RK[l.id]={error:e.message==="PIN needed"||e.message==="PIN"?"Enter your PIN to load rankings.":e.message}}
+  if(cur===l.id&&(mode==="rk"||mode==="tr"||mode==="st"))render();
+}
+function pickValue(l,p){
+  const t=VALP[valKey(l)]||{},v=t[`${p.year}-${p.round}`];
+  if(v)return{v,src:"fc"};
+  const same=Object.keys(t).filter(k=>k.endsWith(`-${p.round}`)).sort();   // nearest year FantasyCalc does value
+  if(same.length)return{v:t[same[same.length-1]],src:"fc"};
+  return{v:PICK_FALLBACK[p.round]||150,src:"est"};
+}
+function rankRows(l,data){
+  const vals=VALS[valKey(l)]||{},st=ST[l.id]&&ST[l.id].rows||[];
+  const n=l.starters.count||10;
+  const rows=data.teams.map(t=>{
+    const by={QB:0,RB:0,WR:0,TE:0,PK:0},assets=[];
+    t.players.forEach(id=>{const pl=data.players[id]||{},v=vals[id]?vals[id][0]:0;if(by[pl.pos]!=null)by[pl.pos]+=v;if(v)assets.push({name:pl.name||"Player "+id,pos:pl.pos,v,age:pl.age})});
+    t.picks.forEach(p=>{const pv=pickValue(l,p);by.PK+=pv.v;assets.push({name:`${p.year} Round ${p.round}${p.from&&p.from!==t.id?` (via ${(l.franchises.find(f=>f.id===p.from)||{}).name||p.from})`:""}`,pos:"PK",v:pv.v,est:pv.src==="est"})});
+    const total=RK_PARTS.reduce((s,k)=>s+by[k],0);
+    const sr=st.find(r=>r.id===t.id)||{},w=num(pick(sr,["h2hw","w","wins"]))??0,lo=num(pick(sr,["h2hl","l","losses"]))??0,ti=num(pick(sr,["h2ht","t","ties"]))??0,pf=num(pick(sr,["pf","PF","points_for"]));
+    const g=w+lo+ti,pct=g?(w+ti/2)/g:.5;
+    const starters=assets.filter(a=>a.pos!=="PK").sort((a,b)=>b.v-a.v).slice(0,n).filter(a=>a.age);
+    const age=starters.length?starters.reduce((s,a)=>s+a.age,0)/starters.length:null;
+    return{id:t.id,f:l.franchises.find(f=>f.id===t.id)||{name:"Team "+t.id},by,total,assets:assets.sort((a,b)=>b.v-a.v),w,l:lo,t:ti,pct,pf,age};
+  });
+  // Tags use value rank, whatever the current sort is.
+  const byTotal=[...rows].sort((a,b)=>b.total-a.total),third=Math.max(1,Math.round(rows.length/3));
+  byTotal.forEach((r,i)=>{r.vr=i+1;const pickShare=r.total?r.by.PK/r.total:0;
+    r.tag=i<third&&r.pct>=.5?"Contender":(i>=rows.length-third||pickShare>.25)?"Rebuilder":"Middle"});
+  return rows;
+}
+function rankingsPanel(l){
+  const d=RK[l.id];
+  if(!d){setTimeout(()=>loadRK(l));}
+  if(!ST[l.id])setTimeout(()=>loadST(l));
+  if(!d||d.loading||(!VALS[valKey(l)]&&!valErr))return`<div class="sk" style="height:40px;border-radius:12px"></div>${'<div class="sk" style="height:62px;border-radius:12px"></div>'.repeat(6)}`;
+  if(d.error)return`<div class="banner"><span>${esc(d.error)}</span><button class="btn sm quiet" data-act="rkreload">Try again</button></div>`;
+  if(!VALS[valKey(l)])return`<div class="banner"><span>Dynasty values couldn't load, so teams can't be ranked yet.</span><button class="btn sm quiet" data-act="rkreload">Try again</button></div>`;
+  if(!d.teams||!d.teams.length)return`<p class="note empty">MFL didn't return any rosters for this league.</p>`;
+  const rows=rankRows(l,d),key=r=>rkSort==="total"?r.total:rkSort==="rec"?r.pct*1e6+(r.pf||0):r.by[rkSort];
+  rows.sort((a,b)=>key(b)-key(a)||b.total-a.total);
+  const max=Math.max(...rows.map(r=>r.total),1),k=n=>n.toLocaleString("en-US");
+  const lbl={QB:"QB",RB:"RB",WR:"WR",TE:"TE",PK:"Picks"};
+  const sorts=[["total","Total"],...RK_PARTS.map(p=>[p,lbl[p]]),["rec","Record"]];
+  const est=rows.some(r=>r.assets.some(a=>a.est));
+  return`<div class="chips rk-sort">${sorts.map(([v,t])=>`<button class="chip" data-rksort="${v}" aria-pressed="${rkSort===v}">${t}</button>`).join("")}</div>
+    <div class="rk-legend">${RK_PARTS.map(p=>`<span><i class="rk-${p}"></i>${lbl[p]}</span>`).join("")}</div>
+    <div class="rk-list">${rows.map((r,i)=>{
+      const open=rkOpen===r.id,mine=r.id===l.fid;
+      return`<div class="rk${mine?" me":""}${open?" open":""}"><button class="rk-row" data-rk="${r.id}" aria-expanded="${open}">
+        <span class="rk-n">${i+1}</span>${ficon(r.f,"sm")}
+        <span class="rk-main"><span class="rk-top"><b class="rk-name">${esc(r.f.name)}</b><b class="rk-tot">${k(r.total)}</b></span>
+          <span class="rk-bar">${RK_PARTS.map(p=>r.by[p]?`<i class="rk-${p}" style="width:${r.by[p]/max*100}%" title="${lbl[p]} ${k(r.by[p])}"></i>`:"").join("")}</span>
+          <span class="rk-sub"><span>${r.w}–${r.l}${r.t?`–${r.t}`:""}${r.pf!=null?` · ${r.pf.toFixed(1)} PF`:""}</span><span class="rk-tag ${r.tag.toLowerCase()}">${r.tag}</span></span></span></button>
+        ${open?`<div class="rk-more"><div class="rk-split">${RK_PARTS.map(p=>`<span><i class="rk-${p}"></i>${lbl[p]} <b>${k(r.by[p])}</b></span>`).join("")}</div>
+          <div class="rk-assets">${r.assets.slice(0,5).map(a=>`<div><span class="pos ${a.pos==="PK"?"":esc(a.pos)}">${a.pos==="PK"?"PICK":esc(a.pos)}</span><span class="rk-an">${esc(a.name)}${a.age?`<small>${a.age.toFixed(1)}</small>`:""}</span><b>${k(a.v)}${a.est?"*":""}</b></div>`).join("")}</div>
+          <p class="note">Starters' average age: <b>${r.age?r.age.toFixed(1):"—"}</b> <span class="rk-dim">(their top ${l.starters.count||10} players by value)</span></p></div>`:""}</div>`}).join("")}</div>
+    <p class="note">Value from FantasyCalc for this league's format (${valParams(l).qbs===2?"superflex":"1 QB"}, ${valParams(l).ppr} PPR).${est?" * Estimated pick value by round.":""} Contender: top third by value and .500 or better. Rebuilder: bottom third, or over 25% of value in picks.</p>`;
+}
+// ---- Trade: calculator and finder (read-only; nothing is ever sent to MFL) ----
+// Each asset: {k, kind:"p"|"k", name, pos, v, est?}. Uses the Rankings data and the same FantasyCalc values.
+let TR={lid:null,opp:null,a:[],b:[],qa:"",qb:""};
+const STUD_TAX=.10;  // per extra piece, of the best single asset on the side getting fewer pieces
+function teamAssets(l,d,fid){
+  const vals=VALS[valKey(l)]||{},t=d.teams.find(x=>x.id===fid);if(!t)return[];
+  const out=t.players.map(id=>{const pl=d.players[id]||{};return{k:"p"+id,kind:"p",name:pl.name||"Player "+id,pos:pl.pos||"?",v:vals[id]?vals[id][0]:0}});
+  t.picks.forEach((p,i)=>{const pv=pickValue(l,p),via=p.from&&p.from!==fid?(l.franchises.find(f=>f.id===p.from)||{}).name:"";
+    out.push({k:`k${fid}-${p.year}-${p.round}-${p.from}-${i}`,kind:"k",name:`${p.year} Round ${p.round}${via?` (${via})`:""}`,pos:"PICK",v:pv.v,est:pv.src==="est"})});
+  return out.sort((x,y)=>y.v-x.v);
+}
+// Totals with the stud tax: the side getting fewer pieces gets a premium for consolidating into the best player.
+function tradeMath(A,B){
+  const sa=A.reduce((s,x)=>s+x.v,0),sb=B.reduce((s,x)=>s+x.v,0);
+  let adjA=0,adjB=0;
+  if(A.length&&B.length&&A.length!==B.length){
+    const fewer=A.length<B.length?A:B,extra=Math.min(2,Math.abs(A.length-B.length)),prem=Math.round(Math.max(...fewer.map(x=>x.v))*STUD_TAX*extra);
+    if(fewer===A)adjA=prem;else adjB=prem;
+  }
+  const ta=sa+adjA,tb=sb+adjB,diff=tb-ta,pct=Math.max(ta,tb)?Math.abs(diff)/Math.max(ta,tb):0;
+  return{sa,sb,adjA,adjB,ta,tb,diff,pct,verdict:!ta&&!tb?"":pct<=.05?"Fair":pct<=.15?(diff>0?"Leans your way":"Leans their way"):(diff>0?"Lopsided, your way":"Lopsided, their way")};
+}
+// Positional strength vs league average, and fair trade ideas with one opponent.
+function posStrength(l,d){
+  const vals=VALS[valKey(l)]||{},by={};
+  d.teams.forEach(t=>{const p={QB:0,RB:0,WR:0,TE:0};t.players.forEach(id=>{const pos=(d.players[id]||{}).pos;if(p[pos]!=null)p[pos]+=vals[id]?vals[id][0]:0});by[t.id]=p});
+  const avg={};POS.forEach(pos=>avg[pos]=d.teams.reduce((s,t)=>s+by[t.id][pos],0)/(d.teams.length||1));
+  const ratio=fid=>Object.fromEntries(POS.map(pos=>[pos,avg[pos]?by[fid][pos]/avg[pos]:1]));
+  return{ratio};
+}
+function findTrades(l,d,opp){
+  const{ratio}=posStrength(l,d),mr=ratio(l.fid),tr=ratio(opp);
+  // Weak spots: a team's two lowest positions against the league average. Surplus: its two strongest.
+  const order=r=>[...POS].sort((a,b)=>r[a]-r[b]),weak=r=>order(r).slice(0,2),surplus=r=>order(r).slice(-2);
+  const myWeak=weak(mr),theirWeak=weak(tr),mySur=surplus(mr),theirSur=surplus(tr);
+  const mine=teamAssets(l,d,l.fid).filter(x=>x.kind==="p"&&x.v>=300),theirs=teamAssets(l,d,opp).filter(x=>x.kind==="p"&&x.v>=300);
+  // They give from their surplus at one of my weak spots; I give from my surplus, preferring their weak spots.
+  const get=theirs.filter(x=>myWeak.includes(x.pos)&&theirSur.includes(x.pos)).slice(0,8);
+  let give=mine.filter(x=>mySur.includes(x.pos)&&theirWeak.includes(x.pos));
+  if(!give.length)give=mine.filter(x=>mySur.includes(x.pos));
+  give=give.slice(0,12);
+  const out=[],add=(A,B)=>{const m=tradeMath(A,B);if(m.pct<=.10)out.push({a:A,b:B,m})};
+  get.forEach(g=>{
+    give.forEach(x=>add([x],[g]));
+    for(let i=0;i<give.length;i++)for(let j=i+1;j<give.length;j++)add([give[i],give[j]],[g]);
+  });
+  // ...and 1-for-2 the other way: one of my surplus players for two of theirs that include a weak-spot fill.
+  give.forEach(x=>{for(let i=0;i<get.length;i++)for(let j=0;j<theirs.length;j++){const y=theirs[j];if(y.k!==get[i].k)add([x],[get[i],y])}});
+  const seen=new Set();
+  return out.sort((p,q)=>p.m.pct-q.m.pct||(q.m.ta+q.m.tb)-(p.m.ta+p.m.tb)).filter(t=>{const k=[...t.a,...t.b].map(x=>x.k).sort().join();if(seen.has(k))return false;seen.add(k);return true}).slice(0,5);
+}
+function tradePanel(l){
+  const d=RK[l.id];
+  if(!d)setTimeout(()=>loadRK(l));
+  if(!d||d.loading||(!VALS[valKey(l)]&&!valErr))return`<div class="sk" style="height:44px;border-radius:12px"></div><div class="sk" style="height:150px;border-radius:12px"></div><div class="sk" style="height:150px;border-radius:12px"></div>`;
+  if(d.error)return`<div class="banner"><span>${esc(d.error)}</span><button class="btn sm quiet" data-act="rkreload">Try again</button></div>`;
+  if(!VALS[valKey(l)])return`<div class="banner"><span>Dynasty values couldn't load, so trades can't be valued yet.</span><button class="btn sm quiet" data-act="rkreload">Try again</button></div>`;
+  if(TR.lid!==l.id)TR={lid:l.id,opp:null,a:[],b:[],qa:"",qb:""};
+  const opps=d.teams.filter(t=>t.id!==l.fid),fr=id=>l.franchises.find(f=>f.id===id)||{name:"Team "+id};
+  if(!TR.opp||!opps.some(t=>t.id===TR.opp))TR.opp=opps[0]?.id||null;
+  if(!TR.opp)return`<p class="note empty">No other teams in this league.</p>`;
+  const A=teamAssets(l,d,l.fid),B=teamAssets(l,d,TR.opp),pickA=TR.a.map(k=>A.find(x=>x.k===k)).filter(Boolean),pickB=TR.b.map(k=>B.find(x=>x.k===k)).filter(Boolean);
+  const m=tradeMath(pickA,pickB),k=n=>Math.round(n).toLocaleString("en-US");
+  const side=(who,list,picked,q)=>{
+    const sel=new Set(picked.map(x=>x.k));
+    return`<section class="tside"><div class="tside-h"><span>${who==="a"?"You give":`${esc(fr(TR.opp).name)} gives`}</span><b>${k(who==="a"?m.sa:m.sb)}</b></div>
+      <div class="tchips">${picked.length?picked.map(x=>`<button class="tchip" data-trx="${who}|${x.k}" aria-label="Remove ${esc(x.name)}"><span class="pos ${x.kind==="p"?esc(x.pos):""}">${x.kind==="p"?esc(x.pos):"PICK"}</span>${esc(x.kind==="p"?shortName(x.name):x.name)}<b>${x.v?k(x.v):"—"}${x.est?"*":""}</b><i aria-hidden="true">×</i></button>`).join(""):`<span class="note">Add players or picks below.</span>`}</div>
+      <label class="search tsearch">${ICON_SEARCH}<input type="text" data-trq="${who}" placeholder="Search ${who==="a"?"your roster and picks":"their roster and picks"}" value="${esc(q)}" autocomplete="off"></label>
+      <div class="tlist" id="trl-${who}">${tradeList(who,list,sel,q)}</div></section>`;
+  };
+  const ideas=findTrades(l,d,TR.opp);
+  const share=m.ta+m.tb?m.ta/(m.ta+m.tb)*100:50,cls=m.pct<=.05?"fair":m.pct<=.15?"lean":"lop";
+  const adj=m.adjA||m.adjB;
+  return`<div class="tpick"><label>League<select data-trlg>${D.leagues.map(x=>`<option value="${x.id}"${x.id===l.id?" selected":""}>${esc(key(x))} · ${esc(me(x).name||"")}</option>`).join("")}</select></label>
+      <label>Trade with<select data-tropp>${opps.map(t=>`<option value="${t.id}"${t.id===TR.opp?" selected":""}>${esc(fr(t.id).name)}</option>`).join("")}</select></label></div>
+    ${side("a",A,pickA,TR.qa)}${side("b",B,pickB,TR.qb)}
+    <div class="tbal ${pickA.length||pickB.length?cls:"idle"}" role="status">
+      <div class="tbal-top"><span>You <b>${k(m.ta)}</b></span><strong>${pickA.length||pickB.length?esc(m.verdict):"Build a trade"}</strong><span><b>${k(m.tb)}</b> Them</span></div>
+      <div class="tbar"><i style="width:${share}%"></i><span class="tmid"></span></div>
+      <div class="tbal-foot"><div class="tbal-sub">${pickA.length||pickB.length?`${m.diff>=0?"You gain":"You give up"} ${k(Math.abs(m.diff))} (${(m.pct*100).toFixed(1)}%)`:"Within 5% is fair · 5–15% leans · over 15% lopsided"}${adj?` · <span class="tadj" tabindex="0" title="Value adjustment: in a ${Math.max(pickA.length,pickB.length)}-for-${Math.min(pickA.length,pickB.length)} deal, the side getting fewer pieces gets a ${STUD_TAX*100}% premium on its best player per extra piece (up to 2). One great player is worth more than the same value spread across several, because you only have so many starting spots.">+${k(adj)} stud tax ⓘ</span>`:""}</div>
+      ${pickA.length||pickB.length?`<button class="btn sm quiet" data-act="trclear">Clear</button>`:""}</div></div>
+    <div class="list-head"><span>Trade ideas<small>within 10%, fills a weak spot</small></span></div>
+    ${ideas.length?`<div class="tideas">${ideas.map((t,i)=>`<div class="tidea"><div class="tid-sides"><div><small>You give</small>${t.a.map(x=>`<span><i class="pos ${esc(x.pos)}">${esc(x.pos)}</i>${esc(shortName(x.name))} <b>${k(x.v)}</b></span>`).join("")}</div><div><small>You get</small>${t.b.map(x=>`<span><i class="pos ${esc(x.pos)}">${esc(x.pos)}</i>${esc(shortName(x.name))} <b>${k(x.v)}</b></span>`).join("")}</div></div>
+      <div class="tid-foot"><span>${k(t.m.ta)} vs ${k(t.m.tb)} · ${(t.m.pct*100).toFixed(1)}% apart${t.m.adjA||t.m.adjB?" (with stud tax)":""}</span><button class="btn sm quiet" data-trload="${i}">Load in calculator</button></div></div>`).join("")}</div>`:`<p class="note empty">No fair trades found with this team.</p>`}
+    <p class="note">Values from FantasyCalc for this league's format. Nothing here is sent to MFL; propose trades on the MFL site.${[...A,...B].some(x=>x.est)?" * Estimated pick value by round.":""}</p>`;
+}
+function tradeList(who,list,sel,q){
+  const s=q.trim().toLowerCase(),k=n=>n.toLocaleString("en-US");
+  const items=list.filter(x=>!sel.has(x.k)&&(!s||x.name.toLowerCase().includes(s)||x.pos.toLowerCase()===s));
+  if(!items.length)return`<p class="note">Nothing matches.</p>`;
+  return items.slice(0,s?30:8).map(x=>`<button class="topt" data-tradd="${who}|${x.k}"><span class="pos ${x.kind==="p"?esc(x.pos):""}">${x.kind==="p"?esc(x.pos):"PICK"}</span><span class="tn">${esc(x.name)}</span><b>${x.v?k(x.v):"—"}${x.est?"*":""}</b><i aria-hidden="true">+</i></button>`).join("")+(!s&&items.length>8?`<p class="note">Search to see all ${items.length}.</p>`:"");
+}
 function renderFAList(){const l=D&&D.leagues.find(x=>x.id===cur),el=$("falist");if(l&&el)el.innerHTML=faList(l)}
-document.addEventListener("input",e=>{if(e.target.id==="fasearch"){faQ=e.target.value;faShow=50;faSel=null;bidConfirm=false;renderFAList()}});
+document.addEventListener("input",e=>{if(e.target.id==="fasearch"){faQ=e.target.value;faShow=50;faSel=null;bidConfirm=false;renderFAList()}
+  const w=e.target.dataset&&e.target.dataset.trq;
+  if(w){TR["q"+w]=e.target.value;const l=D&&D.leagues.find(x=>x.id===cur),d=l&&RK[l.id],el=$("trl-"+w);
+    if(l&&d&&d.teams&&el){const list=teamAssets(l,d,w==="a"?l.fid:TR.opp);el.innerHTML=tradeList(w,list,new Set(TR[w]),TR["q"+w])}}});
+document.addEventListener("change",e=>{
+  if(e.target.matches("[data-tropp]")){TR.opp=e.target.value;TR.b=[];TR.qb="";render()}
+  if(e.target.matches("[data-trlg]")){cur=e.target.value;store.set("dd-tab",cur);render()}});
 
 // ---- Overview ----
 function renderAll(){
@@ -1232,6 +1634,18 @@ document.addEventListener("click",async e=>{
   const mu=e.target.closest('[data-act="openmu"],[data-act="closemu"]');
   if(mu){if(mu.dataset.act==="openmu")openMU(l.id);else closeMU();return}
   if(e.target.closest('[data-act="streload"]')){delete ST[l.id];render();return}
+  if(e.target.closest('[data-act="stmore"]')){stMore=!stMore;render();return}
+  if(e.target.closest('[data-act="poreload"]')){delete PO[l.id];delete ODDS[l.id];try{localStorage.removeItem(`dd-po-${l.id}-${week}`)}catch(_){};render();return}
+  const sv=e.target.closest("[data-stview]");if(sv){stView=sv.dataset.stview;render();return}
+  const py=e.target.closest("[data-pkyear]");if(py){pkYear=+py.dataset.pkyear;render();return}
+  if(e.target.closest('[data-act="rkreload"]')){delete RK[l.id];if(!VALS[valKey(l)]){valErr=false;loadValues()}render();return}
+  const ta=e.target.closest("[data-tradd]"),tx=e.target.closest("[data-trx]");
+  if(ta||tx){const[w,k]=(ta||tx).dataset[ta?"tradd":"trx"].split("|"),arr=TR[w];if(ta){if(!arr.includes(k))arr.push(k)}else TR[w]=arr.filter(x=>x!==k);render();return}
+  if(e.target.closest('[data-act="trclear"]')){TR.a=[];TR.b=[];render();return}
+  const tl=e.target.closest("[data-trload]");
+  if(tl){const d=RK[l.id],t=d&&findTrades(l,d,TR.opp)[+tl.dataset.trload];if(t){TR.a=t.a.map(x=>x.k);TR.b=t.b.map(x=>x.k);render();document.querySelector(".tpick")?.scrollIntoView({behavior:RM?"auto":"smooth",block:"start"})}return}
+  const rs=e.target.closest("[data-rksort]");if(rs){rkSort=rs.dataset.rksort;render();return}
+  const rr=e.target.closest("[data-rk]");if(rr){rkOpen=rkOpen===rr.dataset.rk?null:rr.dataset.rk;render();return}
   const md=e.target.closest("[data-mode]");
   if(md){if(mode!==md.dataset.mode){mode=md.dataset.mode;faSel=null;bidConfirm=false;claimUI=null;confirming=false;render()}return}
   const ch=e.target.closest("[data-pos]");
@@ -1283,7 +1697,7 @@ $("pinform").addEventListener("submit",e=>{e.preventDefault();const v=$("pin").v
 $("retry").addEventListener("click",()=>load(week));
 $("prev").addEventListener("click",()=>{if(week>1)load(week-1)});
 $("next").addEventListener("click",()=>{if(week<18)load(week+1)});
-if(D){try{prepare();render()}catch(e){D=null}}
+if(D){try{prepare();render();loadValues()}catch(e){D=null}}
 renderFoot();
 load(null);
 </script>
