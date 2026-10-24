@@ -778,6 +778,44 @@ body.has-tabs .tbal{bottom:calc(70px + env(safe-area-inset-bottom,0px))}
   .mv-top h2 .wk{display:block;font-size:12.5px;color:var(--muted)}
   .mv-top h2 .sep{display:none}
 }
+
+/* v26: points vs value. Points stay the big Anton numbers; dynasty value is always this small Barlow ◆ pill. */
+.vchip{display:inline-flex;align-items:center;gap:3px;flex:none;max-width:none;padding:2px 6px 2px 5px;border-radius:99px;background:var(--sunk);box-shadow:inset 0 0 0 1px var(--line);font:600 12.5px/1.2 var(--text);color:var(--muted);letter-spacing:0;white-space:nowrap;font-variant-numeric:tabular-nums;vertical-align:middle;overflow:visible}
+.vchip::before{content:"◆";font-size:7.5px;line-height:1;color:var(--faint);transform:translateY(-.5px)}
+.vchip b{font:inherit;color:inherit;letter-spacing:inherit}
+.vchip .vt{font-style:normal;font-size:9px;line-height:1;margin-left:1px}
+.vt.up{color:var(--sig-ink)}.vt.dn{color:var(--bad)}.vt.flat{color:var(--faint)}
+.vchip.none{color:var(--faint)}.vchip.none::before{display:none}
+.vchip.lg{font-size:14px;font-weight:700;color:var(--ink);padding:3px 8px 3px 7px}.vchip.lg::before{font-size:8.5px}
+/* Game-day rows (Lineup): value moves onto the detail line, no value column */
+.opp>.vchip{overflow:visible;min-width:auto;margin-left:2px}
+.opp>.vchip:last-child{overflow:visible;text-overflow:clip}
+/* Free agents: value column = chip + 30-day change; projection smaller than game-day points */
+.row.fa .dv{display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:0}
+.row.fa .dv>.vt{font:600 11.5px/1 var(--text);font-style:normal;color:var(--faint);font-variant-numeric:tabular-nums;white-space:nowrap}
+.row.fa .dv>.vt.up{color:var(--sig-ink)}.row.fa .dv>.vt.dn{color:var(--bad)}
+.row.fa .pts{font-size:18px}
+.row.fa:has(.dv),.lhc.fa{grid-template-columns:36px minmax(0,1fr) 50px 42px 46px;column-gap:8px}
+.lhc.novals.fa{grid-template-columns:36px minmax(0,1fr) 42px 46px}
+/* Rankings and Trade */
+.lhc.rkh{grid-template-columns:minmax(0,1fr) auto;margin-bottom:-4px}.lhc.rkh>.lt{grid-column:1}
+.rk-top{align-items:center}
+.rk-split b{font-weight:600}
+.tside-h{align-items:center}
+.tchip .vchip{font-size:12px;padding:1px 5px 1px 4px;background:var(--sunk)}
+.tlh{display:flex;justify-content:space-between;padding:0 24px 0 4px;margin-bottom:-6px;font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
+.tbal-top{align-items:center}.tbal-top>span{display:inline-flex;align-items:center;gap:6px}
+.tid-sides span{display:flex;align-items:center;gap:5px;min-width:0}
+.tid-sides span .vchip{margin-left:auto}
+.tid-sides .tin{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tid-sides span{overflow:visible}
+.note .vchip,.info-body .vchip,p .vchip{vertical-align:-1px}
+@media (max-width:380px){
+  .row.fa:has(.dv),.lhc.fa{grid-template-columns:36px minmax(0,1fr) 50px 42px}
+  .lhc.novals.fa{grid-template-columns:36px minmax(0,1fr) 42px}
+  .topt{column-gap:6px}}
+@media (max-width:430px){.tid-sides{gap:8px}.tid-sides span{font-size:12.5px;gap:3px}.tid-sides i{margin-right:2px}
+  .tid-sides .vchip{font-size:12px;padding:1px 4px 1px 3px;gap:2px}}
 </style>
 </head>
 <body>
@@ -850,7 +888,7 @@ let liveHold=0; // after MFL says "too many requests", auto-refresh pauses for 5
 let G={},owned={},seen=new Set(),intro=false,flashId=null,lastSegI=0,lastMode="lineup",liveBusy=false;
 
 // Version of this page. The server sends its own version, so a mismatch means one file wasn't uploaded.
-const APP_VERSION="v25";
+const APP_VERSION="v26";
 let srvVer=null,pinWeak=false;
 // For a couple of minutes after you change something on MFL, reads skip the server's short cache.
 let freshUntil=0;
@@ -991,27 +1029,44 @@ async function loadValues(){
   if(!typing&&!busy){render();renderMU()}
 }
 const valOf=(l,id)=>{const v=VALS[valKey(l)];return v?(v[id]||null):undefined};
-// Value column: dynasty value on top, 30-day trend under it. Empty while values are missing; "—" if the player has none.
-function valChip(l,id){
-  const v=valOf(l,id);if(v===undefined)return"";
-  if(!v)return`<span class="dv none" title="No dynasty value"><b>—</b></span>`;
-  const[n,t]=v,dir=t>0?"up":t<0?"dn":"flat";
-  return`<span class="dv" title="Dynasty value, 30-day change ${t>0?"+":""}${t}"><b>${n.toLocaleString("en-US")}</b><i class="${dir}">${dir==="up"?"▲ ":dir==="dn"?"▼ ":""}${t?Math.abs(t).toLocaleString("en-US"):"—"}</i></span>`;
+// ---- Dynasty value: one formatter (fmtVal) and one chip (.vchip) on every screen ----
+// Points are the big Anton numbers; value is always the small ◆ pill, so the two never look alike.
+// dec=true keeps one decimal above 10K too (Rankings totals, so close teams don't all read "73K").
+function fmtVal(n,dec){n=Math.round(+n||0);const a=Math.abs(n),sg=n<0?"-":"";
+  if(a<1000)return sg+a;
+  if(a>=999500)return sg+(a/1e6).toFixed(1).replace(/\.0$/,"")+"M";
+  const k=a/1000;return sg+(k<9.95||dec?k.toFixed(1):String(Math.round(k)))+"K"}
+const fullVal=n=>Math.round(+n||0).toLocaleString("en-US");
+const valLabel=(n,t,est)=>`Dynasty value ${fullVal(n)}${est?" (estimated)":""}${t?`, ${t>0?"up":"down"} ${fullVal(Math.abs(t))} in 30 days`:""}`;
+// o.full shows the exact number (trade calculator totals, where small gaps matter); o.t = 30-day change; o.trend "arrow" puts a small ▲/▼ inside the chip; o.cls "lg" for totals on value screens.
+function vchip(n,o={}){
+  const t=o.t,lab=valLabel(n,t,o.est);
+  const tr=o.trend==="arrow"&&t?`<i class="vt ${t>0?"up":"dn"}" aria-hidden="true">${t>0?"▲":"▼"}</i>`:"";
+  return`<span class="vchip${o.cls?" "+o.cls:""}" role="img" title="${lab}" aria-label="${lab}"><b>${o.full?fullVal(n):fmtVal(n,o.dec)}${o.est?"*":""}</b>${tr}</span>`;
 }
-// Section header with column labels ("VALUE", "PTS"/"PROJ") lined up over the row columns.
-function colHead(title,count,pts,fa){
-  const l=D.leagues.find(x=>x.id===cur),hasV=l&&VALS[valKey(l)];
+// Value column (value-centric lists like Free agents): chip on top, 30-day change under it.
+// line=true: the inline chip for game-day rows (Lineup), with only a ▲/▼ cue.
+function valChip(l,id,line){
+  const v=valOf(l,id);if(v===undefined)return"";
+  if(!v)return line?"":`<span class="dv none"><span class="vchip none" role="img" title="No dynasty value" aria-label="No dynasty value"><b>—</b></span></span>`;
+  const[n,t]=v,dir=t>0?"up":t<0?"dn":"flat";
+  if(line)return vchip(n,{t,trend:"arrow"});
+  return`<span class="dv">${vchip(n,{t})}<i class="vt ${dir}" aria-hidden="true">${dir==="up"?"▲":dir==="dn"?"▼":""}${t?fmtVal(Math.abs(t)):"—"}</i></span>`;
+}
+// Section header with column labels lined up over the row columns. Game-day lists (val=false) label only PTS/PROJ.
+function colHead(title,count,pts,fa,val=true){
+  const l=D.leagues.find(x=>x.id===cur),hasV=val&&l&&VALS[valKey(l)];
   return`<div class="list-head lhc${hasV?"":" novals"}${fa?" fa":""}"><span class="lt">${title}<small>${count}</small></span>${hasV?`<span class="ch">Value</span>`:""}<span class="ch">${pts}</span><span></span></div>`;
 }
-const valCol=id=>{const l=D.leagues.find(x=>x.id===cur);return l&&VALS[valKey(l)]?valChip(l,id):""};
-function oppLine(id){
+const valCol=(id,line)=>{const l=D.leagues.find(x=>x.id===cur);return l&&VALS[valKey(l)]?valChip(l,id,line):""};
+function oppLine(id,chip=""){
   const p=P(id);
   const ps=`<span class="pos ${esc(p.pos)}">${esc(p.pos)}</span>`;
-  if(p.team==="FA")return`<span class="opp">${ps}<span class="out">Free agent</span></span>`;
-  if(D.byes.includes(p.team))return`<span class="opp">${ps}<span class="out">Bye week</span></span>`;
-  const g=G[p.team];if(!g)return`<span class="opp">${ps}</span>`;
+  if(p.team==="FA")return`<span class="opp">${ps}<span class="out">Free agent</span>${chip}</span>`;
+  if(D.byes.includes(p.team))return`<span class="opp">${ps}<span class="out">Bye week</span>${chip}</span>`;
+  const g=G[p.team];if(!g)return`<span class="opp">${ps}${chip}</span>`;
   const r=p.pos==="RB"?g.opp.rushD:g.opp.passD;
-  return`<span class="opp">${ps}<span class="vs">${g.home?"vs":"@"} ${esc(tm(g.opp.id))}</span>${r&&r<=8?`<span class="dr tough" title="${ord(r)} ${p.pos==="RB"?"run":"pass"} defense">Tough D</span>`:""}</span>`;
+  return`<span class="opp">${ps}<span class="vs">${g.home?"vs":"@"} ${esc(tm(g.opp.id))}</span>${r&&r<=8?`<span class="dr tough" title="${ord(r)} ${p.pos==="RB"?"run":"pass"} defense">Tough D</span>`:""}${chip}</span>`;
 }
 function nameLine(p,id,st,extra){return`<span class="pn"><span class="nmx">${esc(shortName(p.name))}</span>${badgeFor(id,st)}${p.rookie?`<span class="rk">R</span>`:""}${extra||""}</span>`}
 function badgeFor(id,st){
@@ -1030,7 +1085,7 @@ function row(l,id,on){
   const p=P(id),st=state(id,l);
   let stk="";
   if(on&&p.pos==="QB"){const m=l.roster.find(o=>o!==id&&lineups[l.id].has(o)&&P(o).pos==="QB"&&P(o).team===p.team);if(m)stk=`<span class="stk" title="${esc(P(m).name)} is also starting">Same team</span>`}
-  return`<button class="row${on?" on":""}${id===flashId?" flash":""}" data-id="${id}" aria-pressed="${on}" aria-label="${esc(p.name)}, ${on?"starting. Tap to bench":"on bench. Tap to start"}">${shotOf(p,id)}<span class="nm">${nameLine(p,id,st,stk)}${oppLine(id)}</span>${valCol(id)}<span class="pv">${pointsCol(l,"me",id).html}</span><span class="tg" aria-hidden="true"></span></button>`;
+  return`<button class="row${on?" on":""}${id===flashId?" flash":""}" data-id="${id}" aria-pressed="${on}" aria-label="${esc(p.name)}, ${on?"starting. Tap to bench":"on bench. Tap to start"}">${shotOf(p,id)}<span class="nm">${nameLine(p,id,st,stk)}${oppLine(id,valCol(id,true))}</span><span class="pv">${pointsCol(l,"me",id).html}</span><span class="tg" aria-hidden="true"></span></button>`;
 }
 // Bottom tab bar: one place to move between sections (replaces the row of tabs inside the page).
 const TABS=[["lineup","Lineup",'<path d="M4 6h16M4 12h16M4 18h10"/>'],["fa","Free agents",'<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>'],["st","Standings",'<path d="M5 20V10M12 20V4M19 20v-7"/>'],["rk","Rankings",'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/>'],["tr","Trade",'<path d="M7 7h12l-3-3M17 17H5l3 3"/>']];
@@ -1061,9 +1116,9 @@ function render(){
   const lineupBody=`
     <div class="strip">${POS.map(p=>{const[a,b]=lim(l,p),off=c[p]<a||c[p]>b;return`<div class="cell ${p}${off?" off":""}"><span class="k"><i></i>${p}</span><b>${c[p]}<small>of ${a===b?a:a+"–"+b}</small></b></div>`}).join("")}</div>
     ${issues.length>1?`<p class="note">Also: ${esc(issues.slice(1).join(", ").toLowerCase())}.</p>`:""}
-    ${colHead("Starters",`${set.size} of ${n}`,l.roster.some(id=>pst(l,"me",id).started)?"Pts":"Proj")}
+    ${colHead("Starters",`${set.size} of ${n}`,l.roster.some(id=>pst(l,"me",id).started)?"Pts":"Proj",false,false)}
     <div class="list">${starters.map(id=>row(l,id,true)).join("")||`<p class="note empty">No starters yet. Tap a bench player to start them.</p>`}</div>
-    ${colHead("Bench",bench.length,l.roster.some(id=>pst(l,"me",id).started)?"Pts":"Proj")}
+    ${colHead("Bench",bench.length,l.roster.some(id=>pst(l,"me",id).started)?"Pts":"Proj",false,false)}
     <div class="list">${bench.map(id=>row(l,id,false)).join("")}</div>`;
   const bar=confirming
     ?`<div class="ab"><div class="ab-text"><span class="ab-q">Send to MFL?</span><span class="ab-sub">Week ${week}, ${set.size} starters</span></div><div class="ab-btns"><button class="btn quiet" data-act="cancel"${busy?" disabled":""}>Cancel</button><button class="btn primary" data-act="send"${busy?" disabled":""}>${busy?"Sending…":"Send lineup"}</button></div></div>`
@@ -1209,7 +1264,7 @@ const pickOf=c=>`${c.add}_${c.bid}_${c.drop||"0000"}`;
 function dropOptions(l,sel,full){
   const byVal=VALS[valKey(l)],dv=d=>(byVal&&byVal[d]?byVal[d][0]:0);
   const drops=[...l.roster].sort(byVal?(a,b)=>dv(a)-dv(b)||pts(l,a)-pts(l,b):(a,b)=>pts(l,a)-pts(l,b));
-  const tag=d=>byVal?(byVal[d]?byVal[d][0].toLocaleString("en-US"):"—"):fmt(pts(l,d));
+  const tag=d=>byVal?(byVal[d]?`◆ ${fmtVal(byVal[d][0])} value`:"no value"):`${fmt(pts(l,d))} pts`;
   return`${full?"":`<option value="">No drop</option>`}${drops.map(d=>`<option value="${esc(d)}"${sel===d?" selected":""}>${esc(P(d).pos)} ${esc(P(d).name)} (${tag(d)})</option>`).join("")}`;
 }
 function claimsBlock(l,claims){
@@ -1687,23 +1742,24 @@ function rankingsPanel(l){
   if(!d.teams||!d.teams.length)return`<p class="note empty">MFL didn't return any rosters for this league.</p>`;
   const rows=rankRows(l,d),key=r=>rkSort==="total"?r.total:rkSort==="rec"?r.pct*1e6+(r.pf||0):r.by[rkSort];
   rows.sort((a,b)=>key(b)-key(a)||b.total-a.total);
-  const max=Math.max(...rows.map(r=>r.total),1),k=n=>n.toLocaleString("en-US");
+  const max=Math.max(...rows.map(r=>r.total),1),k=fmtVal;
   const lbl={QB:"QB",RB:"RB",WR:"WR",TE:"TE",PK:"Picks"};
   const sorts=[["total","Total"],...RK_PARTS.map(p=>[p,lbl[p]]),["rec","Record"]];
   const est=rows.some(r=>r.assets.some(a=>a.est));
   return`<div class="chips rk-sort">${sorts.map(([v,t])=>`<button class="chip" data-rksort="${v}" aria-pressed="${rkSort===v}">${t}</button>`).join("")}</div>
     <div class="rk-legend">${RK_PARTS.map(p=>`<span><i class="rk-${p}"></i>${lbl[p]}</span>`).join("")}</div>
+    <div class="list-head lhc rkh"><span class="lt">Teams<small>${rows.length}</small></span><span class="ch">Total value</span></div>
     <div class="rk-list">${rows.map((r,i)=>{
       const open=rkOpen===r.id,mine=r.id===l.fid;
       return`<div class="rk${mine?" me":""}${open?" open":""}"><button class="rk-row" data-rk="${r.id}" aria-expanded="${open}">
         <span class="rk-n">${i+1}</span>${ficon(r.f,"sm")}
-        <span class="rk-main"><span class="rk-top"><b class="rk-name">${esc(r.f.name)}</b><b class="rk-tot">${k(r.total)}</b></span>
-          <span class="rk-bar">${RK_PARTS.map(p=>r.by[p]?`<i class="rk-${p}" style="width:${r.by[p]/max*100}%" title="${lbl[p]} ${k(r.by[p])}"></i>`:"").join("")}</span>
-          <span class="rk-sub"><span>${r.w}–${r.l}${r.t?`–${r.t}`:""}${r.pf!=null?` · ${r.pf.toFixed(1)} PF`:""}</span><span class="rk-tag ${r.tag.toLowerCase()}">${r.tag}</span></span></span></button>
-        ${open?`<div class="rk-more"><div class="rk-split">${RK_PARTS.map(p=>`<span><i class="rk-${p}"></i>${lbl[p]} <b>${k(r.by[p])}</b></span>`).join("")}</div>
-          <div class="rk-assets">${r.assets.slice(0,5).map(a=>`<div><span class="pos ${a.pos==="PK"?"":esc(a.pos)}">${a.pos==="PK"?"PICK":esc(a.pos)}</span><span class="rk-an">${esc(a.name)}${a.age?`<small>${a.age.toFixed(1)}</small>`:""}</span><b>${k(a.v)}${a.est?"*":""}</b></div>`).join("")}</div>
+        <span class="rk-main"><span class="rk-top"><b class="rk-name">${esc(r.f.name)}</b>${vchip(r.total,{cls:"lg",dec:true})}</span>
+          <span class="rk-bar">${RK_PARTS.map(p=>r.by[p]?`<i class="rk-${p}" style="width:${r.by[p]/max*100}%" title="${lbl[p]} value ${fullVal(r.by[p])}"></i>`:"").join("")}</span>
+          <span class="rk-sub"><span>${r.w}–${r.l}${r.t?`–${r.t}`:""}${r.pf!=null?` · ${r.pf.toFixed(1)} pts for`:""}</span><span class="rk-tag ${r.tag.toLowerCase()}">${r.tag}</span></span></span></button>
+        ${open?`<div class="rk-more"><div class="rk-split">${RK_PARTS.map(p=>`<span title="${lbl[p]} value ${fullVal(r.by[p])}"><i class="rk-${p}"></i>${lbl[p]} <b>◆ ${k(r.by[p])}</b></span>`).join("")}</div>
+          <div class="rk-assets">${r.assets.slice(0,5).map(a=>`<div><span class="pos ${a.pos==="PK"?"":esc(a.pos)}">${a.pos==="PK"?"PICK":esc(a.pos)}</span><span class="rk-an">${esc(a.name)}${a.age?`<small>${a.age.toFixed(1)}</small>`:""}</span>${vchip(a.v,{est:a.est})}</div>`).join("")}</div>
           <p class="note">Starters' average age: <b>${r.age?r.age.toFixed(1):"—"}</b> <span class="rk-dim">(their top ${l.starters.count||10} players by value)</span></p></div>`:""}</div>`}).join("")}</div>
-    <div class="stlegend"><span>${valParams(l).qbs===2?"Superflex":"1 QB"} · ${valParams(l).ppr} PPR values</span>${info("rk","How rankings work",`<p>Each team's total is the FantasyCalc dynasty value of every rostered player plus its future picks, for this league's format (${valParams(l).qbs===2?"superflex":"1 QB"}, ${valParams(l).ppr} PPR).</p>${est?"<p>Picks marked * have an estimated value by round.</p>":""}<p><b>Contender:</b> top third by value and .500 or better.<br><b>Rebuilder:</b> bottom third, or over 25% of value in picks.<br><b>Middle:</b> everyone else.</p>`)}</div>`;
+    <div class="stlegend"><span>${valParams(l).qbs===2?"Superflex":"1 QB"} · ${valParams(l).ppr} PPR values</span>${info("rk","How rankings work",`<p>Each team's total is the FantasyCalc dynasty value of every rostered player plus its future picks, for this league's format (${valParams(l).qbs===2?"superflex":"1 QB"}, ${valParams(l).ppr} PPR).</p>${est?"<p>Picks marked * have an estimated value by round.</p>":""}<p><span class="vchip" aria-hidden="true"><b>9.3K</b></span> is a dynasty value (here about 9,300; 12K is about 12,000). Values always sit in this ◆ pill; points and projections are the big plain numbers.</p><p><b>Contender:</b> top third by value and .500 or better.<br><b>Rebuilder:</b> bottom third, or over 25% of value in picks.<br><b>Middle:</b> everyone else.</p>`)}</div>`;
 }
 // ---- Trade: calculator and finder (read-only; nothing is ever sent to MFL) ----
 // Each asset: {k, kind:"p"|"k", name, pos, v, est?}. Uses the Rankings data and the same FantasyCalc values.
@@ -1767,13 +1823,13 @@ function tradePanel(l){
   if(!TR.opp||!opps.some(t=>t.id===TR.opp))TR.opp=opps[0]?.id||null;
   if(!TR.opp)return`<p class="note empty">No other teams in this league.</p>`;
   const A=teamAssets(l,d,l.fid),B=teamAssets(l,d,TR.opp),pickA=TR.a.map(k=>A.find(x=>x.k===k)).filter(Boolean),pickB=TR.b.map(k=>B.find(x=>x.k===k)).filter(Boolean);
-  const m=tradeMath(pickA,pickB),k=n=>Math.round(n).toLocaleString("en-US");
+  const m=tradeMath(pickA,pickB),k=fmtVal;
   const side=(who,list,picked,q)=>{
     const sel=new Set(picked.map(x=>x.k));
-    return`<section class="tside"><div class="tside-h"><span>${who==="a"?"You give":`${esc(fr(TR.opp).name)} gives`}</span><b>${k(who==="a"?m.sa:m.sb)}</b></div>
-      <div class="tchips">${picked.length?picked.map(x=>`<button class="tchip" data-trx="${who}|${x.k}" aria-label="Remove ${esc(x.name)}"><span class="pos ${x.kind==="p"?esc(x.pos):""}">${x.kind==="p"?esc(x.pos):"PICK"}</span>${esc(x.kind==="p"?shortName(x.name):x.name)}<b>${x.v?k(x.v):"—"}${x.est?"*":""}</b><i aria-hidden="true">×</i></button>`).join(""):`<span class="note">Add players or picks below.</span>`}</div>
+    return`<section class="tside"><div class="tside-h"><span>${who==="a"?"You give":`${esc(fr(TR.opp).name)} gives`}</span>${vchip(who==="a"?m.sa:m.sb,{cls:"lg"})}</div>
+      <div class="tchips">${picked.length?picked.map(x=>`<button class="tchip" data-trx="${who}|${x.k}" aria-label="Remove ${esc(x.name)}"><span class="pos ${x.kind==="p"?esc(x.pos):""}">${x.kind==="p"?esc(x.pos):"PICK"}</span>${esc(x.kind==="p"?shortName(x.name):x.name)}${x.v?vchip(x.v,{est:x.est}):`<span class="vchip none"><b>—</b></span>`}<i aria-hidden="true">×</i></button>`).join(""):`<span class="note">Add players or picks below.</span>`}</div>
       <label class="search tsearch">${ICON_SEARCH}<input type="text" data-trq="${who}" placeholder="Search ${who==="a"?"your roster and picks":"their roster and picks"}" value="${esc(q)}" autocomplete="off"></label>
-      <div class="tlist" id="trl-${who}">${tradeList(who,list,sel,q)}</div></section>`;
+      <div class="tlh" aria-hidden="true"><span>Player or pick</span><span>Value</span></div><div class="tlist" id="trl-${who}">${tradeList(who,list,sel,q)}</div></section>`;
   };
   const ideas=findTrades(l,d,TR.opp);
   const share=m.ta+m.tb?m.ta/(m.ta+m.tb)*100:50,cls=m.pct<=.05?"fair":m.pct<=.15?"lean":"lop";
@@ -1782,20 +1838,20 @@ function tradePanel(l){
       <label>Trade with<select data-tropp>${opps.map(t=>`<option value="${t.id}"${t.id===TR.opp?" selected":""}>${esc(fr(t.id).name)}</option>`).join("")}</select></label></div>
     ${side("a",A,pickA,TR.qa)}${side("b",B,pickB,TR.qb)}
     <div class="tbal ${pickA.length||pickB.length?cls:"idle"}" role="status">
-      <div class="tbal-top"><span>You <b>${k(m.ta)}</b></span><strong>${pickA.length||pickB.length?esc(m.verdict):"Build a trade"}</strong><span><b>${k(m.tb)}</b> Them</span></div>
+      <div class="tbal-top"><span>You ${vchip(m.ta,{cls:"lg",full:true})}</span><strong>${pickA.length||pickB.length?esc(m.verdict):"Build a trade"}</strong><span>${vchip(m.tb,{cls:"lg",full:true})} Them</span></div>
       <div class="tbar"><i style="width:${share}%"></i><span class="tmid"></span></div>
-      <div class="tbal-foot"><div class="tbal-sub">${pickA.length||pickB.length?`${m.diff>=0?"You gain":"You give up"} ${k(Math.abs(m.diff))} (${(m.pct*100).toFixed(1)}%)`:"Within 5% is fair · 5–15% leans · over 15% lopsided"}${adj?` · <span class="tadj" tabindex="0" title="Value adjustment: in a ${Math.max(pickA.length,pickB.length)}-for-${Math.min(pickA.length,pickB.length)} deal, the side getting fewer pieces gets a ${STUD_TAX*100}% premium on its best player per extra piece (up to 2). One great player is worth more than the same value spread across several, because you only have so many starting spots.">+${k(adj)} stud tax ⓘ</span>`:""}</div>
+      <div class="tbal-foot"><div class="tbal-sub">${pickA.length||pickB.length?`${m.diff>=0?"You gain":"You give up"} ${fullVal(Math.abs(m.diff))} in value (${(m.pct*100).toFixed(1)}%)`:"Within 5% is fair · 5–15% leans · over 15% lopsided"}${adj?` · <span class="tadj" tabindex="0" title="Value adjustment: in a ${Math.max(pickA.length,pickB.length)}-for-${Math.min(pickA.length,pickB.length)} deal, the side getting fewer pieces gets a ${STUD_TAX*100}% premium on its best player per extra piece (up to 2). One great player is worth more than the same value spread across several, because you only have so many starting spots.">+${fullVal(adj)} stud tax ⓘ</span>`:""}</div>
       ${pickA.length||pickB.length?`<button class="btn sm quiet" data-act="trclear">Clear</button>`:""}</div></div>
     <div class="list-head"><span>Trade ideas<small>within 10%, fills a weak spot</small></span></div>
-    ${ideas.length?`<div class="tideas">${ideas.map((t,i)=>`<div class="tidea"><div class="tid-sides"><div><small>You give</small>${t.a.map(x=>`<span><i class="pos ${esc(x.pos)}">${esc(x.pos)}</i>${esc(shortName(x.name))} <b>${k(x.v)}</b></span>`).join("")}</div><div><small>You get</small>${t.b.map(x=>`<span><i class="pos ${esc(x.pos)}">${esc(x.pos)}</i>${esc(shortName(x.name))} <b>${k(x.v)}</b></span>`).join("")}</div></div>
-      <div class="tid-foot"><span>${k(t.m.ta)} vs ${k(t.m.tb)} · ${(t.m.pct*100).toFixed(1)}% apart${t.m.adjA||t.m.adjB?" (with stud tax)":""}</span><button class="btn sm quiet" data-trload="${i}">Load in calculator</button></div></div>`).join("")}</div>`:`<p class="note empty">No fair trades found with this team.</p>`}
-    <div class="stlegend"><span>Read-only · nothing is sent to MFL</span>${info("tr","How trade values work",`<p>Values are FantasyCalc dynasty values for this league's format.${[...A,...B].some(x=>x.est)?" Picks marked * have an estimated value by round.":""}</p><p><b>Fair</b> within 5% · <b>leans</b> 5–15% · <b>lopsided</b> over 15%.</p><p><b>Stud tax:</b> in uneven deals the side getting fewer pieces gets a 10% premium on its best player per extra piece (up to 2), because one great player is worth more than the same value spread across roster spots.</p><p>Trade ideas are within 10% and fill one of your two weakest positions. Propose trades on the MFL site.</p>`)}</div>`;
+    ${ideas.length?`<div class="tideas">${ideas.map((t,i)=>`<div class="tidea"><div class="tid-sides"><div><small>You give</small>${t.a.map(x=>`<span><i class="pos ${esc(x.pos)}">${esc(x.pos)}</i><span class="tin">${esc(shortName(x.name))}</span>${vchip(x.v)}</span>`).join("")}</div><div><small>You get</small>${t.b.map(x=>`<span><i class="pos ${esc(x.pos)}">${esc(x.pos)}</i><span class="tin">${esc(shortName(x.name))}</span>${vchip(x.v)}</span>`).join("")}</div></div>
+      <div class="tid-foot"><span title="Value ${fullVal(t.m.ta)} vs ${fullVal(t.m.tb)}">◆ ${k(t.m.ta)} vs ${k(t.m.tb)} · ${(t.m.pct*100).toFixed(1)}% apart${t.m.adjA||t.m.adjB?" (with stud tax)":""}</span><button class="btn sm quiet" data-trload="${i}">Load in calculator</button></div></div>`).join("")}</div>`:`<p class="note empty">No fair trades found with this team.</p>`}
+    <div class="stlegend"><span>Read-only · nothing is sent to MFL</span>${info("tr","How trade values work",`<p>Values are FantasyCalc dynasty values for this league's format.${[...A,...B].some(x=>x.est)?" Picks marked * have an estimated value by round.":""}</p><p><span class="vchip" aria-hidden="true"><b>9.3K</b></span> is a dynasty value (here about 9,300; 12K is about 12,000). Values always sit in this ◆ pill; points and projections are the big plain numbers.</p><p><b>Fair</b> within 5% · <b>leans</b> 5–15% · <b>lopsided</b> over 15%.</p><p><b>Stud tax:</b> in uneven deals the side getting fewer pieces gets a 10% premium on its best player per extra piece (up to 2), because one great player is worth more than the same value spread across roster spots.</p><p>Trade ideas are within 10% and fill one of your two weakest positions. Propose trades on the MFL site.</p>`)}</div>`;
 }
 function tradeList(who,list,sel,q){
-  const s=q.trim().toLowerCase(),k=n=>n.toLocaleString("en-US");
+  const s=q.trim().toLowerCase();
   const items=list.filter(x=>!sel.has(x.k)&&(!s||x.name.toLowerCase().includes(s)||x.pos.toLowerCase()===s));
   if(!items.length)return`<p class="note">Nothing matches.</p>`;
-  return items.slice(0,s?30:8).map(x=>`<button class="topt" data-tradd="${who}|${x.k}"><span class="pos ${x.kind==="p"?esc(x.pos):""}">${x.kind==="p"?esc(x.pos):"PICK"}</span><span class="tn">${esc(x.name)}</span><b>${x.v?k(x.v):"—"}${x.est?"*":""}</b><i aria-hidden="true">+</i></button>`).join("")+(!s&&items.length>8?`<p class="note">Search to see all ${items.length}.</p>`:"");
+  return items.slice(0,s?30:8).map(x=>`<button class="topt" data-tradd="${who}|${x.k}"><span class="pos ${x.kind==="p"?esc(x.pos):""}">${x.kind==="p"?esc(x.pos):"PICK"}</span><span class="tn">${esc(x.name)}</span>${x.v?vchip(x.v,{est:x.est}):`<span class="vchip none"><b>—</b></span>`}<i aria-hidden="true">+</i></button>`).join("")+(!s&&items.length>8?`<p class="note">Search to see all ${items.length}.</p>`:"");
 }
 function renderFAList(){const l=D&&D.leagues.find(x=>x.id===cur),el=$("falist");if(l&&el)el.innerHTML=faList(l)}
 document.addEventListener("input",e=>{if(e.target.id==="fasearch"){faQ=e.target.value;faShow=50;faSel=null;bidConfirm=false;renderFAList()}
