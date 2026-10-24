@@ -15,7 +15,7 @@
 <title>Dynasty Desk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700;1,800&family=Big+Shoulders+Display:wght@700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&family=Big+Shoulders+Display:wght@700;800&display=swap">
 <style>
 /* Dynasty Desk — broadcast graphics system.
    One idea: Sunday-TV scorebugs. Tall condensed numerals (Big Shoulders) for anything you'd see on a scoreboard,
@@ -676,6 +676,69 @@ body.has-bar .toast{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
   .livepill{background:rgb(0 0 0 / .05);box-shadow:inset 0 0 0 1px var(--line)}
   .mv .wpbar i+i{background:var(--op)}
 }
+/* ---- v22 polish ---- */
+:root{--opp:#FF7A59;--opp-ink:#D9472A;--me-ink:#4B7A00}
+@media (prefers-color-scheme:dark){:root{--opp-ink:#FF8A6B;--me-ink:var(--sig)}}
+/* 1. Home scoreboard matches the matchup screen and follows light/dark */
+.board .team:not(.r) .score{color:var(--me-ink)}
+.board .team.r .score{color:var(--opp-ink)}
+.board .team.r .ft{box-shadow:inset 0 0 0 2px var(--opp)}
+.board .team:not(.r) .ft{box-shadow:inset 0 0 0 2px var(--sig)}
+.hwp{display:flex;flex-direction:column;gap:7px;cursor:pointer}
+.hwp-k{display:grid;grid-template-columns:auto 1fr auto;align-items:baseline;gap:8px;font-size:13px;color:var(--muted)}
+.hwp-k b{font:800 16px/1 var(--display);letter-spacing:.04em;color:var(--me-ink);text-transform:uppercase}
+.hwp-k b.o{color:var(--opp-ink)}
+.hwp-k span{text-align:center}
+.hwp-bar{display:flex;gap:3px;height:6px}
+.hwp-bar i{border-radius:99px;background:var(--sig)}
+.hwp-bar i+i{background:var(--opp)}
+@media (prefers-color-scheme:light){
+  .board{--ink:#121214;--muted:#5F5F66;--faint:#94949B;--line:var(--line-l,#DCDCD6);--sunk:#EEEEEA;--surface:#FFFFFF;--bad:#C8102E;
+    background:radial-gradient(70% 110% at 0% 0%,rgb(198 244 50 / .28),transparent 70%),radial-gradient(70% 110% at 100% 0%,rgb(255 122 89 / .16),transparent 70%),#FFFFFF;
+    box-shadow:0 1px 0 rgb(0 0 0 / .04),0 18px 40px -26px rgb(0 0 0 / .35);border:1px solid #E4E4DF}
+  .board .ghost{border-color:#DCDCD6;background:#F4F4F1}
+  .board .ft{background:#F4F4F1;color:var(--ink)}
+}
+/* 2. Clipped text gets an ellipsis, never a hard cut */
+.opp{text-overflow:ellipsis}
+.opp>span:last-child{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.opp .dr.tough{color:var(--warn);font-weight:600}
+/* 3. Color with one job each: trends go quiet grey; position color only on the position label */
+.dv i.up,.dv i.dn,.dv i.flat{color:var(--faint)}
+.dv i.up::first-letter{color:var(--me-ink)}
+.opp .vs{color:var(--muted);font-weight:500}
+/* 4. One number font everywhere (Big Shoulders); Barlow Condensed is gone */
+.mv{--bc:var(--display)}
+.mvh .score,.mvh .team.lead .score{font-style:normal;letter-spacing:.005em}
+.dv b{font:800 16px/1 var(--display);letter-spacing:.01em}
+.st td.odds span{font:800 15px/1 var(--display);letter-spacing:.01em}
+.bh .amt,.tside-h b,.tchip b,.topt b,.rk-tot,.rk-assets b,.tbal-top b,.fv,.claim .amt{font-family:var(--display);font-weight:800}
+.pp b{font-weight:800}
+/* ---- v23: bottom tab bar, page titles, info sheet ---- */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(5,1fr);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--surface) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.5);backdrop-filter:blur(20px) saturate(1.5);border-top:1px solid var(--line)}
+.tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 2px;border:0;background:none;color:var(--faint);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}
+.tabbar svg{width:22px;height:22px}
+.tabbar button[aria-current="page"]{color:var(--ink)}
+.tabbar button[aria-current="page"] svg{color:var(--sig-ink)}
+body.has-tabs .wrap{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+body.has-tabs.has-bar .wrap{padding-bottom:calc(170px + env(safe-area-inset-bottom,0px))}
+body.has-tabs .actionbar{bottom:calc(60px + env(safe-area-inset-bottom,0px));padding-bottom:8px}
+body.has-tabs .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+body.has-tabs.has-bar .toast{bottom:calc(164px + env(safe-area-inset-bottom,0px))}
+body.has-tabs .tbal{bottom:calc(70px + env(safe-area-inset-bottom,0px))}
+.tab-title{margin:2px 2px -4px;font:800 30px/1 var(--display);letter-spacing:.01em;display:flex;align-items:baseline;gap:10px}
+.tab-title small{font:500 13px var(--text);color:var(--muted)}
+.stlegend{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--muted)}
+.stlegend .clm{margin:0 3px 0 8px}.stlegend .clm:first-child{margin-left:0}
+.stlegend.mnote{justify-content:center;gap:6px;margin:14px 12px 0}
+.ib{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--muted);font-size:14px;line-height:1;cursor:pointer;flex:none;display:grid;place-items:center}
+.isheet{position:fixed;inset:0;z-index:80;background:rgb(0 0 0 / .45);display:flex;align-items:flex-end;justify-content:center;padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px))}
+.isheet[hidden]{display:none}
+.isheet-card{width:100%;max-width:520px;background:var(--surface);color:var(--ink);border-radius:var(--r-lg);padding:20px 18px 14px;display:flex;flex-direction:column;gap:6px;box-shadow:0 30px 60px -20px rgb(0 0 0 / .6);animation:open .25s var(--ease)}
+.isheet-card h3{margin:0 0 4px;font:800 22px/1 var(--display)}
+.isheet-card p{margin:0 0 8px;font-size:14.5px;line-height:1.5;color:var(--muted)}
+.isheet-card b{color:var(--ink)}
+.isheet-card .btn{margin-top:6px}
 </style>
 </head>
 <body>
@@ -707,6 +770,8 @@ body.has-bar .toast{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
   <main id="view" style="display:flex;flex-direction:column;gap:14px"></main>
   <footer class="foot" id="foot"></footer>
 </div>
+<nav class="tabbar" id="tabbar" aria-label="Sections" hidden></nav>
+<div class="isheet" id="isheet" hidden><div class="isheet-card" role="dialog" aria-modal="true" aria-labelledby="isheet-t"><h3 id="isheet-t"></h3><div id="isheet-b"></div><button class="btn quiet wide" data-act="infoclose">Got it</button></div></div>
 <div id="mu"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -746,7 +811,7 @@ let liveHold=0; // after MFL says "too many requests", auto-refresh pauses for 5
 let G={},owned={},seen=new Set(),intro=false,flashId=null,lastSegI=0,lastMode="lineup",liveBusy=false;
 
 // Version of this page. The server sends its own version, so a mismatch means one file wasn't uploaded.
-const APP_VERSION="v21";
+const APP_VERSION="v23";
 let srvVer=null,pinWeak=false;
 function renderFoot(){
   const el=$("foot");if(!el)return;
@@ -894,7 +959,7 @@ function oppLine(id){
   if(D.byes.includes(p.team))return`<span class="opp">${ps}<span class="out">Bye week</span></span>`;
   const g=G[p.team];if(!g)return`<span class="opp">${ps}</span>`;
   const r=p.pos==="RB"?g.opp.rushD:g.opp.passD;
-  return`<span class="opp">${ps}<span class="vs">${g.home?"vs":"@"} ${tm(g.opp.id)}</span>${r?`<span class="dr${r<=8?" tough":""}" title="${ord(r)} ${p.pos==="RB"?"run":"pass"} defense">${ord(r)} D</span>`:""}</span>`;
+  return`<span class="opp">${ps}<span class="vs">${g.home?"vs":"@"} ${tm(g.opp.id)}</span>${r&&r<=8?`<span class="dr tough" title="${ord(r)} ${p.pos==="RB"?"run":"pass"} defense">Tough D</span>`:""}</span>`;
 }
 function nameLine(p,id,st,extra){return`<span class="pn"><span class="nmx">${esc(shortName(p.name))}</span>${badgeFor(id,st)}${p.rookie?`<span class="rk">R</span>`:""}${extra||""}</span>`}
 function badgeFor(id,st){
@@ -907,7 +972,7 @@ function pointsCol(l,side,id){
   if(pl.team==="FA"||D.byes.includes(pl.team))return{html:`<span class="pts zero">—</span><span class="gs">${pl.team==="FA"?"No team":"Bye"}</span>`,v:0,live:false};
   if(st.started){const live=!st.final;return{html:`<span class="pts" data-pk="${side}-${l.id}-${id}" data-pv="${st.actual}">${fmt(st.actual)}</span><span class="gs${live?" on":""}">${live?`<i class="livedot"></i>${clock(st.secs)||"Live"}`:"Final"}</span>`,v:st.actual,live}}
   const g=G[pl.team];
-  return{html:`<span class="pts${pr?"":" zero"}">${pr||s0==="ok"?fmt(pr):"—"}</span><span class="gs">proj</span>`,v:pr,live:false};
+  return{html:`<span class="pts${pr?"":" zero"}">${pr||s0==="ok"?fmt(pr):"—"}</span><span class="gs"></span>`,v:pr,live:false};
 }
 function row(l,id,on){
   const p=P(id),st=state(id,l);
@@ -915,6 +980,16 @@ function row(l,id,on){
   if(on&&p.pos==="QB"){const m=l.roster.find(o=>o!==id&&lineups[l.id].has(o)&&P(o).pos==="QB"&&P(o).team===p.team);if(m)stk=`<span class="stk" title="${esc(P(m).name)} is also starting">Same team</span>`}
   return`<button class="row${on?" on":""}${id===flashId?" flash":""}" data-id="${id}" aria-pressed="${on}" aria-label="${esc(p.name)}, ${on?"starting. Tap to bench":"on bench. Tap to start"}">${shotOf(p,id)}<span class="nm">${nameLine(p,id,st,stk)}${oppLine(id)}</span>${valCol(id)}<span class="pv">${pointsCol(l,"me",id).html}</span><span class="tg" aria-hidden="true"></span></button>`;
 }
+// Bottom tab bar: one place to move between sections (replaces the row of tabs inside the page).
+const TABS=[["lineup","Lineup",'<path d="M4 6h16M4 12h16M4 18h10"/>'],["fa","Free agents",'<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>'],["st","Standings",'<path d="M5 20V10M12 20V4M19 20v-7"/>'],["rk","Rankings",'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/>'],["tr","Trade",'<path d="M7 7h12l-3-3M17 17H5l3 3"/>']];
+function renderTabbar(on){
+  const t=$("tabbar");if(!t)return;t.hidden=!on;document.body.classList.toggle("has-tabs",on);
+  if(on)t.innerHTML=TABS.map(([m,label,ic])=>`<button data-mode="${m}" aria-current="${mode===m?"page":"false"}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ic}</svg><span>${label}</span></button>`).join("");
+}
+// Explanations live behind a small ⓘ instead of paragraphs of fine print.
+const INFO={};
+const info=(k,title,body)=>{INFO[k]={title,body};return`<button class="ib" data-info="${k}" aria-label="About: ${esc(title)}">ⓘ</button>`};
+function openInfo(k){const x=INFO[k];if(!x)return;$("isheet-t").textContent=x.title;$("isheet-b").innerHTML=x.body;$("isheet").hidden=false}
 function render(){
   if(!D)return;
   const tabsEl=$("tabs"),items=[...D.leagues.map(l=>l.id),"all"];
@@ -922,7 +997,7 @@ function render(){
   tabsEl.style.setProperty("--i",Math.max(0,items.indexOf(cur)));
   tabsEl.innerHTML=D.leagues.map(l=>`<button class="tab" role="tab" aria-selected="${l.id===cur}" data-k="${l.id}"><b>${esc(key(l))}</b><span>${fmt(total(l))}${check(l).issues.length||alerts(l).length?`<i class="fixdot" aria-label="needs attention"></i>`:""}</span></button>`).join("")+`<button class="tab" role="tab" aria-selected="${cur==="all"}" data-k="all"><b>All</b><span>Overview</span></button>`;
   const v=$("view");
-  if(cur==="all"){document.body.classList.remove("has-bar");v.innerHTML=renderAll();muOpen=null;renderMU();return}
+  if(cur==="all"){document.body.classList.remove("has-bar");renderTabbar(false);v.innerHTML=renderAll();muOpen=null;renderMU();return}
   const l=D.leagues.find(x=>x.id===cur);if(!l)return;
   const ik=`${l.id}-${week}`;intro=!seen.has(ik);
   const{c,issues,dead,n}=check(l),set=lineups[l.id],tot=total(l),bestTot=[...best(l)].reduce((s,id)=>s+pts(l,id),0),gap=bestTot-tot;
@@ -934,17 +1009,16 @@ function render(){
   const lineupBody=`
     <div class="strip">${POS.map(p=>{const[a,b]=lim(l,p),off=c[p]<a||c[p]>b;return`<div class="cell ${p}${off?" off":""}"><span class="k"><i></i>${p}</span><b>${c[p]}<small>of ${a===b?a:a+"–"+b}</small></b></div>`}).join("")}</div>
     ${issues.length>1?`<p class="note">Also: ${esc(issues.slice(1).join(", ").toLowerCase())}.</p>`:""}
-    ${colHead("Starters",`${set.size} of ${n}`,"Pts")}
+    ${colHead("Starters",`${set.size} of ${n}`,l.roster.some(id=>pst(l,"me",id).started)?"Pts":"Proj")}
     <div class="list">${starters.map(id=>row(l,id,true)).join("")||`<p class="note empty">No starters yet. Tap a bench player to start them.</p>`}</div>
-    ${colHead("Bench",bench.length,"Pts")}
+    ${colHead("Bench",bench.length,l.roster.some(id=>pst(l,"me",id).started)?"Pts":"Proj")}
     <div class="list">${bench.map(id=>row(l,id,false)).join("")}</div>`;
   const bar=confirming
     ?`<div class="ab"><div class="ab-text"><span class="ab-q">Send to MFL?</span><span class="ab-sub">Week ${week}, ${set.size} starters</span></div><div class="ab-btns"><button class="btn quiet" data-act="cancel"${busy?" disabled":""}>Cancel</button><button class="btn primary" data-act="send"${busy?" disabled":""}>${busy?"Sending…":"Send lineup"}</button></div></div>`
     :`<div class="ab"><div class="ab-text"><span class="ab-label">${sync?"Projected, matches MFL":"Projected, not sent yet"}</span><span class="ab-total">${fmt(tot)}</span><span class="ab-sub${issues.length?" bad":!sync?" warn":gap>0.005?" warn":""}">${esc(issues.length?issues[0]:!sync?"Differs from MFL. Send to update.":gap>0.005?`${fmt(gap)} pts left on bench`:"Your best lineup")}</span></div><div class="ab-btns">${gap>0.005?`<button class="btn quiet" data-act="best">Best lineup</button>`:""}<button class="btn primary" data-act="ask"${issues.length||sync?" disabled":""}>${sync?"Sent":"Send to MFL"}</button></div></div>`;
-  v.innerHTML=`${matchupCard(l)}
+  v.innerHTML=`${mode==="lineup"?matchupCard(l):`<h2 class="tab-title">${{fa:"Free agents",st:"Standings",rk:"Rankings",tr:"Trade"}[mode]}<small>${esc(key(l))} · ${sf?"Superflex":"1 QB"}${l.teBonus?", TE premium":""}</small></h2>`}
   <section class="panel">
-    <div class="tp-head"><span class="status s-${status[0]}"><i></i>${esc(status[1])}</span><span class="fmt">${sf?"Superflex":"1 QB"}, ${l.teBonus?"TE premium":"standard TE"}</span></div>
-    <div class="seg" role="group" aria-label="View" style="--i:${lastSegI}"><button data-mode="lineup" aria-pressed="${mode==="lineup"}">Lineup</button><button data-mode="fa" aria-pressed="${mode==="fa"}">Free agents</button><button data-mode="st" aria-pressed="${mode==="st"}">Standings</button><button data-mode="rk" aria-pressed="${mode==="rk"}">Rankings</button><button data-mode="tr" aria-pressed="${mode==="tr"}">Trade</button></div>
+    ${mode!=="lineup"?"":`<div class="tp-head"><span class="status s-${status[0]}"><i></i>${esc(status[1])}</span><span class="fmt">${sf?"Superflex":"1 QB"}, ${l.teBonus?"TE premium":"standard TE"}</span></div>`}
     <div class="swap${lastMode!==mode?" in":""}">${mode==="fa"?faPanel(l):mode==="st"?standingsPanel(l):mode==="rk"?rankingsPanel(l):mode==="tr"?tradePanel(l):lineupBody}</div>
   </section>
   ${mode!=="fa"?"":`<section class="panel">
@@ -953,6 +1027,7 @@ function render(){
   </section>`}
   ${mode==="lineup"?`<div class="actionbar">${bar}</div>`:""}`;
   document.body.classList.toggle("has-bar",mode==="lineup");
+  renderTabbar(true);
   const seg=v.querySelector(".seg");
   if(seg){const bs=seg.querySelectorAll("button"),mv=(i,anim)=>{const b=bs[i];if(!b)return;if(!anim)seg.style.transition="none";seg.style.setProperty("--sx",b.offsetLeft+"px");seg.style.setProperty("--sw",b.offsetWidth+"px")};mv(lastSegI,false);void seg.offsetWidth;mv(segI,true)}
   lastSegI=segI;lastMode=mode;
@@ -1029,8 +1104,7 @@ function matchupCard(l){
       <div class="team${B!=null&&A>B?" lead":""}"><span class="tid">${ficon(me(l))}<span class="tname">${esc(me(l).name||"You")}</span></span>${sc(A,"me")}<span class="tsub">${mySub}</span></div>
       <div class="team r${B!=null&&B>A?" lead":""}"><span class="tid">${ficon(opp)}<span class="tname">${esc(opp.name)}</span></span>${sc(B,"opp")}<span class="tsub">${sub(b)}</span></div>
     </div>
-    ${pct!=null?`<div class="field" data-act="openmu" role="img" aria-label="Estimated ${pct} percent chance you win"><span class="ez l"></span><span class="ez r"></span><span class="mid"></span><span class="fill" style="width:${pos}%"></span><span class="ball" style="left:${pos}%"></span></div>
-    <div class="field-key"><span><b>${pct}%</b> win chance</span><span>Tap for full matchup ›</span></div>`:""}
+    ${pct!=null?`<div class="hwp" data-act="openmu" role="img" aria-label="Estimated ${pct} percent chance you win"><div class="hwp-k"><b>${pct}% win</b><span>Tap for full matchup ›</span><b class="o">${100-pct}%</b></div><div class="hwp-bar"><i style="flex-grow:${Math.max(pct,2)}"></i><i style="flex-grow:${Math.max(100-pct,2)}"></i></div></div>`:""}
     ${foot}
   </section>`;
 }
@@ -1160,7 +1234,7 @@ function faList(l){
 }
 function faRow(l,f,id){
   const p=f.players[id],v=f.proj[id],bye=D.byes.includes(p.team),inj=D.injuries[id],out=inj&&/out|ir|suspend/i.test(inj.status),g=G[p.team];
-  return`<button class="row fa${id===faSel?" sel":""}" data-fa="${id}" aria-expanded="${id===faSel}">${shotOf(p,id)}<span class="nm">${nameLine(p,id,out?"out":"")}${oppLine(id)}</span>${valCol(id)}<span class="pv"><span class="pts${v&&!bye?"":" zero"}">${v&&!bye?fmt(v):"—"}</span><span class="gs">${bye?"Bye":"proj"}</span></span><span class="bidpill">${id===faSel?"Close":"Bid"}</span></button>`;
+  return`<button class="row fa${id===faSel?" sel":""}" data-fa="${id}" aria-expanded="${id===faSel}">${shotOf(p,id)}<span class="nm">${nameLine(p,id,out?"out":"")}${oppLine(id)}</span>${valCol(id)}<span class="pv"><span class="pts${v&&!bye?"":" zero"}">${v&&!bye?fmt(v):"—"}</span><span class="gs">${bye?"Bye":""}</span></span><span class="bidpill">${id===faSel?"Close":"Bid"}</span></button>`;
 }
 function bidForm(l,f,id){
   const mine=me(l),full=l.rosterSize&&l.roster.length>=l.rosterSize;
@@ -1332,7 +1406,7 @@ function drawMU(){
       ${rows}
       ${bn?`<button class="benchbtn" data-act="mubench" aria-expanded="${muBench}"><b>${muBench?"Hide":"Show"} bench<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3.5 6 4.5 4.5L12.5 6"/></svg></b><span>${benchA.length} players · ${p1(benchPts)} pts</span></button>${muBench?`<div class="mhead"><span>Bench</span><span></span></div><div class="bench">${bench}</div>`:""}`:""}
       ${leagueBoard(l)}
-      ${done?"":`<p class="mnote">Win chance is an estimate: points so far plus what each side is still projected to score.</p>`}
+      ${done?"":`<div class="stlegend mnote">${info("wc","Win chance",`<p>An estimate: points so far plus what each side is still projected to score, with a typical week-to-week spread for each player.</p>`)}<span>About win chance</span></div>`}
     </div></div>`;
   const mv=host.querySelector(".mv");
   fitNames(mv);
@@ -1463,7 +1537,7 @@ function picksPanel(l){
     <div class="pklist">${teams.map(t=>{const ps=t.picks.filter(p=>p.year===pkYear).sort((a,b)=>a.round-b.round);
       return`<div class="pkrow${t.id===l.fid?" me":""}">${ficon(fr(t.id),"sm")}<span class="pkn">${esc(fr(t.id).name)}<small>${ps.length} pick${ps.length===1?"":"s"}</small></span>
         <span class="pks">${ps.length?ps.map(p=>`<span class="pk${p.from!==t.id?" via":""}" title="${p.from!==t.id?`Originally ${esc(fr(p.from).name)}'s pick`:"Own pick"}">R${p.round}${p.from!==t.id?`<small>${esc(fr(p.from).name)}</small>`:""}</span>`).join(""):`<span class="note">None</span>`}</span></div>`}).join("")}</div>
-    <p class="note">Picks with a team name under them were acquired; the name is the original owner.</p>`;
+    <div class="stlegend"><span>Name under a pick = original owner</span></div>`;
 }
 function standingsPanel(l){
   const s=ST[l.id];
@@ -1506,7 +1580,7 @@ function standingsPanel(l){
     </tbody></table></div>
     <div class="stfoot"><button class="btn sm quiet" data-act="stmore">${more?"Fewer columns":"More columns"}</button>
       <span>${pd&&pd.error?`Odds unavailable: ${esc(pd.error)} <button class="btn sm quiet" data-act="poreload">Retry</button>`:od&&od.error?`Odds failed: ${esc(od.error)} <button class="btn sm quiet" data-act="poreload">Retry</button>`:oddsOk?(od.left?`Updated ${new Date(od.at).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})} · ${od.sims.toLocaleString("en-US")} sims · ${od.left} games left`:`No remaining games. Final regular-season standings.`):"Simulating the rest of the season…"}</span></div>
-    ${oddsOk?`<p class="note">x clinched playoffs · y clinched a bye · e eliminated. ${od.spots} playoff teams, ${od.byes} byes${od.assumed?" (MFL doesn't publish this, so it's assumed)":""}; ties go to points for.</p>`:""}`;
+    ${oddsOk?`<div class="stlegend"><span><em class="clm x">x</em> clinched <em class="clm y">y</em> bye <em class="clm e">e</em> out</span>${info("odds","How the odds work",`<p>${od.sims?`${od.sims.toLocaleString("en-US")} simulations of the rest of the regular season.`:"The regular season is over, so these are final."} Each team's weekly score is drawn around its points per game blended with this week's projection.</p><p>${od.spots} teams make the playoffs and the top ${od.byes} get a first-round bye${od.assumed?". MFL doesn't publish these numbers for your league, so they're assumed":""}. Ties go to points for.</p><p><b>x</b> clinched a playoff spot · <b>y</b> clinched a bye · <b>e</b> eliminated. These are exact, worked out from wins and games left.</p>`)}</div>`:""}`;
 }
 
 // ---- Rankings: every team by total dynasty value ----
@@ -1573,7 +1647,7 @@ function rankingsPanel(l){
         ${open?`<div class="rk-more"><div class="rk-split">${RK_PARTS.map(p=>`<span><i class="rk-${p}"></i>${lbl[p]} <b>${k(r.by[p])}</b></span>`).join("")}</div>
           <div class="rk-assets">${r.assets.slice(0,5).map(a=>`<div><span class="pos ${a.pos==="PK"?"":esc(a.pos)}">${a.pos==="PK"?"PICK":esc(a.pos)}</span><span class="rk-an">${esc(a.name)}${a.age?`<small>${a.age.toFixed(1)}</small>`:""}</span><b>${k(a.v)}${a.est?"*":""}</b></div>`).join("")}</div>
           <p class="note">Starters' average age: <b>${r.age?r.age.toFixed(1):"—"}</b> <span class="rk-dim">(their top ${l.starters.count||10} players by value)</span></p></div>`:""}</div>`}).join("")}</div>
-    <p class="note">Value from FantasyCalc for this league's format (${valParams(l).qbs===2?"superflex":"1 QB"}, ${valParams(l).ppr} PPR).${est?" * Estimated pick value by round.":""} Contender: top third by value and .500 or better. Rebuilder: bottom third, or over 25% of value in picks.</p>`;
+    <div class="stlegend"><span>${valParams(l).qbs===2?"Superflex":"1 QB"} · ${valParams(l).ppr} PPR values</span>${info("rk","How rankings work",`<p>Each team's total is the FantasyCalc dynasty value of every rostered player plus its future picks, for this league's format (${valParams(l).qbs===2?"superflex":"1 QB"}, ${valParams(l).ppr} PPR).</p>${est?"<p>Picks marked * have an estimated value by round.</p>":""}<p><b>Contender:</b> top third by value and .500 or better.<br><b>Rebuilder:</b> bottom third, or over 25% of value in picks.<br><b>Middle:</b> everyone else.</p>`)}</div>`;
 }
 // ---- Trade: calculator and finder (read-only; nothing is ever sent to MFL) ----
 // Each asset: {k, kind:"p"|"k", name, pos, v, est?}. Uses the Rankings data and the same FantasyCalc values.
@@ -1659,7 +1733,7 @@ function tradePanel(l){
     <div class="list-head"><span>Trade ideas<small>within 10%, fills a weak spot</small></span></div>
     ${ideas.length?`<div class="tideas">${ideas.map((t,i)=>`<div class="tidea"><div class="tid-sides"><div><small>You give</small>${t.a.map(x=>`<span><i class="pos ${esc(x.pos)}">${esc(x.pos)}</i>${esc(shortName(x.name))} <b>${k(x.v)}</b></span>`).join("")}</div><div><small>You get</small>${t.b.map(x=>`<span><i class="pos ${esc(x.pos)}">${esc(x.pos)}</i>${esc(shortName(x.name))} <b>${k(x.v)}</b></span>`).join("")}</div></div>
       <div class="tid-foot"><span>${k(t.m.ta)} vs ${k(t.m.tb)} · ${(t.m.pct*100).toFixed(1)}% apart${t.m.adjA||t.m.adjB?" (with stud tax)":""}</span><button class="btn sm quiet" data-trload="${i}">Load in calculator</button></div></div>`).join("")}</div>`:`<p class="note empty">No fair trades found with this team.</p>`}
-    <p class="note">Values from FantasyCalc for this league's format. Nothing here is sent to MFL; propose trades on the MFL site.${[...A,...B].some(x=>x.est)?" * Estimated pick value by round.":""}</p>`;
+    <div class="stlegend"><span>Read-only · nothing is sent to MFL</span>${info("tr","How trade values work",`<p>Values are FantasyCalc dynasty values for this league's format.${[...A,...B].some(x=>x.est)?" Picks marked * have an estimated value by round.":""}</p><p><b>Fair</b> within 5% · <b>leans</b> 5–15% · <b>lopsided</b> over 15%.</p><p><b>Stud tax:</b> in uneven deals the side getting fewer pieces gets a 10% premium on its best player per extra piece (up to 2), because one great player is worth more than the same value spread across roster spots.</p><p>Trade ideas are within 10% and fill one of your two weakest positions. Propose trades on the MFL site.</p>`)}</div>`;
 }
 function tradeList(who,list,sel,q){
   const s=q.trim().toLowerCase(),k=n=>n.toLocaleString("en-US");
@@ -1730,8 +1804,10 @@ document.addEventListener("click",async e=>{
   if(tl){const d=RK[l.id],t=d&&findTrades(l,d,TR.opp)[+tl.dataset.trload];if(t){TR.a=t.a.map(x=>x.k);TR.b=t.b.map(x=>x.k);render();document.querySelector(".tpick")?.scrollIntoView({behavior:RM?"auto":"smooth",block:"start"})}return}
   const rs=e.target.closest("[data-rksort]");if(rs){rkSort=rs.dataset.rksort;render();return}
   const rr=e.target.closest("[data-rk]");if(rr){rkOpen=rkOpen===rr.dataset.rk?null:rr.dataset.rk;render();return}
+  const ib=e.target.closest("[data-info]");if(ib){openInfo(ib.dataset.info);return}
+  if(e.target.closest('[data-act="infoclose"]')||e.target.id==="isheet"){$("isheet").hidden=true;return}
   const md=e.target.closest("[data-mode]");
-  if(md){if(mode!==md.dataset.mode){mode=md.dataset.mode;faSel=null;bidConfirm=false;claimUI=null;confirming=false;render()}return}
+  if(md){if(md.closest(".tabbar"))window.scrollTo({top:0,behavior:"auto"});if(mode!==md.dataset.mode){mode=md.dataset.mode;faSel=null;bidConfirm=false;claimUI=null;confirming=false;render()}return}
   const ch=e.target.closest("[data-pos]");
   if(ch){faPos=ch.dataset.pos;faShow=50;faSel=null;bidConfirm=false;render();return}
   const fr=e.target.closest("button[data-fa]");
