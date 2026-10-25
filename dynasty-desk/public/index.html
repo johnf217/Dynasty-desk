@@ -15,7 +15,7 @@
 <title>Dynasty Desk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Anton&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Anton&family=Barlow+Semi+Condensed:wght@600&display=swap">
 <style>
 /* Dynasty Desk — broadcast graphics system.
    One idea: Sunday-TV scorebugs. Anton (tall condensed poster face) for headlines, numbers and anything you'd see on a scoreboard,
@@ -816,6 +816,66 @@ body.has-tabs .tbal{bottom:calc(70px + env(safe-area-inset-bottom,0px))}
   .topt{column-gap:6px}}
 @media (max-width:430px){.tid-sides{gap:8px}.tid-sides span{font-size:12.5px;gap:3px}.tid-sides i{margin-right:2px}
   .tid-sides .vchip{font-size:12px;padding:1px 4px 1px 3px;gap:2px}}
+
+/* v27: status-coded row scores */
+.row:not(.fa) .pts{font-size:17px;color:var(--muted)}
+.row:not(.fa) .pts[data-pk]{color:color-mix(in srgb,var(--ink) 90%,var(--paper))}
+.row:not(.fa) .pv:has(.gs.on) .pts{color:var(--ink)}
+@media (prefers-color-scheme:dark){.row:not(.fa) .pv:has(.gs.on) .pts{color:#fff}}
+.row:not(.fa) .pts.zero{color:var(--faint)}
+
+/* v27: lineup check is a bare lime check for starters, faint ring for bench */
+.tg{width:16px;height:16px;justify-self:center;border:1.5px solid var(--faint)}
+.row.on .tg{background:none;border-color:transparent}
+.row.on .tg::after{width:12px;height:6px;border-left:2.25px solid var(--sig-ink);border-bottom:2.25px solid var(--sig-ink);border-radius:0 0 0 1px;transform:translateY(-2px) rotate(-45deg)}
+
+/* v28 league switcher. Accents (unused by R2 tabs except All muted) (avoid QB pink / RB teal / WR blue / TE orange) */
+.lt{--acc:#A78BFA}.lt.acc0{--acc:#A78BFA}.lt.acc1{--acc:#E2C15A}.lt.acc2{--acc:#9DB89A}.lt.acc3{--acc:#B9BEC9}.lt.all{--acc:var(--muted)}
+@media (prefers-color-scheme:light){.lt.acc0{--acc:#6D4FD8}.lt.acc1{--acc:#9A7A12}.lt.acc2{--acc:#4E7A4A}.lt.acc3{--acc:#6B7280}}
+.lt .ln{font:600 12.5px/1.15 var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;color:var(--muted);transition:color .25s}
+.lt[aria-selected="true"] .ln{color:var(--ink)}
+.lt{padding:10px 4px 9px;gap:6px;justify-content:center}
+.lt .ln{display:flex;align-items:center;justify-content:center;gap:4px;font:600 12.5px/1.1 var(--text)}
+.lt .ln .livedot{width:6px;height:6px}
+.lt .fixdot{position:absolute;top:6px;right:7px;width:5px;height:5px;margin:0;background:var(--warn);opacity:.9}
+.lt .sc{font:800 20px/1 var(--display);font-variant-numeric:tabular-nums;color:var(--ink);opacity:.5;white-space:nowrap;transition:opacity .25s}
+.lt[aria-selected="true"] .sc{opacity:1}
+.lt .cap{font:600 11.5px/20px var(--text);color:var(--faint);white-space:nowrap}
+@media (max-width:380px){.lt{padding-inline:2px}.lt .ln{font-size:11.5px;gap:3px;letter-spacing:-.01em}.lt .ln .livedot{width:5px;height:5px}.lt .cap{font-size:10.5px}}
+.lt{padding-bottom:11px}
+.lt .ubar{position:absolute;left:34%;right:34%;bottom:3px;height:2px;border-radius:2px;background:transparent}
+.lt .ubar.up{background:var(--sig-ink)}.lt .ubar.dn{background:#FF8A6B}
+.lt .ubar{opacity:.6}.lt[aria-selected="true"] .ubar{opacity:1}
+.lt .ubar.live{animation:ubar 2.4s ease-in-out infinite}
+@keyframes ubar{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.lt .ubar.live{animation:none}}
+@media (prefers-color-scheme:light){.lt .ubar.dn{background:#DB4B28}}
+
+/* v29: small numbers in "Barlow Semi Condensed" 600; Anton kept for team scores + league tabs */
+html body .row:not(.fa) .pts{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:16.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .row.fa .pts{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:18.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .fv{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:16.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .bh .amt{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:18.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .claim .amt{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:20.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .st .srk{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:15.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .st td.fig{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:15.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .st td.odds span{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:14.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .dv b{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:15.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .rk-n{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:15.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .rk-tot{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:17.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .rk-assets b{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:14.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .tchip b{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:14.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .topt b{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:14.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .tbal-top b{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:17.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .tid-sides b{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:13.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .tside-h b{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:18.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .pk{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:13.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .mv .pp b{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:19.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .mv .brow.bn .pp b{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:17.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .hwp-k b{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:15.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+html body .strip b{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:22.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
+/* v30: rows whose game has started can't be moved (MFL locks them) */
+.row.locked{cursor:default}.row.locked .tg{opacity:.45}
 </style>
 </head>
 <body>
@@ -888,7 +948,7 @@ let liveHold=0; // after MFL says "too many requests", auto-refresh pauses for 5
 let G={},owned={},seen=new Set(),intro=false,flashId=null,lastSegI=0,lastMode="lineup",liveBusy=false;
 
 // Version of this page. The server sends its own version, so a mismatch means one file wasn't uploaded.
-const APP_VERSION="v26";
+const APP_VERSION="v30";
 let srvVer=null,pinWeak=false;
 // For a couple of minutes after you change something on MFL, reads skip the server's short cache.
 let freshUntil=0;
@@ -976,14 +1036,57 @@ const pts=(l,id)=>l.proj[id]||0;
 const lim=(l,p)=>l.starters.limits[p]||[0,0];
 const me=l=>l.franchises.find(f=>f.id===l.fid)||{};
 
-function best(l){
-  const n=l.starters.count||10,pick=new Set(),c={};
-  const by=p=>l.roster.filter(id=>P(id).pos===p).sort((a,b)=>pts(l,b)-pts(l,a));
-  POS.forEach(p=>{c[p]=0;by(p).slice(0,lim(l,p)[0]).forEach(id=>{pick.add(id);c[p]++})});
-  l.roster.filter(id=>!pick.has(id)&&POS.includes(P(id).pos)).sort((a,b)=>pts(l,b)-pts(l,a)).forEach(id=>{const p=P(id).pos;if(pick.size<n&&c[p]<lim(l,p)[1]){pick.add(id);c[p]++}});
+// v30: the optimizer respects MFL's lineup locks. MFL won't move a player once his game has kicked off,
+// so a locked starter stays in his slot and a locked bench player can never be moved in. Players with no
+// game this week (bye, or not on an NFL team) aren't locked, but they score 0: o.dead(id) marks them as a last
+// resort. A bye starter is benched only when an eligible unlocked player can take his slot; if nobody can, he
+// stays put and scores 0 rather than leaving the slot empty (an empty slot would make the lineup invalid).
+// Only unlocked players fill the open slots, and the position minimums and maximums still hold.
+// Pure, so the tests can call it directly.
+function optimize(o){
+  const dead=id=>o.dead&&o.dead(id)?1:0,keep=id=>o.keep&&o.keep(id)?1:0,val=id=>dead(id)?0:o.val(id);
+  const pick=new Set(),c={};POS.forEach(p=>c[p]=0);
+  o.roster.forEach(id=>{if(o.fixedIn.has(id)){pick.add(id);const p=o.pos(id);if(p in c)c[p]++}});
+  const free=o.roster.filter(id=>!pick.has(id)&&!o.fixedOut.has(id)&&POS.includes(o.pos(id)))
+    .sort((a,b)=>dead(a)-dead(b)||val(b)-val(a)||keep(b)-keep(a));
+  POS.forEach(p=>free.filter(id=>o.pos(id)===p).forEach(id=>{if(c[p]<o.lim(p)[0]&&pick.size<o.n){pick.add(id);c[p]++}}));
+  free.forEach(id=>{const p=o.pos(id);if(!pick.has(id)&&pick.size<o.n&&c[p]<o.lim(p)[1]){pick.add(id);c[p]++}});
   return pick;
 }
-const total=l=>[...lineups[l.id]].reduce((s,id)=>s+pts(l,id),0);
+// Lock state on the same clock as alerts(): "game" once his game has kicked off (live or final),
+// "bye"/"noteam" when he has no game this week, "" when he can still be moved.
+function lockOf(l,id){
+  const pl=P(id);if(pl.team==="FA")return"noteam";if(D.byes.includes(pl.team))return"bye";
+  const g=G[pl.team];return pst(l,"me",id).started||(g&&Date.now()>=g.t*1000)?"game":"";
+}
+// Best lineup you can still set: o.cur is today's lineup, o.lock(id) is lockOf's answer for that player.
+function bestUnderLocks(o){
+  return optimize({...o,
+    fixedIn:new Set(o.roster.filter(id=>o.cur.has(id)&&o.lock(id)==="game")),
+    fixedOut:new Set(o.roster.filter(id=>!o.cur.has(id)&&o.lock(id)==="game")),
+    dead:id=>o.lock(id)==="bye"||o.lock(id)==="noteam",keep:id=>o.cur.has(id)});
+}
+// Projection that counts a player with no game this week (bye or no team) as 0, whatever MFL projects.
+const ptsNow=(l,id)=>{const k=lockOf(l,id);return k==="bye"||k==="noteam"?0:pts(l,id)};
+function best(l){
+  return bestUnderLocks({roster:l.roster,cur:lineups[l.id]||new Set(),n:l.starters.count||10,lim:p=>lim(l,p),pos:id=>P(id).pos,val:id=>pts(l,id),lock:id=>lockOf(l,id)});
+}
+// Points you can still gain by changing unlocked players only (locked starters sit in both lineups, so they cancel).
+function gainLeft(cur,next,val){
+  let g=0;next.forEach(id=>{if(!cur.has(id))g+=val(id)});cur.forEach(id=>{if(!next.has(id))g-=val(id)});return g;
+}
+// True once nothing on the roster can move: every player's game has started, or he has no game this week.
+const allLocked=l=>l.roster.every(id=>lockOf(l,id));
+const allFinal=l=>l.roster.every(id=>{const k=lockOf(l,id);return k!=="game"?!!k:pst(l,"me",id).final});
+// Projected total that counts what's already scored: actual points for started games plus the rest of the projection.
+const projTotal=l=>{const ids=[...lineups[l.id]];return ids.some(id=>lockOf(l,id)==="game")?sideTotals(l,"me",ids).proj:total(l)};
+// After the week: what the best possible lineup would have scored. Shown only as a muted hindsight note, never an action.
+function hindsight(l){
+  const act=id=>{const pl=P(id);return pl.team==="FA"||D.byes.includes(pl.team)?0:pst(l,"me",id).actual||0};
+  const b=optimize({roster:l.roster,n:l.starters.count||10,lim:p=>lim(l,p),pos:id=>P(id).pos,val:act,fixedIn:new Set(),fixedOut:new Set()});
+  return gainLeft(lineups[l.id],b,act);
+}
+const total=l=>[...lineups[l.id]].reduce((s,id)=>s+ptsNow(l,id),0);
 function state(id,l){const p=P(id);if(p.team==="FA")return"fa";if(D.byes.includes(p.team))return"bye";const i=D.injuries[id];if(i&&/out|ir|suspend/i.test(i.status))return"out";if(!(id in l.proj))return"none";return"ok"}
 function check(l){
   const set=lineups[l.id],n=l.starters.count||10,c={QB:0,RB:0,WR:0,TE:0};set.forEach(id=>{const p=P(id).pos;if(p in c)c[p]++});
@@ -995,16 +1098,19 @@ function check(l){
   return{c,issues,dead,n};
 }
 function alerts(l){
-  const now=Date.now();
+  const now=Date.now();let b=null;
   return[...lineups[l.id]].filter(id=>{
     const st=state(id,l);if(st!=="out"&&st!=="bye"&&st!=="fa")return false;
     const g=G[P(id).team];return!g||now<g.t*1000;
-  }).map(id=>{const st=state(id,l),inj=D.injuries[id];return{id,why:st==="bye"?"on bye":st==="fa"?"not on a team":/^ir/i.test(inj?.status||"")?"on IR":(inj?.status||"Out").toLowerCase()}});
+  }).map(id=>{const st=state(id,l),inj=D.injuries[id];return{id,stuck:(st==="bye"||st==="fa")&&(b||(b=best(l))).has(id),why:st==="bye"?"on bye":st==="fa"?"not on a team":/^ir/i.test(inj?.status||"")?"on IR":(inj?.status||"Out").toLowerCase()}});
 }
 function alertLine(l){
   const a=alerts(l);if(!a.length)return"";
   const nm=x=>esc(shortName(P(x.id).name));
-  const txt=a.length===1?`${nm(a[0])} is ${esc(a[0].why)}. Swap him before kickoff.`:`${a.length} starters can't play: ${a.map(x=>`${nm(x)} (${esc(x.why)})`).join(", ")}. Swap them before kickoff.`;
+  // A bye/no-team starter nobody can replace just stays in and scores 0, so there's no swap to ask for.
+  const why=x=>esc(x.why)+(x.stuck?", no one to swap in":""),act=a.filter(x=>!x.stuck);
+  const ask=!act.length?"":act.length===a.length?` Swap ${a.length>1?"them":"him"} before kickoff.`:` Swap ${act.map(nm).join(" and ")} before kickoff.`;
+  const txt=a.length===1?`${nm(a[0])} is ${why(a[0])}.${ask}`:`${a.length} starters can't play: ${a.map(x=>`${nm(x)} (${why(x)})`).join(", ")}.${ask}`;
   return`<p class="board-alert" role="alert"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8 15 14H1z"/><path d="M8 6.5v3.2M8 11.8v.01"/></svg><span>${txt}</span></p>`;
 }
 // ---- Dynasty values (FantasyCalc, via /api/mfl?type=values) ----
@@ -1085,7 +1191,8 @@ function row(l,id,on){
   const p=P(id),st=state(id,l);
   let stk="";
   if(on&&p.pos==="QB"){const m=l.roster.find(o=>o!==id&&lineups[l.id].has(o)&&P(o).pos==="QB"&&P(o).team===p.team);if(m)stk=`<span class="stk" title="${esc(P(m).name)} is also starting">Same team</span>`}
-  return`<button class="row${on?" on":""}${id===flashId?" flash":""}" data-id="${id}" aria-pressed="${on}" aria-label="${esc(p.name)}, ${on?"starting. Tap to bench":"on bench. Tap to start"}">${shotOf(p,id)}<span class="nm">${nameLine(p,id,st,stk)}${oppLine(id,valCol(id,true))}</span><span class="pv">${pointsCol(l,"me",id).html}</span><span class="tg" aria-hidden="true"></span></button>`;
+  const lock=lockOf(l,id)==="game";
+  return`<button class="row${on?" on":""}${lock?" locked":""}${id===flashId?" flash":""}" data-id="${id}" aria-pressed="${on}"${lock?' aria-disabled="true"':""} aria-label="${esc(p.name)}, ${on?"starting":"on bench"}${lock?", locked, his game has started":on?". Tap to bench":". Tap to start"}">${shotOf(p,id)}<span class="nm">${nameLine(p,id,st,stk)}${oppLine(id,valCol(id,true))}</span><span class="pv">${pointsCol(l,"me",id).html}</span><span class="tg" aria-hidden="true"></span></button>`;
 }
 // Bottom tab bar: one place to move between sections (replaces the row of tabs inside the page).
 const TABS=[["lineup","Lineup",'<path d="M4 6h16M4 12h16M4 18h10"/>'],["fa","Free agents",'<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>'],["st","Standings",'<path d="M5 20V10M12 20V4M19 20v-7"/>'],["rk","Rankings",'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/>'],["tr","Trade",'<path d="M7 7h12l-3-3M17 17H5l3 3"/>']];
@@ -1097,17 +1204,29 @@ function renderTabbar(on){
 const INFO={};
 const info=(k,title,body)=>{INFO[k]={title,body};return`<button class="ib" data-info="${k}" aria-label="About: ${esc(title)}">ⓘ</button>`};
 function openInfo(k){const x=INFO[k];if(!x)return;$("isheet-t").textContent=x.title;$("isheet-b").innerHTML=x.body;$("isheet").hidden=false}
+
+// League switcher (v28): name + my score, thin lime/coral underline = winning/losing, slow fade = live, amber corner dot = needs attention
+function lgShort(l){const n=l.name.replace(/\bdynasty\b/i,"").replace(/\b\d+\b/g,"").replace(/\s+/g," ").trim();const all=D.leagues.map(x=>x.name.replace(/\bdynasty\b/i,"").replace(/\b\d+\b/g,"").trim());return n&&all.filter(x=>x===n).length<2?n:l.name}
+function accOf(l){const ids=D.leagues.map(x=>x.id).sort(),used=new Set(),N=D.leagues.length>3?4:3;let r=0;for(const id of ids){let h=0;for(const c of String(id))h=(h*31+c.charCodeAt(0))>>>0;let k=h%N;while(used.size<N&&used.has(k))k=(k+1)%N;used.add(k);if(id===l.id)r=k}return r}
+function tabFix(l){return check(l).issues.length||alerts(l).some(x=>!x.stuck)?`<i class="fixdot" aria-label="needs attention"></i>`:""}
+function tabLive(l){const lv=l.live;if(!lv||!lv.me||!lv.opp)return null;const started=(lv.me.score||0)+(lv.opp.score||0)>0||lv.me.playing>0||lv.opp.playing>0;return{me:lv.me.score||0,opp:lv.opp.score||0,started,playing:lv.me.playing>0||lv.opp.playing>0}}
+function tabState(l){const t=tabLive(l);if(!t||!t.started)return{v:total(l),st:"",live:false};return{v:t.me,st:t.me>t.opp?"up":t.me<t.opp?"dn":"",live:t.playing}}
+function allCap(){let w=0,d=0,any=false;D.leagues.forEach(l=>{const t=tabLive(l);if(t&&t.started){any=true;if(t.me>t.opp)w++;else if(t.me<t.opp)d++}});return any?`${w} up · ${d} down`:"Overview"}
+function tabAria(l){const s=tabState(l),t=tabLive(l);const st=!t||!t.started?`${fmt(s.v)} projected`:`${fmt(s.v)} to ${fmt(t.opp)}, ${s.st==="up"?"winning":s.st==="dn"?"losing":"tied"}`;return`${l.name}: ${st}${s.live?", live":""}${check(l).issues.length||alerts(l).some(x=>!x.stuck)?", needs attention":""}`}
+function allAria(){const c=allCap();return c==="Overview"?"All leagues overview":`All leagues overview, ${c.replace(" · ",", ")}`}
+function leagueTab(l){const s=tabState(l);return`<span class="ln">${esc(lgShort(l))}</span><b class="sc">${fmt(s.v)}</b><i class="ubar ${s.st}${s.live?" live":""}" aria-hidden="true"></i>${tabFix(l)}`}
+function allTab(){return`<span class="ln">All</span><span class="cap">${allCap()}</span><i class="ubar" aria-hidden="true"></i>`}
 function render(){
   if(!D)return;
   const tabsEl=$("tabs"),items=[...D.leagues.map(l=>l.id),"all"];
   tabsEl.style.setProperty("--n",items.length);
   tabsEl.style.setProperty("--i",Math.max(0,items.indexOf(cur)));
-  tabsEl.innerHTML=D.leagues.map(l=>`<button class="tab" role="tab" aria-selected="${l.id===cur}" data-k="${l.id}"><b>${esc(key(l))}</b><span>${fmt(total(l))}${check(l).issues.length||alerts(l).length?`<i class="fixdot" aria-label="needs attention"></i>`:""}</span></button>`).join("")+`<button class="tab" role="tab" aria-selected="${cur==="all"}" data-k="all"><b>All</b><span>Overview</span></button>`;
+  tabsEl.innerHTML=D.leagues.map(l=>`<button class="tab lt acc${accOf(l)}" role="tab" aria-selected="${l.id===cur}" data-k="${l.id}" aria-label="${esc(tabAria(l))}">${leagueTab(l)}</button>`).join("")+`<button class="tab lt all" role="tab" aria-selected="${cur==="all"}" data-k="all" aria-label="${esc(allAria())}">${allTab()}</button>`;
   const v=$("view");
   if(cur==="all"){document.body.classList.remove("has-bar");renderTabbar(false);v.innerHTML=renderAll();muOpen=null;renderMU();return}
   const l=D.leagues.find(x=>x.id===cur);if(!l)return;
   const ik=`${l.id}-${week}`;intro=!seen.has(ik);
-  const{c,issues,dead,n}=check(l),set=lineups[l.id],tot=total(l),bestTot=[...best(l)].reduce((s,id)=>s+pts(l,id),0),gap=bestTot-tot;
+  const{c,issues,dead,n}=check(l),set=lineups[l.id],tot=projTotal(l),locked=allLocked(l),done=locked&&allFinal(l),bl=locked?set:best(l),gap=locked?0:gainLeft(set,bl,id=>ptsNow(l,id)),swapDead=!locked&&[...set].some(id=>!bl.has(id)&&ptsNow(l,id)===0&&/^(bye|noteam)$/.test(lockOf(l,id))),hs=done?hindsight(l):0;
   const byPos=ids=>POS.flatMap(p=>ids.filter(id=>P(id).pos===p).sort((a,b)=>pts(l,b)-pts(l,a)));
   const starters=byPos(l.roster.filter(id=>set.has(id))),bench=byPos(l.roster.filter(id=>!set.has(id)));
   const status=issues.length?["bad",issues[0]]:dead.length?["warn",`${dead.length} starter${dead.length>1?"s":""} at 0`]:["ok","Lineup ready"];
@@ -1122,7 +1241,10 @@ function render(){
     <div class="list">${bench.map(id=>row(l,id,false)).join("")}</div>`;
   const bar=confirming
     ?`<div class="ab"><div class="ab-text"><span class="ab-q">Send to MFL?</span><span class="ab-sub">Week ${week}, ${set.size} starters</span></div><div class="ab-btns"><button class="btn quiet" data-act="cancel"${busy?" disabled":""}>Cancel</button><button class="btn primary" data-act="send"${busy?" disabled":""}>${busy?"Sending…":"Send lineup"}</button></div></div>`
-    :`<div class="ab"><div class="ab-text"><span class="ab-label">${sync?"Projected, matches MFL":"Projected, not sent yet"}</span><span class="ab-total">${fmt(tot)}</span><span class="ab-sub${issues.length?" bad":!sync?" warn":gap>0.005?" warn":""}">${esc(issues.length?issues[0]:!sync?"Differs from MFL. Send to update.":gap>0.005?`${fmt(gap)} pts left on bench`:"Your best lineup")}</span></div><div class="ab-btns">${gap>0.005?`<button class="btn quiet" data-act="best">Best lineup</button>`:""}<button class="btn primary" data-act="ask"${issues.length||sync?" disabled":""}>${sync?"Sent":"Send to MFL"}</button></div></div>`;
+    :(locked
+      // Every game has started (or the week is over): nothing can move, so no suggestion and no send.
+      ?`<div class="ab"><div class="ab-text"><span class="ab-label">${done?"Final":"Projected, all games started"}</span><span class="ab-total">${fmt(tot)}</span><span class="ab-sub">${done?(hs>0.005?`Hindsight: ${fmt(hs)} pts on bench`:"You started your best lineup"):"Lineup locked for the week"}</span></div><div class="ab-btns"><button class="btn primary" disabled>${sync?"Sent":"Locked"}</button></div></div>`
+      :`<div class="ab"><div class="ab-text"><span class="ab-label">${sync?"Projected, matches MFL":"Projected, not sent yet"}</span><span class="ab-total">${fmt(tot)}</span><span class="ab-sub${issues.length?" bad":!sync?" warn":gap>0.005||swapDead?" warn":""}">${esc(issues.length?issues[0]:!sync?"Differs from MFL. Send to update.":gap>0.005?`${fmt(gap)} pts left on bench`:swapDead?"Bye starter can be swapped":"Your best lineup")}</span></div><div class="ab-btns">${gap>0.005||swapDead?`<button class="btn quiet" data-act="best">Best lineup</button>`:""}<button class="btn primary" data-act="ask"${issues.length||sync?" disabled":""}>${sync?"Sent":"Send to MFL"}</button></div></div>`);
   v.innerHTML=`${mode==="lineup"?matchupCard(l):`<h2 class="tab-title">${{fa:"Free agents",st:"Standings",rk:"Rankings",tr:"Trade"}[mode]}<small>${esc(key(l))} · ${sf?"Superflex":"1 QB"}${l.teBonus?", TE premium":""}</small></h2>`}
   <section class="panel">
     ${mode!=="lineup"?"":`<div class="tp-head"><span class="status s-${status[0]}"><i></i>${esc(status[1])}</span><span class="fmt">${sf?"Superflex":"1 QB"}, ${l.teBonus?"TE premium":"standard TE"}</span></div>`}
@@ -1870,7 +1992,7 @@ function renderAll(){
   <div class="glance">${D.leagues.map(l=>{
     const{issues,dead}=check(l),s=issues.length?["bad",issues[0]]:dead.length?["warn",`${dead.length} at 0`]:["ok","Ready"];
     const lv=l.live,opp=lv&&lv.opp?l.franchises.find(f=>f.id===lv.opp.id):null;
-    return`<button class="grow" data-k="${l.id}"><span class="lg">${esc(key(l))}</span><span class="gn"><b>${esc(me(l).name||"")}</b><small>${opp?`vs ${esc(opp.name)}`:"No matchup"}</small></span><span class="gr"><span class="gt">${fmt(total(l))}</span><span class="status s-${s[0]}"><i></i>${esc(s[1])}</span></span></button>`}).join("")}</div>
+    return`<button class="grow" data-k="${l.id}"><span class="lg">${esc(key(l))}</span><span class="gn"><b>${esc(me(l).name||"")}</b><small>${opp?`vs ${esc(opp.name)}`:"No matchup"}</small></span><span class="gr"><span class="gt">${fmt(projTotal(l))}</span><span class="status s-${s[0]}"><i></i>${esc(s[1])}</span></span></button>`}).join("")}</div>
   ${byeNames?`<p class="note">On bye this week: ${esc(byeNames)}.</p>`:""}</section>
   <section class="panel"><div class="panel-head"><h3>Shared players</h3><span>${shared.length} on two or more teams</span></div>
   <p class="note">An injury to one of these players hits more than one league.</p>
@@ -1950,6 +2072,7 @@ document.addEventListener("click",async e=>{
     return;
   }
   const r=e.target.closest("button.row[data-id]");
+  if(r&&!busy&&r.classList.contains("locked")){toast(`${P(r.dataset.id).name}'s game has started. MFL won't move him now.`);return}
   if(r&&!busy){const s=lineups[l.id],id=r.dataset.id,before=r.getBoundingClientRect();s.has(id)?s.delete(id):s.add(id);confirming=false;flashId=id;saveDraft(l);render();glide(id,before);return}
   const a=e.target.closest("[data-act]");if(!a)return;
   const act=a.dataset.act;
