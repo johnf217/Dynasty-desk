@@ -12,7 +12,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 export const config = { path: "/api/mfl" };
 
 // Shown in the app's footer so you can tell which version of this file is deployed.
-const VERSION = "v31";
+const VERSION = "v32";
 
 const YEAR = process.env.MFL_YEAR || "2026";
 const API_HOST = "https://api.myfantasyleague.com";
