@@ -844,7 +844,7 @@ body.has-tabs .tbal{bottom:calc(70px + env(safe-area-inset-bottom,0px))}
 .lt .ln{font:600 12.5px/1.15 var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;color:var(--muted);transition:color .25s}
 .lt[aria-selected="true"] .ln{color:var(--ink)}
 .lt{padding:10px 4px 9px;gap:6px;justify-content:center}
-.lt .ln{display:flex;justify-content:center;gap:0;width:100%;min-width:0;max-width:100%;font:600 12.5px/1.1 var(--text)} /* v31: "Type - NNN"; the type may ellipsize, the number never */
+.lt .ln{display:flex;justify-content:center;gap:0;width:100%;min-width:0;max-width:100%;font:600 12.5px/1.1 var(--text)} /* v32: "NNN - Type"; the type may ellipsize, the number never */
 .lt .ln .lnt{min-width:0;flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:inherit;font:inherit;max-width:none}
 .lt .ln .lnn{flex:none;overflow:visible;white-space:nowrap;color:inherit;font:inherit;font-variant-numeric:tabular-nums;max-width:none}
 .lt .ln .livedot{width:6px;height:6px}
@@ -959,7 +959,7 @@ let liveHold=0; // after MFL says "too many requests", auto-refresh pauses for 5
 let G={},owned={},seen=new Set(),intro=false,flashId=null,lastSegI=0,lastMode="lineup",liveBusy=false;
 
 // Version of this page. The server sends its own version, so a mismatch means one file wasn't uploaded.
-const APP_VERSION="v31";
+const APP_VERSION="v32";
 let srvVer=null,pinWeak=false;
 // For a couple of minutes after you change something on MFL, reads skip the server's short cache.
 let freshUntil=0;
@@ -1005,7 +1005,7 @@ function showFailed(){
   const f=(D&&D.failed)||[];if(!f.length)return;
   $("errmsg").textContent=f.map(x=>`Couldn't load ${x.name||`league ${x.id}`}: ${x.error}`).join(" · ");$("err").hidden=false;
 }
-function key(l){return lgShort(l)} // v31: every compact league mention uses the "<Type> - NNN" label
+function key(l){return lgShort(l)} // v31/v32: every compact league mention uses the short label ("099 - Basic")
 function prepare(){
   week=D.week;G={};
   D.games.forEach(g=>{G[g.away.id]={opp:g.home,home:false,t:g.kickoff};G[g.home.id]={opp:g.away,home:true,t:g.kickoff}});
@@ -1217,13 +1217,15 @@ const info=(k,title,body)=>{INFO[k]={title,body};return`<button class="ib" data-
 function openInfo(k){const x=INFO[k];if(!x)return;$("isheet-t").textContent=x.title;$("isheet-b").innerHTML=x.body;$("isheet").hidden=false}
 
 // League switcher (v28): name + my score, thin lime/coral underline = winning/losing, slow fade = live, amber corner dot = needs attention
-// v31: league tab labels always read "<League type> - <league number>", e.g. "Basic - 099".
-// Type: what's left after dropping the prefix every league shares ("SafeLeagues - ") at a word/separator
-// boundary, any parenthetical, and leftover separators, in title case. If it's still long, filler words
-// ("Dynasty", "League"...) and stray numbers go. Number: last 3 digits of the league ID, zero-padded.
-// The full name stays in the aria-label and tooltip; CSS may ellipsize the type, never the number.
+// v32: league labels read "<number from the name> - <Type>", e.g. "SafeLeagues - 602 - Deluxe (Superflex)" -> "602 - Deluxe".
+// 1. Drop the prefix every league shares, cut at a word/separator boundary ("SafeLeagues - ").
+// 2. Drop any parenthetical and leftover separators.
+// 3. A standalone 1-4 digit number left in the name (before or after the type) leads, as written: "099 - Basic".
+//    No number: just the type. Long types lose filler words ("Dynasty", "League"...).
+// 4. Only if two labels would still be identical, the last 3 digits of the league ID are added ("Basic · 197").
+// The full name stays in the aria-label and tooltip. CSS may ellipsize the type, never the number.
 function shortLabels(names,ids,cap){
-  cap=cap||12;const SEP=/[\s\-–—|:·\/_,]/,trim=t=>t.replace(/^[\s\-–—|:·\/_,.]+|[\s\-–—|:·\/_,]+$/g,"").replace(/\s+/g," ");
+  cap=cap||12;const SEP=/[\s\-–—|:·\/_,]/,trim=t=>t.replace(/^[\s\-–—|:·\/_,.#]+|[\s\-–—|:·\/_,#]+$/g,"").replace(/\s+/g," ");
   const base=t=>trim(t.replace(/[(\[][^)\]]*[)\]]?/g," "));
   let cut=0;
   if(names.length>1){
@@ -1231,19 +1233,31 @@ function shortLabels(names,ids,cap){
     for(let k=pre.length;k>0;k--)if(SEP.test(pre[k-1])&&names.every(n=>base(n.slice(k)))){cut=k;break}
   }
   const title=t=>t.split(" ").map(w=>/[a-z]/.test(w)&&w===w.toLowerCase()||w.length>3&&w===w.toUpperCase()&&/[A-Z]/.test(w)?w[0].toUpperCase()+w.slice(1).toLowerCase():w).join(" ");
-  return names.map((n,i)=>{
-    let type=base(n.slice(cut))||trim(n.slice(cut));if(!/\p{L}/u.test(type))type=base(n)||trim(n);
-    if(type.length>cap){const simp=trim(type.replace(/\b(dynasty|league|leagues|fantasy|football|ffl|the)\b/gi," ").replace(/\b\d+\b/g," "));if(simp)type=simp}
-    type=title(type);
-    const id=String(ids[i]==null?"":ids[i]),d=id.replace(/\D/g,""),num=d?d.slice(-3).padStart(3,"0"):id.slice(-3);
-    return{type,num,label:num?`${type} - ${num}`:type};
+  const NUM=/(^|[\s\-–—|:·\/_,#])(\d{1,4})(?=$|[\s\-–—|:·\/_,])/;
+  const split=rest=>{const m=rest.match(NUM);if(!m)return{num:"",type:rest};
+    const before=trim(rest.slice(0,m.index+m[1].length)),after=trim(rest.slice(m.index+m[0].length));
+    // "Brand - 099 - Basic": the type is the part next to the number, not the brand
+    const segs=x=>x.split(/\s+[\-–—|:·\/]+\s+|\s*[|:·]\s*/).map(trim).filter(Boolean);
+    const type=after?(before&&before.length+after.length>cap?segs(after)[0]:trim(before+" "+after)):segs(before).pop()||"";
+    return{num:m[2],type:trim(type||"")}};
+  const out=names.map(n=>{
+    const rest=base(n.slice(cut))||trim(n.slice(cut))||base(n)||trim(n);
+    let{num,type}=split(rest);
+    if(!type&&num){const full=split(base(n)||trim(n));if(full.type)type=full.type}
+    if(type.length>cap){const simp=trim(type.replace(/\b(dynasty|league|leagues|fantasy|football|ffl|the)\b/gi," ").replace(/\b\d+\b/g," ").replace(/(\s*[\-–—|:·\/_,]\s*)+/g," "));if(simp)type=simp}
+    if(!type&&!num)type=trim(n);
+    return{num,type:title(type),tail:""};
   });
+  const lab=o=>[o.num,o.type].filter(Boolean).join(" - ")+o.tail;
+  out.forEach((o,i)=>{if(out.filter(x=>lab(x).toLowerCase()===lab(o).toLowerCase()).length>1){const id=String(ids[i]==null?"":ids[i]),d=id.replace(/\D/g,"");o.idTail=" · "+(d?d.slice(-3).padStart(3,"0"):id.slice(-3))}});
+  out.forEach(o=>{if(o.idTail){o.tail=o.idTail;delete o.idTail}});
+  return out.map(o=>({...o,label:lab(o)}));
 }
 let lgCache=null;
 function lgParts(l){
   const k=D.leagues.map(x=>x.id+"\u0001"+x.name).join("\u0002");
   if(!lgCache||lgCache.k!==k){const lab=shortLabels(D.leagues.map(x=>x.name),D.leagues.map(x=>x.id));lgCache={k,m:Object.fromEntries(D.leagues.map((x,i)=>[x.id,lab[i]]))}}
-  return lgCache.m[l.id]||{type:l.name,num:"",label:l.name};
+  return lgCache.m[l.id]||{type:l.name,num:"",tail:"",label:l.name};
 }
 function lgShort(l){return lgParts(l).label}
 function accOf(l){const ids=D.leagues.map(x=>x.id).sort(),used=new Set(),N=D.leagues.length>3?4:3;let r=0;for(const id of ids){let h=0;for(const c of String(id))h=(h*31+c.charCodeAt(0))>>>0;let k=h%N;while(used.size<N&&used.has(k))k=(k+1)%N;used.add(k);if(id===l.id)r=k}return r}
@@ -1253,7 +1267,7 @@ function tabState(l){const t=tabLive(l);if(!t||!t.started)return{v:total(l),st:"
 function allCap(){let w=0,d=0,any=false;D.leagues.forEach(l=>{const t=tabLive(l);if(t&&t.started){any=true;if(t.me>t.opp)w++;else if(t.me<t.opp)d++}});return any?`${w} up · ${d} down`:"Overview"}
 function tabAria(l){const s=tabState(l),t=tabLive(l);const st=!t||!t.started?`${fmt(s.v)} projected`:`${fmt(s.v)} to ${fmt(t.opp)}, ${s.st==="up"?"winning":s.st==="dn"?"losing":"tied"}`;return`${l.name}: ${st}${s.live?", live":""}${check(l).issues.length||alerts(l).some(x=>!x.stuck)?", needs attention":""}`}
 function allAria(){const c=allCap();return c==="Overview"?"All leagues overview":`All leagues overview, ${c.replace(" · ",", ")}`}
-function leagueTab(l){const s=tabState(l);return`<span class="ln">${(p=>p.num?`<span class="lnt">${esc(p.type)}</span><span class="lnn">&nbsp;-&nbsp;${esc(p.num)}</span>`:`<span class="lnt">${esc(p.type)}</span>`)(lgParts(l))}</span><b class="sc">${fmt(s.v)}</b><i class="ubar ${s.st}${s.live?" live":""}" aria-hidden="true"></i>${tabFix(l)}`}
+function leagueTab(l){const s=tabState(l);return`<span class="ln">${(p=>`${p.num?`<span class="lnn">${esc(p.num)}${p.type?"&nbsp;-&nbsp;":""}</span>`:""}${p.type?`<span class="lnt">${esc(p.type)}</span>`:""}${p.tail?`<span class="lnn">${esc(p.tail).replace(/ /g,"&nbsp;")}</span>`:""}`)(lgParts(l))}</span><b class="sc">${fmt(s.v)}</b><i class="ubar ${s.st}${s.live?" live":""}" aria-hidden="true"></i>${tabFix(l)}`}
 function allTab(){return`<span class="ln">All</span><span class="cap">${allCap()}</span><i class="ubar" aria-hidden="true"></i>`}
 function render(){
   if(!D)return;
