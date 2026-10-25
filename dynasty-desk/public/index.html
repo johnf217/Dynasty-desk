@@ -779,6 +779,15 @@ body.has-tabs .tbal{bottom:calc(70px + env(safe-area-inset-bottom,0px))}
   .mv-top h2 .sep{display:none}
 }
 
+/* v31: short league labels everywhere */
+.mv-top h2{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;-webkit-line-clamp:unset}
+@media (max-width:380px){.mv-top h2 .wk{display:inline;font-size:inherit;color:inherit}.mv-top h2 .sep{display:inline}}
+.grow{grid-template-columns:minmax(0,1fr) auto}
+.grow .glg{display:block;font:600 12px/1.3 var(--text);color:var(--muted);letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gs.glist{display:block;text-align:right;line-height:1.35}
+.tab-title{flex-wrap:wrap;row-gap:4px}
+.tab-title small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+
 /* v26: points vs value. Points stay the big Anton numbers; dynasty value is always this small Barlow ◆ pill. */
 .vchip{display:inline-flex;align-items:center;gap:3px;flex:none;max-width:none;padding:2px 6px 2px 5px;border-radius:99px;background:var(--sunk);box-shadow:inset 0 0 0 1px var(--line);font:600 12.5px/1.2 var(--text);color:var(--muted);letter-spacing:0;white-space:nowrap;font-variant-numeric:tabular-nums;vertical-align:middle;overflow:visible}
 .vchip::before{content:"◆";font-size:7.5px;line-height:1;color:var(--faint);transform:translateY(-.5px)}
@@ -835,13 +844,15 @@ body.has-tabs .tbal{bottom:calc(70px + env(safe-area-inset-bottom,0px))}
 .lt .ln{font:600 12.5px/1.15 var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;color:var(--muted);transition:color .25s}
 .lt[aria-selected="true"] .ln{color:var(--ink)}
 .lt{padding:10px 4px 9px;gap:6px;justify-content:center}
-.lt .ln{display:flex;align-items:center;justify-content:center;gap:4px;font:600 12.5px/1.1 var(--text)}
+.lt .ln{display:flex;justify-content:center;gap:0;width:100%;min-width:0;max-width:100%;font:600 12.5px/1.1 var(--text)} /* v31: "Type - NNN"; the type may ellipsize, the number never */
+.lt .ln .lnt{min-width:0;flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:inherit;font:inherit;max-width:none}
+.lt .ln .lnn{flex:none;overflow:visible;white-space:nowrap;color:inherit;font:inherit;font-variant-numeric:tabular-nums;max-width:none}
 .lt .ln .livedot{width:6px;height:6px}
 .lt .fixdot{position:absolute;top:6px;right:7px;width:5px;height:5px;margin:0;background:var(--warn);opacity:.9}
 .lt .sc{font:800 20px/1 var(--display);font-variant-numeric:tabular-nums;color:var(--ink);opacity:.5;white-space:nowrap;transition:opacity .25s}
 .lt[aria-selected="true"] .sc{opacity:1}
 .lt .cap{font:600 11.5px/20px var(--text);color:var(--faint);white-space:nowrap}
-@media (max-width:380px){.lt{padding-inline:2px}.lt .ln{font-size:11.5px;gap:3px;letter-spacing:-.01em}.lt .ln .livedot{width:5px;height:5px}.lt .cap{font-size:10.5px}}
+@media (max-width:380px){.lt{padding-inline:2px}.lt .ln{font-size:11.5px;gap:0;letter-spacing:-.01em}.lt .ln .livedot{width:5px;height:5px}.lt .cap{font-size:10.5px}}
 .lt{padding-bottom:11px}
 .lt .ubar{position:absolute;left:34%;right:34%;bottom:3px;height:2px;border-radius:2px;background:transparent}
 .lt .ubar.up{background:var(--sig-ink)}.lt .ubar.dn{background:#FF8A6B}
@@ -948,7 +959,7 @@ let liveHold=0; // after MFL says "too many requests", auto-refresh pauses for 5
 let G={},owned={},seen=new Set(),intro=false,flashId=null,lastSegI=0,lastMode="lineup",liveBusy=false;
 
 // Version of this page. The server sends its own version, so a mismatch means one file wasn't uploaded.
-const APP_VERSION="v30";
+const APP_VERSION="v31";
 let srvVer=null,pinWeak=false;
 // For a couple of minutes after you change something on MFL, reads skip the server's short cache.
 let freshUntil=0;
@@ -994,7 +1005,7 @@ function showFailed(){
   const f=(D&&D.failed)||[];if(!f.length)return;
   $("errmsg").textContent=f.map(x=>`Couldn't load ${x.name||`league ${x.id}`}: ${x.error}`).join(" · ");$("err").hidden=false;
 }
-function key(l){const m=l.name.match(/Dynasty\s+(\d+)/i);return m?m[1]:l.id}
+function key(l){return lgShort(l)} // v31: every compact league mention uses the "<Type> - NNN" label
 function prepare(){
   week=D.week;G={};
   D.games.forEach(g=>{G[g.away.id]={opp:g.home,home:false,t:g.kickoff};G[g.home.id]={opp:g.away,home:true,t:g.kickoff}});
@@ -1206,7 +1217,35 @@ const info=(k,title,body)=>{INFO[k]={title,body};return`<button class="ib" data-
 function openInfo(k){const x=INFO[k];if(!x)return;$("isheet-t").textContent=x.title;$("isheet-b").innerHTML=x.body;$("isheet").hidden=false}
 
 // League switcher (v28): name + my score, thin lime/coral underline = winning/losing, slow fade = live, amber corner dot = needs attention
-function lgShort(l){const n=l.name.replace(/\bdynasty\b/i,"").replace(/\b\d+\b/g,"").replace(/\s+/g," ").trim();const all=D.leagues.map(x=>x.name.replace(/\bdynasty\b/i,"").replace(/\b\d+\b/g,"").trim());return n&&all.filter(x=>x===n).length<2?n:l.name}
+// v31: league tab labels always read "<League type> - <league number>", e.g. "Basic - 099".
+// Type: what's left after dropping the prefix every league shares ("SafeLeagues - ") at a word/separator
+// boundary, any parenthetical, and leftover separators, in title case. If it's still long, filler words
+// ("Dynasty", "League"...) and stray numbers go. Number: last 3 digits of the league ID, zero-padded.
+// The full name stays in the aria-label and tooltip; CSS may ellipsize the type, never the number.
+function shortLabels(names,ids,cap){
+  cap=cap||12;const SEP=/[\s\-–—|:·\/_,]/,trim=t=>t.replace(/^[\s\-–—|:·\/_,.]+|[\s\-–—|:·\/_,]+$/g,"").replace(/\s+/g," ");
+  const base=t=>trim(t.replace(/[(\[][^)\]]*[)\]]?/g," "));
+  let cut=0;
+  if(names.length>1){
+    let pre=names[0];names.forEach(n=>{let i=0;while(i<pre.length&&i<n.length&&pre[i]===n[i])i++;pre=pre.slice(0,i)});
+    for(let k=pre.length;k>0;k--)if(SEP.test(pre[k-1])&&names.every(n=>base(n.slice(k)))){cut=k;break}
+  }
+  const title=t=>t.split(" ").map(w=>/[a-z]/.test(w)&&w===w.toLowerCase()||w.length>3&&w===w.toUpperCase()&&/[A-Z]/.test(w)?w[0].toUpperCase()+w.slice(1).toLowerCase():w).join(" ");
+  return names.map((n,i)=>{
+    let type=base(n.slice(cut))||trim(n.slice(cut));if(!/\p{L}/u.test(type))type=base(n)||trim(n);
+    if(type.length>cap){const simp=trim(type.replace(/\b(dynasty|league|leagues|fantasy|football|ffl|the)\b/gi," ").replace(/\b\d+\b/g," "));if(simp)type=simp}
+    type=title(type);
+    const id=String(ids[i]==null?"":ids[i]),d=id.replace(/\D/g,""),num=d?d.slice(-3).padStart(3,"0"):id.slice(-3);
+    return{type,num,label:num?`${type} - ${num}`:type};
+  });
+}
+let lgCache=null;
+function lgParts(l){
+  const k=D.leagues.map(x=>x.id+"\u0001"+x.name).join("\u0002");
+  if(!lgCache||lgCache.k!==k){const lab=shortLabels(D.leagues.map(x=>x.name),D.leagues.map(x=>x.id));lgCache={k,m:Object.fromEntries(D.leagues.map((x,i)=>[x.id,lab[i]]))}}
+  return lgCache.m[l.id]||{type:l.name,num:"",label:l.name};
+}
+function lgShort(l){return lgParts(l).label}
 function accOf(l){const ids=D.leagues.map(x=>x.id).sort(),used=new Set(),N=D.leagues.length>3?4:3;let r=0;for(const id of ids){let h=0;for(const c of String(id))h=(h*31+c.charCodeAt(0))>>>0;let k=h%N;while(used.size<N&&used.has(k))k=(k+1)%N;used.add(k);if(id===l.id)r=k}return r}
 function tabFix(l){return check(l).issues.length||alerts(l).some(x=>!x.stuck)?`<i class="fixdot" aria-label="needs attention"></i>`:""}
 function tabLive(l){const lv=l.live;if(!lv||!lv.me||!lv.opp)return null;const started=(lv.me.score||0)+(lv.opp.score||0)>0||lv.me.playing>0||lv.opp.playing>0;return{me:lv.me.score||0,opp:lv.opp.score||0,started,playing:lv.me.playing>0||lv.opp.playing>0}}
@@ -1214,14 +1253,14 @@ function tabState(l){const t=tabLive(l);if(!t||!t.started)return{v:total(l),st:"
 function allCap(){let w=0,d=0,any=false;D.leagues.forEach(l=>{const t=tabLive(l);if(t&&t.started){any=true;if(t.me>t.opp)w++;else if(t.me<t.opp)d++}});return any?`${w} up · ${d} down`:"Overview"}
 function tabAria(l){const s=tabState(l),t=tabLive(l);const st=!t||!t.started?`${fmt(s.v)} projected`:`${fmt(s.v)} to ${fmt(t.opp)}, ${s.st==="up"?"winning":s.st==="dn"?"losing":"tied"}`;return`${l.name}: ${st}${s.live?", live":""}${check(l).issues.length||alerts(l).some(x=>!x.stuck)?", needs attention":""}`}
 function allAria(){const c=allCap();return c==="Overview"?"All leagues overview":`All leagues overview, ${c.replace(" · ",", ")}`}
-function leagueTab(l){const s=tabState(l);return`<span class="ln">${esc(lgShort(l))}</span><b class="sc">${fmt(s.v)}</b><i class="ubar ${s.st}${s.live?" live":""}" aria-hidden="true"></i>${tabFix(l)}`}
+function leagueTab(l){const s=tabState(l);return`<span class="ln">${(p=>p.num?`<span class="lnt">${esc(p.type)}</span><span class="lnn">&nbsp;-&nbsp;${esc(p.num)}</span>`:`<span class="lnt">${esc(p.type)}</span>`)(lgParts(l))}</span><b class="sc">${fmt(s.v)}</b><i class="ubar ${s.st}${s.live?" live":""}" aria-hidden="true"></i>${tabFix(l)}`}
 function allTab(){return`<span class="ln">All</span><span class="cap">${allCap()}</span><i class="ubar" aria-hidden="true"></i>`}
 function render(){
   if(!D)return;
   const tabsEl=$("tabs"),items=[...D.leagues.map(l=>l.id),"all"];
   tabsEl.style.setProperty("--n",items.length);
   tabsEl.style.setProperty("--i",Math.max(0,items.indexOf(cur)));
-  tabsEl.innerHTML=D.leagues.map(l=>`<button class="tab lt acc${accOf(l)}" role="tab" aria-selected="${l.id===cur}" data-k="${l.id}" aria-label="${esc(tabAria(l))}">${leagueTab(l)}</button>`).join("")+`<button class="tab lt all" role="tab" aria-selected="${cur==="all"}" data-k="all" aria-label="${esc(allAria())}">${allTab()}</button>`;
+  tabsEl.innerHTML=D.leagues.map(l=>`<button class="tab lt acc${accOf(l)}" role="tab" aria-selected="${l.id===cur}" data-k="${l.id}" title="${esc(l.name)}" aria-label="${esc(tabAria(l))}">${leagueTab(l)}</button>`).join("")+`<button class="tab lt all" role="tab" aria-selected="${cur==="all"}" data-k="all" aria-label="${esc(allAria())}">${allTab()}</button>`;
   const v=$("view");
   if(cur==="all"){document.body.classList.remove("has-bar");renderTabbar(false);v.innerHTML=renderAll();muOpen=null;renderMU();return}
   const l=D.leagues.find(x=>x.id===cur);if(!l)return;
@@ -1245,7 +1284,7 @@ function render(){
       // Every game has started (or the week is over): nothing can move, so no suggestion and no send.
       ?`<div class="ab"><div class="ab-text"><span class="ab-label">${done?"Final":"Projected, all games started"}</span><span class="ab-total">${fmt(tot)}</span><span class="ab-sub">${done?(hs>0.005?`Hindsight: ${fmt(hs)} pts on bench`:"You started your best lineup"):"Lineup locked for the week"}</span></div><div class="ab-btns"><button class="btn primary" disabled>${sync?"Sent":"Locked"}</button></div></div>`
       :`<div class="ab"><div class="ab-text"><span class="ab-label">${sync?"Projected, matches MFL":"Projected, not sent yet"}</span><span class="ab-total">${fmt(tot)}</span><span class="ab-sub${issues.length?" bad":!sync?" warn":gap>0.005||swapDead?" warn":""}">${esc(issues.length?issues[0]:!sync?"Differs from MFL. Send to update.":gap>0.005?`${fmt(gap)} pts left on bench`:swapDead?"Bye starter can be swapped":"Your best lineup")}</span></div><div class="ab-btns">${gap>0.005||swapDead?`<button class="btn quiet" data-act="best">Best lineup</button>`:""}<button class="btn primary" data-act="ask"${issues.length||sync?" disabled":""}>${sync?"Sent":"Send to MFL"}</button></div></div>`);
-  v.innerHTML=`${mode==="lineup"?matchupCard(l):`<h2 class="tab-title">${{fa:"Free agents",st:"Standings",rk:"Rankings",tr:"Trade"}[mode]}<small>${esc(key(l))} · ${sf?"Superflex":"1 QB"}${l.teBonus?", TE premium":""}</small></h2>`}
+  v.innerHTML=`${mode==="lineup"?matchupCard(l):`<h2 class="tab-title">${{fa:"Free agents",st:"Standings",rk:"Rankings",tr:"Trade"}[mode]}<small title="${esc(l.name)}">${esc(key(l))} · ${sf?"Superflex":"1 QB"}${l.teBonus?", TE premium":""}</small></h2>`}
   <section class="panel">
     ${mode!=="lineup"?"":`<div class="tp-head"><span class="status s-${status[0]}"><i></i>${esc(status[1])}</span><span class="fmt">${sf?"Superflex":"1 QB"}, ${l.teBonus?"TE premium":"standard TE"}</span></div>`}
     <div class="swap${lastMode!==mode?" in":""}">${mode==="fa"?faPanel(l):mode==="st"?standingsPanel(l):mode==="rk"?rankingsPanel(l):mode==="tr"?tradePanel(l):lineupBody}</div>
@@ -1624,7 +1663,7 @@ function drawMU(){
   const recA=recOf(l,l.fid),recB=recOf(l,oppF.id);
   const prev=host.querySelector(".mv"),keepY=prev?prev.scrollTop:0;
   host.innerHTML=`<div class="mv${keepY>40?" scrolled":""}" role="dialog" aria-modal="true" aria-label="Full matchup"${prev?' style="animation:none"':""}>
-    <div class="mv-top"><button class="iconbtn back" data-act="closemu" aria-label="Close matchup"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2><span class="wk">Week ${week}<span class="sep"> · </span></span>${esc(l.name)}</h2>${onAir?`<span class="livepill"><i></i>LIVE</span>`:""}<button class="iconbtn${liveBusy?" spin":""}" data-act="liveref" aria-label="Refresh scores">${ICON_REFRESH}</button></div>
+    <div class="mv-top"><button class="iconbtn back" data-act="closemu" aria-label="Close matchup"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2 title="${esc(l.name)}"><span class="wk">Week ${week}<span class="sep"> · </span></span>${esc(lgShort(l))}</h2>${onAir?`<span class="livepill"><i></i>LIVE</span>`:""}<button class="iconbtn${liveBusy?" spin":""}" data-act="liveref" aria-label="Refresh scores">${ICON_REFRESH}</button></div>
     <div class="mvhero"><section class="board mvh"><div class="teams">
       <div class="team${B2<A2?" lead":""}"><span class="tid">${ficon(me(l))}<span class="tnm"><span class="tname">${esc(me(l).name||"You")}</span><span class="trec">${recA?esc(recA):"&nbsp;"}</span></span></span><span class="score"${anyLive?` data-pk="mu-${l.id}-me" data-pv="${A2}"`:""}>${fmt(A2)}</span><span class="tsub">${anyLive?`Proj ${p1(a.proj)}`:mine.set?"Projected":"Projected, not set on MFL"}</span></div>
       <span class="vs" aria-hidden="true">VS</span>
@@ -1992,11 +2031,11 @@ function renderAll(){
   <div class="glance">${D.leagues.map(l=>{
     const{issues,dead}=check(l),s=issues.length?["bad",issues[0]]:dead.length?["warn",`${dead.length} at 0`]:["ok","Ready"];
     const lv=l.live,opp=lv&&lv.opp?l.franchises.find(f=>f.id===lv.opp.id):null;
-    return`<button class="grow" data-k="${l.id}"><span class="lg">${esc(key(l))}</span><span class="gn"><b>${esc(me(l).name||"")}</b><small>${opp?`vs ${esc(opp.name)}`:"No matchup"}</small></span><span class="gr"><span class="gt">${fmt(projTotal(l))}</span><span class="status s-${s[0]}"><i></i>${esc(s[1])}</span></span></button>`}).join("")}</div>
+    return`<button class="grow" data-k="${l.id}" title="${esc(l.name)}"><span class="gn"><span class="glg">${esc(key(l))}</span><b>${esc(me(l).name||"")}</b><small>${opp?`vs ${esc(opp.name)}`:"No matchup"}</small></span><span class="gr"><span class="gt">${fmt(projTotal(l))}</span><span class="status s-${s[0]}"><i></i>${esc(s[1])}</span></span></button>`}).join("")}</div>
   ${byeNames?`<p class="note">On bye this week: ${esc(byeNames)}.</p>`:""}</section>
   <section class="panel"><div class="panel-head"><h3>Shared players</h3><span>${shared.length} on two or more teams</span></div>
   <p class="note">An injury to one of these players hits more than one league.</p>
-  <div class="list">${shared.map(([id,ks])=>{const p=P(id);return`<div class="row static">${shotOf(p,id)}<span class="nm">${nameLine(p,id,"")}${oppLine(id)}</span><span class="pv"><span class="gs">${ks.join(", ")}</span></span></div>`}).join("")}</div></section>`;
+  <div class="list">${shared.map(([id,ks])=>{const p=P(id);return`<div class="row static">${shotOf(p,id)}<span class="nm">${nameLine(p,id,"")}${oppLine(id)}</span><span class="pv"><span class="gs glist">${ks.map(esc).join("<br>")}</span></span></div>`}).join("")}</div></section>`;
 }
 function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("show"),2800)}
 
