@@ -877,6 +877,257 @@ html body .hwp-k b{font-family:"Barlow Semi Condensed",var(--text);font-weight:6
 html body .strip b{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:22.0px;letter-spacing:0;font-variant-numeric:tabular-nums;font-style:normal}
 /* v30: rows whose game has started can't be moved (MFL locks them) */
 .row.locked{cursor:default}.row.locked .tg{opacity:.45}
+
+/* v34: week picker. A quiet stepper (‹ Week 8 ›) plus a jump list of weeks 1-18. Every target is 44px or more. */
+.wks{display:inline-flex;align-items:center;flex:none;height:44px;border-radius:var(--r-md);background:var(--sunk);color:var(--ink)}
+.wks button{border:0;background:none;color:inherit;cursor:pointer;height:44px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-md);-webkit-tap-highlight-color:transparent}
+.wks .wk-arrow{width:44px;color:var(--muted)}
+.wks .wk-arrow svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.wks .wk-arrow:disabled{opacity:.3;cursor:default}
+.wks .wk-label{gap:5px;min-width:86px;padding:0 4px;white-space:nowrap}
+.wks .wk-label svg{width:10px;height:10px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+.wks .wk-label[aria-expanded="true"] svg{transform:rotate(180deg)}
+.wks button:active:not(:disabled){background:var(--line)}
+.wks button:focus-visible{outline:2px solid var(--sig);outline-offset:-2px}
+.wks .wk-label span{color:var(--ink)}
+html body .wks .wk-label span{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:16px;letter-spacing:0;font-variant-numeric:tabular-nums}
+.wk-back{border:0;background:none;color:var(--sig-ink,var(--ink));font:600 13px/1 var(--text);min-height:44px;padding:0 2px 0 8px;cursor:pointer;white-space:nowrap;text-decoration:underline;text-decoration-color:color-mix(in srgb,currentColor 35%,transparent);text-underline-offset:3px}
+.wk-tag{font-size:13px;color:var(--muted);white-space:nowrap}
+.board-top.wk{margin:-6px -6px -4px -6px}
+.board-top .board-status{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;min-width:0}
+/* Option 2: a slim row under the league tabs */
+.wkrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-4px 0 -2px}
+.wkrow[hidden]{display:none}
+.wkrow .wks{background:none;border:1px solid var(--line)}
+/* While another week loads, the current view dims instead of jumping */
+#view.wkload{opacity:.5;pointer-events:none;transition:opacity .2s}
+/* The week list */
+.wkpop{position:fixed;inset:0;z-index:85;background:rgb(0 0 0 / .32)}
+.wkpop[hidden]{display:none}
+.wkpop-card{position:absolute;left:12px;right:12px;max-width:420px;margin:0 auto;background:var(--surface);color:var(--ink);border-radius:var(--r-lg);padding:14px 14px 16px;box-shadow:0 30px 60px -20px rgb(0 0 0 / .6);animation:open .2s var(--ease)}
+.wkpop-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:0 2px 12px;font-size:13px;color:var(--muted)}
+.wkpop-head b{font:600 15px/1 var(--text);color:var(--ink)}
+.wkpop-now{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.wkpop-now i,.wkc i{width:6px;height:6px;border-radius:50%;background:var(--sig);display:inline-block}
+.wkgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.wkc{position:relative;min-height:46px;border:1px solid var(--line);border-radius:var(--r-md);background:none;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.wkc.past{color:var(--muted)}
+.wkc.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.wkc i{position:absolute;top:6px;right:6px}
+.wkc:focus-visible{outline:2px solid var(--sig);outline-offset:2px}
+html body .wkc{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:17px;letter-spacing:0;font-variant-numeric:tabular-nums}
+.wkpop-foot{display:flex;justify-content:space-between;gap:10px;margin:12px 2px 0;font-size:12.5px;color:var(--muted)}
+/* Past week: the result in place of the win chance */
+.hres{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:44px;margin:-6px 0 -4px;cursor:pointer;font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:6px}
+.hres .hres-k{display:inline-flex;align-items:baseline;gap:6px;color:var(--ink);font-weight:600;font-size:14px}
+.hres .hres-k.w b{color:var(--sig-ink)}
+.hres .hres-k.l b{color:var(--bad)}
+html body .hres b{font-family:"Barlow Semi Condensed",var(--text);font-weight:600;font-size:16px;letter-spacing:0;font-variant-numeric:tabular-nums}
+.ro-note{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin:0}
+
+/* ---- v34: full matchup screen, mockup redesign ----
+   Always dark (the header art is a dark band), in light mode too. Lime = you, coral = them. */
+html body .mv.xmu{--paper:#07080B;--surface:#101217;--sunk:#161920;--line:rgb(255 255 255 / .07);--ink:#F3F4F6;--muted:#9CA1AB;--faint:#6B707A;
+  --me:#C6F432;--me-rgb:198 244 50;--me-ink:#C6F432;--op:#FF7A59;--op-rgb:255 122 89;--op-ink:#FF7A59;color-scheme:dark;color:var(--ink);background:var(--paper);
+  padding-top:0;bottom:0;padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+body.muopen .tabbar{z-index:62}
+.mv.xmu.wkload .xcard,.mv.xmu.wkload .mv-in{opacity:.5;transition:opacity .2s}
+/* Header: banner art edge to edge under the safe area, round-square buttons over the wings, week pill under the logo */
+.xhead{position:relative;height:calc(env(safe-area-inset-top,0px) + 130px);overflow:hidden}
+.xban{position:absolute;left:50%;top:env(safe-area-inset-top,0px);width:clamp(400px,104%,780px);aspect-ratio:1100/237;transform:translateX(-50%);background:url(/mu-header.webp) center/100% 100% no-repeat}
+@media (min-width:781px){.xban{-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}}
+.xbtn{position:absolute;top:calc(env(safe-area-inset-top,0px) + 30px);width:44px;height:44px;display:grid;place-items:center;border-radius:13px;border:1px solid rgb(255 255 255 / .12);background:rgb(12 14 18 / .82);color:#fff;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 4px 14px rgb(0 0 0 / .45)}
+.xbtn svg{width:19px;height:19px}
+.xback{left:10px}.xref{right:10px}
+.xbtn:active,.xpa:active{transform:scale(.96)}
+.xpill{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);display:flex;align-items:center;height:46px;max-width:calc(100% - 24px);border-radius:14px;border:1px solid rgb(255 255 255 / .14);background:rgb(10 12 15 / .9);box-shadow:0 6px 18px rgb(0 0 0 / .5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.xpa{width:44px;height:44px;flex:none;display:grid;place-items:center;border:0;background:none;color:#fff;cursor:pointer;border-radius:12px}
+.xpa svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.xpa:disabled{color:rgb(255 255 255 / .22);cursor:default}
+.xpl{display:flex;align-items:center;gap:6px;min-width:0;height:44px;padding:0 4px;border:0;background:none;color:#fff;cursor:pointer;font:500 14.5px/1 var(--text);white-space:nowrap}
+.xpl .xw{flex:none}
+.xpl .xsep{flex:none;color:rgb(255 255 255 / .55)}
+.xpl .xlg{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.xpa:focus-visible,.xpl:focus-visible,.xbtn:focus-visible{outline:2px solid var(--me);outline-offset:2px}
+/* Slim bar once the header has scrolled away */
+.xmini{position:sticky;top:0;z-index:4;height:0;overflow:visible;pointer-events:none}
+.xmini span{position:absolute;left:0;right:0;top:0;height:calc(env(safe-area-inset-top,0px) + 40px);padding:env(safe-area-inset-top,0px) 16px 0;display:flex;align-items:center;justify-content:center;font:500 14px/1 var(--text);color:#fff;background:rgb(7 8 11 / .86);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 1px 0 var(--line);opacity:0;transform:translateY(-6px);transition:opacity .2s,transform .2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mv.xmu.scrolled .xmini span{opacity:1;transform:none}
+/* Score card */
+.xcard{position:relative;margin:4px 8px 0;padding:14px 14px 14px;border-radius:20px;border:1px solid rgb(255 255 255 / .1);background:#0B0D11;overflow:hidden;isolation:isolate}
+.xglow{position:absolute;top:0;bottom:0;width:62%;z-index:-1;background-repeat:no-repeat;background-size:cover;opacity:.9;pointer-events:none}
+.xglow.l{left:0;background-image:url(/mu-glow-left.webp);background-position:left top;-webkit-mask-image:linear-gradient(90deg,#000 55%,transparent);mask-image:linear-gradient(90deg,#000 55%,transparent)}
+.xglow.r{right:0;background-image:url(/mu-glow-right.webp);background-position:right top;-webkit-mask-image:linear-gradient(270deg,#000 55%,transparent);mask-image:linear-gradient(270deg,#000 55%,transparent)}
+.xteams{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:14px}
+.xteam{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
+.xteam.r{align-items:flex-end;text-align:right}
+.xid{display:flex;align-items:center;gap:9px;min-width:0;max-width:100%;min-height:42px}
+.xteam.r .xid{flex-direction:row-reverse}
+.xmu .ft.xav{--sz:40px;width:40px;height:40px;flex:none;border-radius:50%;background:linear-gradient(160deg,#2A2D35,#15171B);box-shadow:inset 0 0 0 1.5px rgb(255 255 255 / .16);font:600 15px/1 var(--text);color:#fff}
+.xmu .xteam:not(.r) .ft.xav{box-shadow:inset 0 0 0 2px rgb(var(--me-rgb) / .75)}
+.xmu .xteam.r .ft.xav{box-shadow:inset 0 0 0 2px rgb(var(--op-rgb) / .75)}
+.xnm{display:flex;flex-direction:column;gap:3px;min-width:0}
+.xteam.r .xnm{align-items:flex-end}
+html body .xname{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;text-overflow:ellipsis;overflow-wrap:anywhere;font:600 13.5px/1.15 var(--text);text-transform:uppercase;letter-spacing:.02em;color:#fff;max-width:100%}
+html body .xrec{font:600 13px/1.1 "Barlow Semi Condensed",var(--text);color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+html body .xscore{display:block;margin-top:12px;font:400 min(48px,12.2vw)/1 var(--display);letter-spacing:.005em;font-variant-numeric:tabular-nums;color:var(--me);white-space:nowrap;text-shadow:0 0 22px rgb(var(--me-rgb) / .22)}
+html body .xteam.r .xscore{color:var(--op);text-shadow:0 0 22px rgb(var(--op-rgb) / .22)}
+html body .xsub{margin-top:5px;font:600 13.5px/1.2 "Barlow Semi Condensed",var(--text);color:var(--muted);font-variant-numeric:tabular-nums}
+.xvs{position:absolute;left:50%;top:50%;width:98px;height:160px;transform:translate(-50%,-44%);background:url(/mu-vs.webp) center/contain no-repeat;pointer-events:none;z-index:1}
+.xstat{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-top:12px;min-height:24px}
+.xstat>:first-child{justify-self:start}.xstat>:last-child{justify-self:end}
+.xtag{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:7px;font:600 13px/1 "Barlow Semi Condensed",var(--text);letter-spacing:.05em;white-space:nowrap;background:#191C22;color:#E7E9ED;box-shadow:inset 0 0 0 1px rgb(255 255 255 / .1)}
+.xtag.won{background:var(--me);color:#0E0F11;box-shadow:0 0 14px rgb(var(--me-rgb) / .35)}
+.xtag.lost{background:var(--op);color:#140805;box-shadow:0 0 14px rgb(var(--op-rgb) / .3)}
+.xtag.tied{background:#2A2D35}
+.xtag.live i{width:7px;height:7px;border-radius:50%;background:var(--live)}
+.xpct,.xby{font:600 14px/1 "Barlow Semi Condensed",var(--text);letter-spacing:.03em;color:var(--me);white-space:nowrap;font-variant-numeric:tabular-nums}
+.xpct.op{color:var(--op)}
+.xby{color:var(--muted)}
+.xprog{display:flex;gap:5px;height:6px;margin-top:10px}
+.xprog i{min-width:6px;border-radius:99px;background:linear-gradient(90deg,#9BCB1E,var(--me));box-shadow:0 0 10px rgb(var(--me-rgb) / .45);transition:flex-grow .6s var(--ease)}
+.xprog i+i{background:var(--op);box-shadow:0 0 8px rgb(var(--op-rgb) / .4)}
+.xempty p{margin:6px 0;color:var(--muted);font-size:15px;text-align:center}
+/* Starters / bench */
+.xmu .mv-in{padding:0;gap:0;max-width:640px}
+.xnote{margin:12px 16px 0!important}
+.xlist{margin:10px 6px 0;border-radius:18px;border:1px solid rgb(255 255 255 / .07);background:#0B0D11;overflow:hidden}
+.xhd{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:13px 12px 9px}
+.xhd span:first-child{font:600 14px/1 var(--text);letter-spacing:.1em;text-transform:uppercase;color:#D5D8DE}
+.xhd span:last-child{font-size:12.5px;color:var(--faint);white-space:nowrap}
+.xr{display:grid;grid-template-columns:minmax(0,1fr) 34px minmax(0,1fr);column-gap:5px;align-items:center;min-height:52px;padding:7px 7px;border-top:1px solid var(--line)}
+.xs{position:relative;align-self:stretch;display:grid;grid-template-columns:32px minmax(0,1fr) auto;grid-template-areas:"h t v";column-gap:7px;align-items:center;min-width:0}
+.xs.r{grid-template-columns:auto minmax(0,1fr) 32px;grid-template-areas:"v t h"}
+.xs.none{display:flex;align-items:center}.xs.none.r{justify-content:flex-end}
+.xs .hs{grid-area:h;width:32px;height:32px}
+.xs .hsb{display:none}
+.xs .hsi{font:600 12px/1 var(--text);color:var(--muted);background:linear-gradient(160deg,#252830,#16181D)}
+.xpt{grid-area:t;display:flex;flex-direction:column;gap:3px;min-width:0}
+.xs.r .xpt{align-items:flex-end;text-align:right}
+.xn{display:flex;align-items:center;gap:4px;min-width:0;max-width:100%;font:600 14px/1.15 var(--text);color:#F3F4F6;text-transform:none;letter-spacing:0}
+.xs.r .xn{flex-direction:row-reverse}
+.xn .fit{display:block;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xm{display:flex;flex-wrap:wrap;gap:1px 4px;font-size:12px;line-height:1.2;color:var(--muted);min-width:0}
+.xs.r .xm{justify-content:flex-end}
+.xm>span{white-space:nowrap}
+.xclk{display:inline-flex;align-items:center;gap:4px;color:var(--ink)}
+.xclk i{width:6px;height:6px;border-radius:50%;background:var(--live)}
+.xv{grid-area:v;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.xs.r .xv{align-items:flex-start}
+html body .xv b{font:600 18px/1 "Barlow Semi Condensed",var(--text);font-variant-numeric:tabular-nums;color:#C3C7CF;letter-spacing:0}
+html body .xv b.lead{color:var(--me)}
+html body .xs.r .xv b.lead{color:var(--op)}
+html body .xv b.pre{color:#A8ADB6}
+html body .xv b.nil{color:var(--faint)}
+.xv small{font:600 12px/1 "Barlow Semi Condensed",var(--text);color:var(--faint);font-variant-numeric:tabular-nums}
+.xpb{position:absolute;bottom:-8px;right:0;height:2px;width:calc(var(--f) * .72);border-radius:2px;background:linear-gradient(270deg,var(--me),rgb(var(--me-rgb) / .08));pointer-events:none}
+.xs.r .xpb{right:auto;left:0;background:linear-gradient(90deg,var(--op),rgb(var(--op-rgb) / .08))}
+.xchip{display:grid;place-items:center;width:34px;height:36px;border-radius:9px;background:#14171C;box-shadow:inset 0 0 0 1px rgb(255 255 255 / .06);font:600 12.5px/1 "Barlow Semi Condensed",var(--text);letter-spacing:.06em;color:#8E939D}
+.xr.xbn{min-height:50px}
+.xr.xbn .xs{opacity:.72}
+html body .xr.xbn .xv b{font-size:17px;color:#A8ADB6}
+.xr.xbn .xchip{height:34px;color:var(--faint)}
+.xbench .xhd span:first-child{color:var(--muted)}
+.xmu .benchbtn{margin:10px 6px 0;width:auto;min-height:48px}
+html body .xmu .benchbtn b{font:600 15px/1 var(--text);letter-spacing:.01em;text-transform:none}
+html body .xmu .benchbtn span{font:600 13.5px/1 "Barlow Semi Condensed",var(--text);letter-spacing:.01em;text-transform:none;color:var(--muted)}
+.xmu .lb{margin:18px 12px 0}
+.xmu .stlegend{margin:12px 16px 0}
+@media (max-width:370px){
+  .xcard{padding:14px 12px}
+  .xteams{column-gap:10px}
+  .xmu .ft.xav{--sz:38px;width:38px;height:38px}
+  .xid{gap:8px}
+  html body .xname{font-size:13.5px}
+  .xr{padding:7px 6px;column-gap:4px;grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr)}
+  .xchip{width:30px;font-size:11.5px}
+  .xs{grid-template-columns:28px minmax(0,1fr) auto;column-gap:6px}
+  .xs.r{grid-template-columns:auto minmax(0,1fr) 28px}
+  .xs .hs{width:28px;height:28px}
+  .xn{font-size:13.5px}
+  .xm{font-size:11.5px}
+  html body .xv b{font-size:16.5px}
+  .xpl{font-size:15px}
+}
+@media (prefers-reduced-motion:reduce){.xprog i{transition:none}.xmini span{transition:none}}
+
+/* ---- v34 compact pass: thinner pill, shorter header and score card so the starters show without scrolling ---- */
+.xhead{height:calc(env(safe-area-inset-top,0px) + 108px)}
+.xban{width:clamp(390px,100%,780px)}
+.xbtn{top:calc(env(safe-area-inset-top,0px) + 22px);width:38px;height:38px;border-radius:11px}
+.xbtn svg{width:17px;height:17px}
+.xbtn::before,.xpa::before,.xpl::before{content:"";position:absolute;inset:-5px}
+.xback{left:12px}.xref{right:12px}
+.xpill{bottom:6px;height:32px;border-radius:10px}
+.xpa,.xpl{position:relative}
+.xpa{width:34px;height:30px}
+.xpa{z-index:1}.xpa::before{inset:-8px -6px}
+.xpl{height:30px;font-size:14px;padding:0 2px}
+.xpl::before{inset:-8px 0}
+.xpa svg{width:14px;height:14px}
+.xcard{margin:2px 8px 0;padding:10px 12px 10px;border-radius:16px}
+.xteams{column-gap:12px}
+.xid{gap:8px;min-height:34px}
+.xmu .ft.xav{--sz:34px;width:34px;height:34px;font-size:13px}
+.xnm{gap:2px}
+html body .xname{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;-webkit-line-clamp:unset;font-size:13px;line-height:1.15}
+html body .xrec{font-size:12px}
+html body .xscore{margin-top:6px;font-size:min(42px,10.8vw)}
+html body .xsub{margin-top:2px;font-size:12.5px;line-height:1.1}
+.xvs{width:76px;height:124px;transform:translate(-50%,-42%)}
+.xstat{margin-top:8px;min-height:18px}
+.xtag{height:18px;padding:0 7px;border-radius:5px;font-size:12px}
+.xtag.live i{width:6px;height:6px}
+.xpct,.xby{font-size:13px}
+.xprog{height:4px;margin-top:6px;gap:4px}
+.xprog i{min-width:4px}
+.xlist{margin-top:8px;border-radius:16px}
+.xhd{padding:10px 12px 7px}
+.xhd span:first-child{font-size:13px}
+.xhd span:last-child{font-size:12px}
+.xr{min-height:47px;padding:5px 7px}
+.xpt{gap:2px}
+.xm{font-family:"Barlow Semi Condensed",var(--text);font-weight:500;font-size:12.5px;line-height:1.15}
+.xchip{height:32px}
+.xpb{bottom:-6px}
+.xr.xbn{min-height:44px}
+.xr.xbn .xchip{height:28px}
+.xmu .xm{gap:1px 3px;letter-spacing:-.005em}
+.xmu .xclk{color:#FF6B5E;font-weight:600}
+.xmu .xclk i{display:none}
+.xmu .xs{column-gap:6px}
+@media (max-width:370px){
+  .xcard{padding:9px 10px}
+  .xmu .ft.xav{--sz:32px;width:32px;height:32px}
+  html body .xname{font-size:12.5px}
+  .xm{font-size:12px}
+  .xpl{font-size:13.5px}
+  .xr{padding:5px 6px}
+}
+/* ---- v34 slim week selectors: small visible controls (24px tall, hugging their text); invisible padding keeps every tap target 44px ---- */
+.board-top.wk{margin:0;min-height:24px}
+.wks{height:24px;border-radius:8px;background:rgb(255 255 255 / .05);color:var(--ink)}
+.wks button{position:relative;height:24px;border-radius:8px}
+.wks button::before{content:"";position:absolute;top:-11px;bottom:-11px;left:0;right:0}
+.wks .wk-arrow{width:22px;z-index:1}
+.wks .wk-arrow:first-child::before{left:-16px;right:-8px}
+.wks .wk-arrow:last-child::before{left:0;right:-24px}
+.wks .wk-arrow svg{width:12px;height:12px;stroke-width:2.2}
+.wks .wk-label{gap:3px;min-width:0;padding:0 3px}
+.wks .wk-label svg{width:8px;height:8px}
+html body .wks .wk-label span{font-size:13px;line-height:1}
+.wks button:active:not(:disabled){background:rgb(255 255 255 / .08)}
+.wk-back{position:relative;min-height:24px;font-size:12.5px;padding:0 0 0 6px}
+.wk-back::before{content:"";position:absolute;top:-11px;bottom:-11px;left:-4px;right:-4px}
+.xpill{bottom:12px;height:24px;border-radius:8px;border-color:rgb(255 255 255 / .12);background:rgb(10 12 15 / .82);box-shadow:0 3px 10px rgb(0 0 0 / .4)}
+.xpa{width:22px;height:22px;border-radius:7px}
+.xpa::before{inset:-12px}
+.xpa svg{width:12px;height:12px}
+.xpl,.xpl.xpl{height:22px;gap:4px;padding:0 1px;font:600 12.5px/1 "Barlow Semi Condensed",var(--text);letter-spacing:.01em}
+.xpl::before{inset:-12px 0}
+.xpl .xlg{color:rgb(255 255 255 / .78)}
+.xpl .xsep{color:rgb(255 255 255 / .4)}
+@media (max-width:370px){.xpl,.xpl.xpl{font-size:12.5px}}
 </style>
 </head>
 <body>
@@ -899,12 +1150,14 @@ html body .strip b{font-family:"Barlow Semi Condensed",var(--text);font-weight:6
 
   <div class="banner" id="err" hidden><span id="errmsg"></span><button class="btn sm quiet" id="retry">Try again</button></div>
   <nav class="tabs" role="tablist" id="tabs"></nav>
+  <div class="wkrow" id="wkrow" hidden></div>
   <main id="view" style="display:flex;flex-direction:column;gap:14px"></main>
   <footer class="foot" id="foot"></footer>
 </div>
 <nav class="tabbar" id="tabbar" aria-label="Sections" hidden></nav>
 <div class="isheet" id="isheet" hidden><div class="isheet-card" role="dialog" aria-modal="true" aria-labelledby="isheet-t"><h3 id="isheet-t"></h3><div id="isheet-b"></div><button class="btn quiet wide" data-act="infoclose">Got it</button></div></div>
 <div id="mu"></div>
+<div class="wkpop" id="wkpop" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -942,8 +1195,20 @@ let mode="lineup",FA={},faPos="ALL",faQ="",faShow=50,faSel=null,bidConfirm=false
 let liveHold=0; // after MFL says "too many requests", auto-refresh pauses for 5 minutes
 let G={},owned={},seen=new Set(),intro=false,flashId=null,lastSegI=0,lastMode="lineup",liveBusy=false;
 
+// v34: week picker. WEEK_UI picks where it sits:
+//   1 = a ‹ Week 8 › stepper in the matchup card's top row (default)
+//   2 = a slim week row under the league tabs, above the matchup card
+const WEEK_UI=1;
+const WEEK_MIN=1,WEEK_MAX=18; // NFL regular season
+const clampWeek=w=>Math.min(WEEK_MAX,Math.max(WEEK_MIN,Math.round(+w)||WEEK_MIN));
+const stepWeek=(w,d)=>clampWeek(w+d);
+// "past" weeks are over and read-only; "future" weeks can be planned and sent, like the old app did.
+const weekKind=(w,now)=>!now||w===now?"current":w<now?"past":"future";
+let curWeek=store.get("dd-curwk"),wkWant=null,wkPending=null,wkOpen=false,loadSeq=0;
+const nowWeek=()=>curWeek||week;
+const isPast=()=>week!=null&&weekKind(week,nowWeek())==="past";
 // Version of this page. The server sends its own version, so a mismatch means one file wasn't uploaded.
-const APP_VERSION="v33";
+const APP_VERSION="v34";
 let srvVer=null,pinWeak=false;
 // For a couple of minutes after you change something on MFL, reads skip the server's short cache.
 let freshUntil=0;
@@ -976,10 +1241,14 @@ function showPin(msg){$("pinbox").hidden=false;if(!D)$("view").innerHTML="";if(m
 function skeleton(){return`<div class="sk" style="height:212px"></div><div class="sk" style="height:420px;border-radius:20px"></div>`}
 
 async function load(w){
-  $("err").hidden=true;$("sub").textContent="Loading from MFL";
+  // v34: the newest request wins, so tapping › three times quickly lands on the last week tapped.
+  const seq=++loadSeq;wkWant=w||null;wkPending=w&&D&&+w!==week?+w:null;
+  $("err").hidden=true;$("sub").textContent=wkPending?`Loading week ${wkPending} from MFL`:"Loading from MFL";
   if(!D&&$("pinbox").hidden)$("view").innerHTML=skeleton();
-  try{D=await api("GET",null,w);store.set("dd-data",D);$("pinbox").hidden=true;prepare();render();loadValues();showFailed()}
-  catch(e){if(e.message!=="PIN needed"&&e.message!=="PIN"){$("errmsg").textContent=e.message;$("err").hidden=false}
+  if(wkPending)renderWeekUI();
+  try{const d=await api("GET",null,w);if(seq!==loadSeq)return;D=d;wkPending=null;store.set("dd-data",D);$("pinbox").hidden=true;prepare();render();loadValues();showFailed()}
+  catch(e){if(seq!==loadSeq)return;wkPending=null;
+    if(e.message!=="PIN needed"&&e.message!=="PIN"){$("errmsg").textContent=w&&D&&+w!==D.week?`Couldn't load week ${w}: ${e.message}`:e.message;$("err").hidden=false}
     if(D){prepare();render();$("sub").textContent=`Saved copy from ${new Date(D.generated).toLocaleString([],{weekday:"short",hour:"numeric",minute:"2-digit"})}`}
     else if(e.message!=="PIN needed"&&e.message!=="PIN")$("view").innerHTML=""}
 }
@@ -992,6 +1261,7 @@ function showFailed(){
 function key(l){return lgShort(l)} // v31/v32: every compact league mention uses the short label ("099 - Basic")
 function prepare(){
   week=D.week;G={};
+  if(D.current){curWeek=D.current;store.set("dd-curwk",curWeek)}else if(!curWeek)curWeek=D.week;
   D.games.forEach(g=>{G[g.away.id]={opp:g.home,home:false,t:g.kickoff};G[g.home.id]={opp:g.away,home:true,t:g.kickoff}});
   owned={};D.leagues.forEach(l=>l.roster.forEach(id=>(owned[id]=owned[id]||[]).push(key(l))));
   lineups={};D.leagues.forEach(l=>reconcile(l));
@@ -1009,11 +1279,13 @@ function pruneDrafts(){
   try{
     for(let i=localStorage.length-1;i>=0;i--){
       const k=localStorage.key(i),m=k&&k.match(/^dd-lu-(\d{4})-(\d+)-/);
-      if(m&&(m[1]!==String(D.year)||+m[2]<week-1))localStorage.removeItem(k);
+      if(m&&(m[1]!==String(D.year)||+m[2]<nowWeek()-1))localStorage.removeItem(k); // v34: by the current week, not the week on screen
     }
   }catch(e){}
 }
 function saveDraft(l){store.set(lk(l),{ids:[...lineups[l.id]],base:mflKey(l)})}
+// The players to list for a league. In a past week that includes starters who've left your roster since.
+function rosterOf(l){if(!isPast())return l.roster;const m=starters(l,"me");return m.set?[...new Set([...l.roster,...m.ids])]:l.roster}
 function reconcile(l){
   const m=starters(l,"me"),base=mflKey(l),d=store.get(lk(l));
   let ids;
@@ -1021,7 +1293,7 @@ function reconcile(l){
   else if(m.set)ids=m.ids;                                                  // follow what's actually set on MFL
   else if(d)ids=Array.isArray(d)?d:d.ids;                                   // nothing set on MFL yet: keep your draft
   if(m.set&&ids===m.ids&&d)store.del(lk(l));                                // an outdated draft: drop it
-  ids=(ids||[]).filter(id=>l.roster.includes(id));
+  ids=(ids||[]).filter(id=>rosterOf(l).includes(id));
   lineups[l.id]=ids.length?new Set(ids):best(l);
 }
 const faKey=l=>`${l.id}-${week}`;
@@ -1051,6 +1323,7 @@ function optimize(o){
 // "bye"/"noteam" when he has no game this week, "" when he can still be moved.
 function lockOf(l,id){
   const pl=P(id);if(pl.team==="FA")return"noteam";if(D.byes.includes(pl.team))return"bye";
+  if(isPast())return"game"; // v34: a past week is over, so every player is locked
   const g=G[pl.team];return pst(l,"me",id).started||(g&&Date.now()>=g.t*1000)?"game":"";
 }
 // Best lineup you can still set: o.cur is today's lineup, o.lock(id) is lockOf's answer for that player.
@@ -1071,7 +1344,7 @@ function gainLeft(cur,next,val){
 }
 // True once nothing on the roster can move: every player's game has started, or he has no game this week.
 const allLocked=l=>l.roster.every(id=>lockOf(l,id));
-const allFinal=l=>l.roster.every(id=>{const k=lockOf(l,id);return k!=="game"?!!k:pst(l,"me",id).final});
+const allFinal=l=>isPast()||l.roster.every(id=>{const k=lockOf(l,id);return k!=="game"?!!k:pst(l,"me",id).final});
 // Projected total that counts what's already scored: actual points for started games plus the rest of the projection.
 const projTotal=l=>{const ids=[...lineups[l.id]];return ids.some(id=>lockOf(l,id)==="game")?sideTotals(l,"me",ids).proj:total(l)};
 // After the week: what the best possible lineup would have scored. Shown only as a muted hindsight note, never an action.
@@ -1092,6 +1365,7 @@ function check(l){
   return{c,issues,dead,n};
 }
 function alerts(l){
+  if(isPast())return[]; // v34: nothing to fix in a week that's over
   const now=Date.now();let b=null;
   return[...lineups[l.id]].filter(id=>{
     const st=state(id,l);if(st!=="out"&&st!=="bye"&&st!=="fa")return false;
@@ -1185,8 +1459,8 @@ function row(l,id,on){
   const p=P(id),st=state(id,l);
   let stk="";
   if(on&&p.pos==="QB"){const m=l.roster.find(o=>o!==id&&lineups[l.id].has(o)&&P(o).pos==="QB"&&P(o).team===p.team);if(m)stk=`<span class="stk" title="${esc(P(m).name)} is also starting">Same team</span>`}
-  const lock=lockOf(l,id)==="game";
-  return`<button class="row${on?" on":""}${lock?" locked":""}${id===flashId?" flash":""}" data-id="${id}" aria-pressed="${on}"${lock?' aria-disabled="true"':""} aria-label="${esc(p.name)}, ${on?"starting":"on bench"}${lock?", locked, his game has started":on?". Tap to bench":". Tap to start"}">${shotOf(p,id)}<span class="nm">${nameLine(p,id,st,stk)}${oppLine(id,valCol(id,true))}</span><span class="pv">${pointsCol(l,"me",id).html}</span><span class="tg" aria-hidden="true"></span></button>`;
+  const lock=lockOf(l,id)==="game"||isPast();
+  return`<button class="row${on?" on":""}${lock?" locked":""}${id===flashId?" flash":""}" data-id="${id}" aria-pressed="${on}"${lock?' aria-disabled="true"':""} aria-label="${esc(p.name)}, ${on?"starting":"on bench"}${lock?(isPast()?", locked, week is over":", locked, his game has started"):on?". Tap to bench":". Tap to start"}">${shotOf(p,id)}<span class="nm">${nameLine(p,id,st,stk)}${oppLine(id,valCol(id,true))}</span><span class="pv">${pointsCol(l,"me",id).html}</span><span class="tg" aria-hidden="true"></span></button>`;
 }
 // Bottom tab bar: one place to move between sections (replaces the row of tabs inside the page).
 const TABS=[["lineup","Lineup",'<path d="M4 6h16M4 12h16M4 18h10"/>'],["fa","Free agents",'<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>'],["st","Standings",'<path d="M5 20V10M12 20V4M19 20v-7"/>'],["rk","Rankings",'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/>'],["tr","Trade",'<path d="M7 7h12l-3-3M17 17H5l3 3"/>']];
@@ -1244,16 +1518,17 @@ function lgParts(l){
 }
 function lgShort(l){return lgParts(l).label}
 function accOf(l){const ids=D.leagues.map(x=>x.id).sort(),used=new Set(),N=D.leagues.length>3?4:3;let r=0;for(const id of ids){let h=0;for(const c of String(id))h=(h*31+c.charCodeAt(0))>>>0;let k=h%N;while(used.size<N&&used.has(k))k=(k+1)%N;used.add(k);if(id===l.id)r=k}return r}
-function tabFix(l){return check(l).issues.length||alerts(l).some(x=>!x.stuck)?`<i class="fixdot" aria-label="needs attention"></i>`:""}
+function tabFix(l){return isPast()?"":check(l).issues.length||alerts(l).some(x=>!x.stuck)?`<i class="fixdot" aria-label="needs attention"></i>`:""}
 function tabLive(l){const lv=l.live;if(!lv||!lv.me||!lv.opp)return null;const started=(lv.me.score||0)+(lv.opp.score||0)>0||lv.me.playing>0||lv.opp.playing>0;return{me:lv.me.score||0,opp:lv.opp.score||0,started,playing:lv.me.playing>0||lv.opp.playing>0}}
 function tabState(l){const t=tabLive(l);if(!t||!t.started)return{v:total(l),st:"",live:false};return{v:t.me,st:t.me>t.opp?"up":t.me<t.opp?"dn":"",live:t.playing}}
 function allCap(){let w=0,d=0,any=false;D.leagues.forEach(l=>{const t=tabLive(l);if(t&&t.started){any=true;if(t.me>t.opp)w++;else if(t.me<t.opp)d++}});return any?`${w} up · ${d} down`:"Overview"}
-function tabAria(l){const s=tabState(l),t=tabLive(l);const st=!t||!t.started?`${fmt(s.v)} projected`:`${fmt(s.v)} to ${fmt(t.opp)}, ${s.st==="up"?"winning":s.st==="dn"?"losing":"tied"}`;return`${l.name}: ${st}${s.live?", live":""}${check(l).issues.length||alerts(l).some(x=>!x.stuck)?", needs attention":""}`}
+function tabAria(l){const s=tabState(l),t=tabLive(l);const st=!t||!t.started?`${fmt(s.v)} projected`:`${fmt(s.v)} to ${fmt(t.opp)}, ${s.st==="up"?"winning":s.st==="dn"?"losing":"tied"}`;return`${l.name}: ${st}${s.live?", live":""}${!isPast()&&(check(l).issues.length||alerts(l).some(x=>!x.stuck))?", needs attention":""}`}
 function allAria(){const c=allCap();return c==="Overview"?"All leagues overview":`All leagues overview, ${c.replace(" · ",", ")}`}
 function leagueTab(l){const s=tabState(l);return`<span class="ln">${(p=>`${p.num?`<span class="lnn">${esc(p.num)}${p.type?"&nbsp;-&nbsp;":""}</span>`:""}${p.type?`<span class="lnt">${esc(p.type)}</span>`:""}${p.tail?`<span class="lnn">${esc(p.tail).replace(/ /g,"&nbsp;")}</span>`:""}`)(lgParts(l))}</span><b class="sc">${fmt(s.v)}</b><i class="ubar ${s.st}${s.live?" live":""}" aria-hidden="true"></i>${tabFix(l)}`}
 function allTab(){return`<span class="ln">All</span><span class="cap">${allCap()}</span><i class="ubar" aria-hidden="true"></i>`}
 function render(){
   if(!D)return;
+  renderWeekUI();
   const tabsEl=$("tabs"),items=[...D.leagues.map(l=>l.id),"all"];
   tabsEl.style.setProperty("--n",items.length);
   tabsEl.style.setProperty("--i",Math.max(0,items.indexOf(cur)));
@@ -1264,13 +1539,15 @@ function render(){
   const ik=`${l.id}-${week}`;intro=!seen.has(ik);
   const{c,issues,dead,n}=check(l),set=lineups[l.id],tot=projTotal(l),locked=allLocked(l),done=locked&&allFinal(l),bl=locked?set:best(l),gap=locked?0:gainLeft(set,bl,id=>ptsNow(l,id)),swapDead=!locked&&[...set].some(id=>!bl.has(id)&&ptsNow(l,id)===0&&/^(bye|noteam)$/.test(lockOf(l,id))),hs=done?hindsight(l):0;
   const byPos=ids=>POS.flatMap(p=>ids.filter(id=>P(id).pos===p).sort((a,b)=>pts(l,b)-pts(l,a)));
-  const starters=byPos(l.roster.filter(id=>set.has(id))),bench=byPos(l.roster.filter(id=>!set.has(id)));
-  const status=issues.length?["bad",issues[0]]:dead.length?["warn",`${dead.length} starter${dead.length>1?"s":""} at 0`]:["ok","Lineup ready"];
+  const ro=rosterOf(l),past=isPast();
+  const starters=byPos(ro.filter(id=>set.has(id))),bench=byPos(ro.filter(id=>!set.has(id)));
+  const status=past?["ok",`Week ${week} final`]:issues.length?["bad",issues[0]]:dead.length?["warn",`${dead.length} starter${dead.length>1?"s":""} at 0`]:["ok","Lineup ready"];
   const sf=lim(l,"QB")[1]>1,mine=me(l),segI=mode==="fa"?1:mode==="st"?2:mode==="rk"?3:mode==="tr"?4:0,sync=synced(l);
   const faab=[...l.franchises].filter(f=>f.faab!=null).sort((a,b)=>b.faab-a.faab),fmax=Math.max(...faab.map(f=>f.faab),1);
   const lineupBody=`
     <div class="strip">${POS.map(p=>{const[a,b]=lim(l,p),off=c[p]<a||c[p]>b;return`<div class="cell ${p}${off?" off":""}"><span class="k"><i></i>${p}</span><b>${c[p]}<small>of ${a===b?a:a+"–"+b}</small></b></div>`}).join("")}</div>
-    ${issues.length>1?`<p class="note">Also: ${esc(issues.slice(1).join(", ").toLowerCase())}.</p>`:""}
+    ${past?`<p class="ro-note">Week ${week} is over, so this lineup is read-only.</p>`:""}
+    ${!past&&issues.length>1?`<p class="note">Also: ${esc(issues.slice(1).join(", ").toLowerCase())}.</p>`:""}
     ${colHead("Starters",`${set.size} of ${n}`,l.roster.some(id=>pst(l,"me",id).started)?"Pts":"Proj",false,false)}
     <div class="list">${starters.map(id=>row(l,id,true)).join("")||`<p class="note empty">No starters yet. Tap a bench player to start them.</p>`}</div>
     ${colHead("Bench",bench.length,l.roster.some(id=>pst(l,"me",id).started)?"Pts":"Proj",false,false)}
@@ -1344,8 +1621,8 @@ function sideTotals(l,side,ids){
 function synced(l){const m=starters(l,"me");if(!m.set)return false;const a=new Set(m.ids),b=lineups[l.id];return a.size===b.size&&[...b].every(x=>a.has(x))}
 function matchupCard(l){
   const lv=l.live;
-  const foot=`<div class="board-foot"><button class="ghost${liveBusy?" spin":""}" data-act="liveref">${ICON_REFRESH}Refresh scores</button><span>${D.liveAt?`Scores as of ${new Date(D.liveAt).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`:"Auto-updates during games"}</span></div>`;
-  if(!lv||!lv.opp)return`<section class="board"><div class="board-top"><span class="board-label">Week ${week}</span></div>${alertLine(l)}<p class="board-note">${lv?"You don't have an opponent this week.":"MFL didn't send a matchup for this week. Refresh to try again."}</p>${foot}</section>`;
+  const foot=`<div class="board-foot"><button class="ghost${liveBusy?" spin":""}" data-act="liveref">${ICON_REFRESH}Refresh scores</button><span>${D.liveAt?`Scores as of ${new Date(D.liveAt).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`:isPast()?"Final scores":"Auto-updates during games"}</span></div>`;
+  if(!lv||!lv.opp)return`<section class="board"><div class="board-top${WEEK_UI===1?" wk":""}">${WEEK_UI===1?`${weekStepper()}<span class="board-status">${backLink()}</span>`:`<span class="board-label">Week ${week}</span>`}</div>${alertLine(l)}<p class="board-note">${lv?"You don't have an opponent this week.":"MFL didn't send a matchup for this week. Refresh to try again."}</p>${foot}</section>`;
   const mine=starters(l,"me"),theirs=starters(l,"opp");
   const myIds=mine.set?mine.ids:[...lineups[l.id]];
   const a=sideTotals(l,"me",myIds),b=theirs.set?sideTotals(l,"opp",theirs.ids):null;
@@ -1354,24 +1631,68 @@ function matchupCard(l){
   const big=s=>s?(anyLive?s.live:s.proj):null;
   const A=big(a),B=big(b);
   const liveNow=a.playing>0||(b&&b.playing>0);
-  const sub=s=>s?(anyLive?`Proj final ${fmt(s.proj)}`:"Projected"):"Lineup not set";
-  const mySub=mine.set?(anyLive?sub(a):"Projected, as set on MFL"):"Not set on MFL yet";
+  const left=a.left+(b?b.left:0),fin=isPast()||(anyLive&&left===0);
+  const sub=s=>s?(fin?"Final":anyLive?`Proj final ${fmt(s.proj)}`:"Projected"):"Lineup not set";
+  const mySub=mine.set?(fin||anyLive?sub(a):"Projected, as set on MFL"):fin?"Not set on MFL":"Not set on MFL yet";
   const sc=(v,k)=>`<span class="score"${intro&&v!=null?` data-count="${v}"`:anyLive&&v!=null?` data-pk="board-${l.id}-${k}" data-pv="${v}"`:""}>${v==null?"—":fmt(v)}</span>`;
   // Same win-chance estimate as the full matchup screen (uses their best guess lineup if they haven't set one).
   const oppIds=theirs.set?theirs.ids:bestOf(l,Object.keys(lv.opp.players));
   const pct=oppIds.length?winChance(l,myIds,oppIds):null;
   const pos=pct==null?null:8+pct/100*84;
-  const left=a.left+(b?b.left:0);
+  const kind=weekKind(week,nowWeek());
+  // Top row. Option 1: the week stepper on the left, live status (or a way back to this week) on the right.
+  const status=fin?"Final":liveNow?`<i class="livedot"></i>Live · ${left} left`:anyLive?`In progress · ${left} left`:kind==="future"?"Upcoming":"";
+  const top=WEEK_UI===1
+    ?`<div class="board-top wk">${weekStepper()}<span class="board-status">${backLink()||status}</span></div>`
+    :`<div class="board-top"><span class="board-label">${fin?`Week ${week} final`:liveNow?`<i class="livedot"></i>Live, week ${week}`:anyLive?`Week ${week} in progress`:`Week ${week} matchup`}</span><span>${anyLive&&!fin?`${left} player${left===1?"":"s"} left`:""}</span></div>`;
+  const res=fin&&B!=null?`<div class="hres" data-act="openmu" role="button" tabindex="0" aria-label="${A>B?"You won":A<B?"You lost":"Tied"}${A!==B?` by ${fmt(Math.abs(A-B))}`:""}. Open full matchup"><span class="hres-k ${A>B?"w":A<B?"l":""}">${A>B?"You won by":A<B?"You lost by":"Tied"}${A!==B?`<b>${fmt(Math.abs(A-B))}</b>`:""}</span><span>Full matchup ›</span></div>`:"";
   return`<section class="board${intro?" intro":""}">
-    <div class="board-top"><span class="board-label">${liveNow?`<i class="livedot"></i>Live, week ${week}`:anyLive?`Week ${week} in progress`:`Week ${week} matchup`}</span><span>${anyLive?`${left} player${left===1?"":"s"} left`:""}</span></div>
+    ${top}
     ${alertLine(l)}
     <div class="teams tap" data-act="openmu" role="button" tabindex="0" aria-label="Open full matchup">
       <div class="team${B!=null&&A>B?" lead":""}"><span class="tid">${ficon(me(l))}<span class="tname">${esc(me(l).name||"You")}</span></span>${sc(A,"me")}<span class="tsub">${mySub}</span></div>
       <div class="team r${B!=null&&B>A?" lead":""}"><span class="tid">${ficon(opp)}<span class="tname">${esc(opp.name)}</span></span>${sc(B,"opp")}<span class="tsub">${sub(b)}</span></div>
     </div>
-    ${pct!=null?`<div class="hwp" data-act="openmu" role="img" aria-label="Estimated ${pct} percent chance you win"><div class="hwp-k"><b>${pct}% win</b><span>Tap for full matchup ›</span><b class="o">${100-pct}%</b></div><div class="hwp-bar"><i style="flex-grow:${Math.max(pct,2)}"></i><i style="flex-grow:${Math.max(100-pct,2)}"></i></div></div>`:""}
+    ${res||(pct!=null?`<div class="hwp" data-act="openmu" role="img" aria-label="Estimated ${pct} percent chance you win"><div class="hwp-k"><b>${pct}% win</b><span>Tap for full matchup ›</span><b class="o">${100-pct}%</b></div><div class="hwp-bar"><i style="flex-grow:${Math.max(pct,2)}"></i><i style="flex-grow:${Math.max(100-pct,2)}"></i></div></div>`:"")}
     ${foot}
   </section>`;
+}
+// ---- Week picker (v34) ----
+const ICON_WPREV=`<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg>`,ICON_WNEXT=`<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg>`,ICON_WDOWN=`<svg viewBox="0 0 10 10" aria-hidden="true"><path d="m2 3.5 3 3 3-3"/></svg>`;
+function weekStepper(){
+  const w=wkPending||week,c=nowWeek();
+  return`<div class="wks" role="group" aria-label="Week"><button class="wk-arrow" data-wk="${stepWeek(w,-1)}" aria-label="Previous week"${w<=WEEK_MIN?" disabled":""}>${ICON_WPREV}</button><button class="wk-label" data-act="wklist" aria-haspopup="dialog" aria-expanded="${wkOpen}" aria-label="Week ${w}${w===c?", the current week":""}. Choose a week"><span>Week ${w}</span>${ICON_WDOWN}</button><button class="wk-arrow" data-wk="${stepWeek(w,1)}" aria-label="Next week"${w>=WEEK_MAX?" disabled":""}>${ICON_WNEXT}</button></div>`;
+}
+function backLink(){const w=wkPending||week,c=nowWeek();return c&&w!==c?`<button class="wk-back" data-wk="${c}">Back to week ${c}</button>`:""}
+function renderWeekUI(){
+  const row=$("wkrow");if(!row)return;
+  const show=WEEK_UI===2&&!!D&&week!=null;row.hidden=!show;
+  if(show){const w=wkPending||week,k=weekKind(w,nowWeek());row.innerHTML=`${weekStepper()}${backLink()||`<span class="wk-tag">${k==="current"?"This week":k==="past"?"Final":"Upcoming"}</span>`}`}
+  $("view").classList.toggle("wkload",!!wkPending);
+  if(WEEK_UI===1&&wkPending)document.querySelectorAll(".wks").forEach(el=>el.outerHTML=weekStepper());
+  if(muOpen&&wkPending)renderMU();
+}
+function goWeek(n){
+  n=clampWeek(n);closeWeekList();
+  if(n===(wkPending||week))return;
+  confirming=false;faSel=null;bidConfirm=false;claimUI=null;
+  // v34: stepping weeks inside the full matchup keeps it open on the new week; elsewhere it closes.
+  if(!muOpen)renderMU();
+  load(n);
+}
+function openWeekList(anchor){
+  const w=wkPending||week,c=nowWeek(),pop=$("wkpop");
+  pop.innerHTML=`<div class="wkpop-card" role="dialog" aria-modal="true" aria-label="Choose a week"><div class="wkpop-head"><b>Jump to a week</b>${c?`<span class="wkpop-now"><i></i>Now: week ${c}</span>`:""}</div><div class="wkgrid">${Array.from({length:WEEK_MAX},(_,i)=>i+1).map(n=>`<button class="wkc${n===w?" on":""}${n<c?" past":""}" data-wk="${n}" aria-pressed="${n===w}" aria-label="Week ${n}${n===c?", the current week":n<c?", final":""}">${n}${n===c?"<i></i>":""}</button>`).join("")}</div><div class="wkpop-foot"><span>Past weeks are read-only</span><span>Regular season</span></div></div>`;
+  pop.hidden=false;wkOpen=true;
+  const card=pop.firstElementChild,r=anchor.getBoundingClientRect(),h=card.offsetHeight,vh=window.innerHeight;
+  card.style.top=`${Math.max(8,r.bottom+8+h>vh-8?r.top-8-h:r.bottom+8)}px`;
+  document.querySelectorAll('[data-act="wklist"]').forEach(b=>b.setAttribute("aria-expanded","true"));
+  (card.querySelector(".wkc.on")||card.querySelector(".wkc"))?.focus({preventScroll:true});
+}
+function closeWeekList(refocus){
+  if(!wkOpen)return;wkOpen=false;const pop=$("wkpop");pop.hidden=true;pop.innerHTML="";
+  document.querySelectorAll('[data-act="wklist"]').forEach(b=>b.setAttribute("aria-expanded","false"));
+  if(refocus)(document.querySelector('#mu [data-act="wklist"]')||document.querySelector('[data-act="wklist"]'))?.focus({preventScroll:true});
 }
 async function refreshLive(quiet){
   if(!D||liveBusy)return;
@@ -1597,7 +1918,7 @@ function bRow(l,slot,x,y,bench){
 // Names never get cut off: shrink a long name to fit its space, and if it still won't fit, use the last name only.
 function fitNames(root){
   if(!root)return;
-  root.querySelectorAll(".bn .fit").forEach(el=>{
+  root.querySelectorAll(".bn .fit,.xn .fit").forEach(el=>{
     if(el.dataset.full)el.textContent=el.dataset.full;else el.dataset.full=el.textContent;
     el.style.fontSize="";
     const base=parseFloat(getComputedStyle(el).fontSize),over=()=>{const r=document.createRange();r.selectNodeContents(el);return Math.max(el.scrollWidth,r.getBoundingClientRect().width)>el.clientWidth+.25};
@@ -1634,10 +1955,54 @@ let muBench=false,vtBusy=false,muPending=false;
 // Re-renders that arrive mid-morph (live scores, standings) wait until it finishes, or they'd cut it short.
 function renderMU(){if(vtBusy){muPending=true;return}drawMU()}
 function vtDone(){vtBusy=false;if(muPending){muPending=false;drawMU()}}
+// v34: full matchup screen, redesigned to the mockup. Header art, week pill, score card, starters.
+const ICON_BACK=`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg>`;
+// Kickoff, short: Sunday games show just the time ("1p", "8:20p"); other days add the day ("Mon 8:15p", "Thu 8:15p").
+function kickShort(t){if(!t)return"";const d=new Date(t*1000),h=d.getHours(),m=d.getMinutes();return`${d.getDay()===0?"":d.toLocaleDateString([],{weekday:"short"})+" "}${h%12||12}${m?`:${String(m).padStart(2,"0")}`:""}${h<12?"a":"p"}`}
+// The week pill: ‹ Week 7 · 099 - Basic ›. The label opens the 1-18 jump list.
+function muPill(l){
+  const w=wkPending||week;
+  return`<div class="xpill" role="group" aria-label="Week"><button class="xpa" data-wk="${stepWeek(w,-1)}" aria-label="Previous week"${w<=WEEK_MIN?" disabled":""}>${ICON_WPREV}</button><button class="xpl" data-act="wklist" aria-haspopup="dialog" aria-expanded="${!!wkOpen}" aria-label="Week ${w}, ${esc(lgShort(l))}. Choose a week"><span class="xw">Week ${w}</span><span class="xsep" aria-hidden="true">·</span><span class="xlg">${esc(lgShort(l))}</span></button><button class="xpa" data-wk="${stepWeek(w,1)}" aria-label="Next week"${w>=WEEK_MAX?" disabled":""}>${ICON_WNEXT}</button></div>`;
+}
+function muHeader(l){
+  return`<header class="xhead"><div class="xban" aria-hidden="true"></div>
+    <button class="xbtn xback" data-act="closemu" aria-label="Close matchup">${ICON_BACK}</button>
+    <button class="xbtn xref${liveBusy?" spin":""}" data-act="liveref" aria-label="Refresh scores">${ICON_REFRESH}</button>
+    ${muPill(l)}</header>`;
+}
+// One player in a starters row: photo, short name, game line, points (projection underneath), and a thin bar for points vs projection.
+function xSide(l,side,id,r,lead,bench){
+  if(!id)return`<div class="xs${r?" r":""} none"><span class="xm">${bench?"":"Empty"}</span></div>`;
+  const pl=P(id),pr=l.proj[id]||0,g=G[pl.team],st=pst(l,side,id);
+  const off=pl.team==="FA"||D.byes.includes(pl.team),started=!off&&st.started,live=started&&!st.final;
+  const opp=off?(pl.team==="FA"?"No team":"Bye week"):g?`${g.home?"vs":"@"} ${tm(g.opp.id)}`:"";
+  const when=off?"":started?(live?`<span class="xclk"><i></i>${esc(clock(st.secs)||"Live")}</span>`:`<span>Final</span>`):g?`<span>${kickShort(g.t)}</span>`:"";
+  const v=off?`<b class="nil">—</b>`:started?`<b class="${lead?"lead":""}" data-pk="${side}-${l.id}-${id}" data-pv="${st.actual}">${fmt(st.actual)}</b><small>${p1(pr)}</small>`:`<b class="pre">${p1(pr)}</b><small>proj</small>`;
+  const f=started&&pr>0?Math.min(1,Math.max(0,st.actual/pr)):0;
+  const last=String(pl.name).split(" ").slice(1).join(" ")||pl.name;
+  return`<div class="xs${r?" r":""}">${shotOf(pl,id)}<span class="xpt"><b class="xn"><span class="fit" data-last="${esc(last)}">${esc(shortName(pl.name))}</span>${badgeFor(id,state(id,l))}</b><small class="xm">${opp?`<span>${esc(opp)}</span>`:""}${when}</small></span><span class="xv">${v}</span>${f>0&&!bench?`<i class="xpb" style="--f:${(f*100).toFixed(1)}%" aria-hidden="true"></i>`:""}</div>`;
+}
+function xRow(l,slot,x,y,bench){
+  const A=x&&bInfo(l,"me",x),B=y&&bInfo(l,"opp",y),any=(A&&A.started)||(B&&B.started);
+  // Before kickoff compare projections; once either game starts compare live points.
+  const va=A?(any?A.v:A.pr):0,vb=B?(any?B.v:B.pr):0;
+  const w=bench||Math.abs(va-vb)<.005?"":va>vb?"a":"b";
+  return`<div class="xr${bench?" xbn":""}${any?"":" pre"}">${xSide(l,"me",x,false,w==="a",bench)}<span class="xchip">${slot==="FLEX"?"FLX":slot}</span>${xSide(l,"opp",y,true,w==="b",bench)}</div>`;
+}
 function drawMU(){
   const host=$("mu");if(!host)return;
   const l=D&&muOpen&&D.leagues.find(x=>x.id===muOpen);
-  if(!l||!l.live||!l.live.opp){if(host.innerHTML){host.innerHTML="";document.documentElement.style.overflow=""}muBench=false;return}
+  document.body.classList.toggle("muopen",!!l);
+  if(!l){if(host.innerHTML){host.innerHTML="";document.documentElement.style.overflow=""}muBench=false;return}
+  const prev=host.querySelector(".mv"),keepY=prev?prev.scrollTop:0;
+  const shell=(inner,label)=>`<div class="mv xmu${keepY>120?" scrolled":""}${wkPending?" wkload":""}" role="dialog" aria-modal="true" aria-label="${label}"${prev?' style="animation:none"':""}>
+    <div class="xmini" aria-hidden="true"><span>Week ${wkPending||week} · ${esc(lgShort(l))}</span></div>
+    ${muHeader(l)}${inner}</div>`;
+  // A week with no matchup (bye, or MFL sent none): keep the screen so the week pill still works.
+  if(!l.live||!l.live.opp){
+    host.innerHTML=shell(`<section class="xcard xempty"><p>${l.live?`You don't have an opponent in week ${week}.`:`MFL didn't send a matchup for week ${week}. Refresh to try again.`}</p></section>`,"Full matchup");
+    document.documentElement.style.overflow="hidden";return;
+  }
   if(!ST[l.id])setTimeout(()=>loadST(l));
   const lv=l.live,mine=starters(l,"me"),theirs=starters(l,"opp");
   const oppF=l.franchises.find(f=>f.id===lv.opp.id)||{name:"Opponent"};
@@ -1649,51 +2014,54 @@ function drawMU(){
   const flexN=Math.max(A.FLEX.length,B.FLEX.length,(l.starters.count||10)-order.length);
   for(let i=0;i<flexN;i++)order.push(["FLEX",i]);
   const a=sideTotals(l,"me",myIds),b=sideTotals(l,"opp",oppIds),anyLive=a.started>0||b.started>0,onAir=a.playing+b.playing>0;
-  const rows=order.map(([slot,i])=>bRow(l,slot,A[slot][i],B[slot][i],false)).join("");
+  const rows=order.map(([slot,i])=>xRow(l,slot,A[slot][i],B[slot][i],false)).join("");
   const sortB=(p,q)=>POS.indexOf(P(p).pos)-POS.indexOf(P(q).pos)||pts(l,q)-pts(l,p);
-  const benchA=l.roster.filter(id=>!myIds.includes(id)).sort(sortB),benchB=oppRoster.filter(id=>!oppIds.includes(id)).sort(sortB);
+  const benchA=rosterOf(l).filter(id=>!myIds.includes(id)).sort(sortB),benchB=oppRoster.filter(id=>!oppIds.includes(id)).sort(sortB);
   const bn=Math.max(benchA.length,benchB.length);
   const benchPts=benchA.reduce((t,id)=>{const i=bInfo(l,"me",id);return t+(i.started?i.v:anyLive?0:i.pr)},0);
-  const bench=muBench?Array.from({length:bn},(_,i)=>bRow(l,"BN",benchA[i],benchB[i],true)).join(""):"";
+  const bench=muBench?Array.from({length:bn},(_,i)=>xRow(l,"BN",benchA[i],benchB[i],true)).join(""):"";
   const A2=anyLive?a.live:a.proj,B2=anyLive?b.live:b.proj;
-  const wc=winChance(l,myIds,oppIds),done=anyLive&&a.left===0&&b.left===0;
-  const recA=recOf(l,l.fid),recB=recOf(l,oppF.id);
-  const prev=host.querySelector(".mv"),keepY=prev?prev.scrollTop:0;
-  host.innerHTML=`<div class="mv${keepY>40?" scrolled":""}" role="dialog" aria-modal="true" aria-label="Full matchup"${prev?' style="animation:none"':""}>
-    <div class="mv-top"><button class="iconbtn back" data-act="closemu" aria-label="Close matchup"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><h2 title="${esc(l.name)}"><span class="wk">Week ${week}<span class="sep"> · </span></span>${esc(lgShort(l))}</h2>${onAir?`<span class="livepill"><i></i>LIVE</span>`:""}<button class="iconbtn${liveBusy?" spin":""}" data-act="liveref" aria-label="Refresh scores">${ICON_REFRESH}</button></div>
-    <div class="mvhero"><section class="board mvh"><div class="teams">
-      <div class="team${B2<A2?" lead":""}"><span class="tid">${ficon(me(l))}<span class="tnm"><span class="tname">${esc(me(l).name||"You")}</span><span class="trec">${recA?esc(recA):"&nbsp;"}</span></span></span><span class="score"${anyLive?` data-pk="mu-${l.id}-me" data-pv="${A2}"`:""}>${fmt(A2)}</span><span class="tsub">${anyLive?`Proj ${p1(a.proj)}`:mine.set?"Projected":"Projected, not set on MFL"}</span></div>
-      <span class="vs" aria-hidden="true">VS</span>
-      <div class="team r${B2>A2?" lead":""}"><span class="tid">${ficon(oppF)}<span class="tnm"><span class="tname">${esc(oppF.name)}</span><span class="trec">${recB?esc(recB):"&nbsp;"}</span></span></span><span class="score"${anyLive?` data-pk="mu-${l.id}-opp" data-pv="${B2}"`:""}>${fmt(B2)}</span><span class="tsub">${anyLive?`Proj ${p1(b.proj)}`:theirs.set?"Projected":"Best guess, not set"}</span></div>
-    </div>
-    <div class="wp" role="img" aria-label="Estimated win chance: you ${wc} percent, ${esc(oppF.name)} ${100-wc} percent"><span>${done?(wc>50?"Won":wc<50?"Lost":"Tied"):`${wc}% win`}</span><span class="wmid">${anyLive&&!done?`${a.left} left · ${b.left} left`:done?"Final":"Before kickoff"}</span><span>${done?"":`${100-wc}%`}</span>
-      <div class="wpbar"><i style="flex-grow:${Math.max(wc,2)}"></i><i style="flex-grow:${Math.max(100-wc,2)}"></i></div></div>
-    </section></div>
+  const wc=winChance(l,myIds,oppIds),fin=isPast()||(anyLive&&a.left===0&&b.left===0),left=a.left+b.left;
+  const recA=recOf(l,l.fid),recB=recOf(l,oppF.id),kind=weekKind(week,nowWeek());
+  const sub=(s,set,who)=>anyLive?`Proj ${p1(s.proj)}`:set?"Projected":who==="me"?"Projected, not set on MFL":"Best guess, not set";
+  const side=(f,s,v,rec,r)=>`<div class="xteam${r?" r":""}"><div class="xid">${ficon(f,"xav")}<span class="xnm"><span class="xname" title="${esc(f.name||"")}">${esc(f.name||"You")}</span><span class="xrec">${rec?esc(rec):"&nbsp;"}</span></span></div>
+      <span class="xscore"${anyLive?` data-pk="mu-${l.id}-${r?"opp":"me"}" data-pv="${v}"`:""}>${fmt(v)}</span><span class="xsub">${sub(s,r?theirs.set:mine.set,r?"opp":"me")}</span></div>`;
+  const res=A2>B2?"won":A2<B2?"lost":"tied";
+  const tagL=fin?`<span class="xtag ${res}">${res==="won"?"WON":res==="lost"?"LOST":"TIED"}</span>`:`<span class="xpct">${wc}% win</span>`;
+  const tagM=fin?`<span class="xtag fin">Final</span>`:onAir?`<span class="xtag live"><i></i>Live · ${left} left</span>`:anyLive?`<span class="xtag">In progress · ${left} left</span>`:`<span class="xtag">${kind==="future"?"Upcoming":"Before kickoff"}</span>`;
+  const tagR=fin?(res==="tied"?"":`<span class="xby">by ${fmt(Math.abs(A2-B2))}</span>`):`<span class="xpct op">${100-wc}%</span>`;
+  host.innerHTML=shell(`
+    <section class="xcard" aria-label="Score">
+      <span class="xglow l" aria-hidden="true"></span><span class="xglow r" aria-hidden="true"></span>
+      <div class="xteams">${side(me(l),a,A2,recA,false)}<span class="xvs" aria-hidden="true"></span>${side(oppF,b,B2,recB,true)}</div>
+      <div class="xstat">${tagL}${tagM}${tagR}</div>
+      <div class="xprog" role="img" aria-label="${fin?`Final: you ${res==="won"?"won":res==="lost"?"lost":"tied"}`:`Estimated win chance: you ${wc} percent, ${esc(oppF.name)} ${100-wc} percent`}"><i style="flex-grow:${Math.max(wc,2)}"></i><i style="flex-grow:${Math.max(100-wc,2)}"></i></div>
+    </section>
     <div class="mv-in">
-      ${theirs.set?"":`<p class="mnote" style="margin:0 0 4px">${esc(oppF.name)} hasn't set a lineup, so this shows their highest-projected players.</p>`}
-      <div class="mhead"><span>Starters</span><span>${anyLive?"Points · projection below":"Projected points"}</span></div>
-      ${rows}
-      ${bn?`<button class="benchbtn" data-act="mubench" aria-expanded="${muBench}"><b>${muBench?"Hide":"Show"} bench<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3.5 6 4.5 4.5L12.5 6"/></svg></b><span>${benchA.length} players · ${p1(benchPts)} pts</span></button>${muBench?`<div class="mhead"><span>Bench</span><span></span></div><div class="bench">${bench}</div>`:""}`:""}
+      ${theirs.set?"":`<p class="mnote xnote">${esc(oppF.name)} hasn't set a lineup, so this shows their highest-projected players.</p>`}
+      <section class="xlist" aria-label="Starters"><div class="xhd"><span>Starters</span><span>${anyLive?"Points · projection below":"Projected points"}</span></div>${rows}</section>
+      ${bn?`<button class="benchbtn" data-act="mubench" aria-expanded="${muBench}"><b>${muBench?"Hide":"Show"} bench<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3.5 6 4.5 4.5L12.5 6"/></svg></b><span>${benchA.length} players · ${p1(benchPts)} pts</span></button>${muBench?`<section class="xlist xbench" aria-label="Bench"><div class="xhd"><span>Bench</span><span></span></div>${bench}</section>`:""}`:""}
       ${leagueBoard(l)}
-      ${done?"":`<div class="stlegend mnote">${info("wc","Win chance",`<p>An estimate: points so far plus what each side is still projected to score, with a typical week-to-week spread for each player.</p>`)}<span>About win chance</span></div>`}
-    </div></div>`;
+      ${fin?"":`<div class="stlegend mnote">${info("wc","Win chance",`<p>An estimate: points so far plus what each side is still projected to score, with a typical week-to-week spread for each player.</p>`)}<span>About win chance</span></div>`}
+    </div>`,"Full matchup");
   const mv=host.querySelector(".mv");
   fitNames(mv);
   if(document.fonts&&document.fonts.status!=="loaded")document.fonts.ready.then(()=>fitNames(host.querySelector(".mv")));
   if(keepY)mv.scrollTop=keepY;
-  mv.addEventListener("scroll",()=>mv.classList.toggle("scrolled",mv.scrollTop>40),{passive:true});
+  mv.addEventListener("scroll",()=>mv.classList.toggle("scrolled",mv.scrollTop>120),{passive:true});
   document.documentElement.style.overflow="hidden";
   bumpScores(host);
 }
 // Pieces that morph between the scoreboard and the matchup header, like Framer Motion's layoutId.
-const VT=[["","board"],[".team:not(.r) .ft","ficon-me"],[".team.r .ft","ficon-opp"],[".team:not(.r) .tname","name-me"],[".team.r .tname","name-opp"],[".team:not(.r) .score","score-me"],[".team.r .score","score-opp"]];
+// [selector on the home scoreboard, selector on the matchup screen, name]
+const VT=[["","","board"],[".team:not(.r) .ft",".xteam:not(.r) .ft","ficon-me"],[".team.r .ft",".xteam.r .ft","ficon-opp"],[".team:not(.r) .tname",".xteam:not(.r) .xname","name-me"],[".team.r .tname",".xteam.r .xname","name-opp"],[".team:not(.r) .score",".xteam:not(.r) .xscore","score-me"],[".team.r .score",".xteam.r .xscore","score-opp"]];
 const canVT=()=>typeof document.startViewTransition==="function"&&!RM;
 function nameVT(board,on){
-  if(!board)return;
-  VT.forEach(([sel,n])=>{const el=sel?board.querySelector(sel):board;if(el)el.style.viewTransitionName=on?`mu-${n}`:""});
+  if(!board)return;const inMu=!!board.closest("#mu");
+  VT.forEach(([a,b,n])=>{const sel=inMu?b:a,el=sel?board.querySelector(sel):board;if(el)el.style.viewTransitionName=on?`mu-${n}`:""});
 }
 const mainBoard=()=>document.querySelector("#view .board");
-const muBoard=()=>document.querySelector("#mu .board");
+const muBoard=()=>document.querySelector("#mu .xcard");
 function openMU(id){
   const from=mainBoard();
   if(!canVT()||!from){muOpen=id;renderMU();return}
@@ -2024,12 +2392,13 @@ document.addEventListener("change",e=>{
 function renderAll(){
   const shared=Object.entries(owned).filter(([,ks])=>ks.length>1).sort((a,b)=>b[1].length-a[1].length);
   const byeNames=D.byes.map(tm).join(", ");
-  return`<section class="panel"><div class="panel-head"><h3>Week ${week} at a glance</h3><span>Tap a league to open it</span></div>
+  const head=WEEK_UI===1?`<div class="panel-head wkhead">${weekStepper()}${backLink()||`<span>Tap a league to open it</span>`}</div>`:`<div class="panel-head"><h3>Week ${week} at a glance</h3><span>Tap a league to open it</span></div>`;
+  return`<section class="panel">${head}
   <div class="glance">${D.leagues.map(l=>{
-    const{issues,dead}=check(l),s=issues.length?["bad",issues[0]]:dead.length?["warn",`${dead.length} at 0`]:["ok","Ready"];
+    const{issues,dead}=check(l),s=isPast()?["ok","Final"]:issues.length?["bad",issues[0]]:dead.length?["warn",`${dead.length} at 0`]:["ok","Ready"];
     const lv=l.live,opp=lv&&lv.opp?l.franchises.find(f=>f.id===lv.opp.id):null;
     return`<button class="grow" data-k="${l.id}" title="${esc(l.name)}"><span class="gn"><span class="glg">${esc(key(l))}</span><b>${esc(me(l).name||"")}</b><small>${opp?`vs ${esc(opp.name)}`:"No matchup"}</small></span><span class="gr"><span class="gt">${fmt(projTotal(l))}</span><span class="status s-${s[0]}"><i></i>${esc(s[1])}</span></span></button>`}).join("")}</div>
-  ${byeNames?`<p class="note">On bye this week: ${esc(byeNames)}.</p>`:""}</section>
+  ${byeNames?`<p class="note">On bye ${weekKind(week,nowWeek())==="current"?"this week":`in week ${week}`}: ${esc(byeNames)}.</p>`:""}</section>
   <section class="panel"><div class="panel-head"><h3>Shared players</h3><span>${shared.length} on two or more teams</span></div>
   <p class="note">An injury to one of these players hits more than one league.</p>
   <div class="list">${shared.map(([id,ks])=>{const p=P(id);return`<div class="row static">${shotOf(p,id)}<span class="nm">${nameLine(p,id,"")}${oppLine(id)}</span><span class="pv"><span class="gs glist">${ks.map(esc).join("<br>")}</span></span></div>`}).join("")}</div></section>`;
@@ -2039,6 +2408,10 @@ function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");cle
 document.addEventListener("click",async e=>{
   const tab=e.target.closest("[data-k]");if(tab){muOpen=null;cur=tab.dataset.k;confirming=false;faSel=null;bidConfirm=false;claimUI=null;store.set("dd-tab",cur);render();if(tab.classList.contains("grow"))window.scrollTo({top:0,behavior:RM?"auto":"smooth"});return}
   if(!D)return;
+  // v34: week picker (works on every screen, before the league lookup so the All overview gets it too)
+  if(e.target.id==="wkpop"){closeWeekList();return}
+  const wb=e.target.closest("[data-wk]");if(wb){if(!wb.disabled)goWeek(+wb.dataset.wk);return}
+  const wl=e.target.closest('[data-act="wklist"]');if(wl){wkOpen?closeWeekList():openWeekList(wl);return}
   const l=D.leagues.find(x=>x.id===cur);if(!l)return;
   const cb=e.target.closest("[data-claim]");
   if(cb&&!busy){
@@ -2077,7 +2450,7 @@ document.addEventListener("click",async e=>{
   const ib=e.target.closest("[data-info]");if(ib){openInfo(ib.dataset.info);return}
   if(e.target.closest('[data-act="infoclose"]')||e.target.id==="isheet"){$("isheet").hidden=true;return}
   const md=e.target.closest("[data-mode]");
-  if(md){if(md.closest(".tabbar"))window.scrollTo({top:0,behavior:"auto"});if(mode!==md.dataset.mode){mode=md.dataset.mode;faSel=null;bidConfirm=false;claimUI=null;confirming=false;render()}return}
+  if(md){if(md.closest(".tabbar")){window.scrollTo({top:0,behavior:"auto"});if(muOpen){muOpen=null;renderMU();if(mode===md.dataset.mode)return}}if(mode!==md.dataset.mode){mode=md.dataset.mode;faSel=null;bidConfirm=false;claimUI=null;confirming=false;render()}return}
   const ch=e.target.closest("[data-pos]");
   if(ch){faPos=ch.dataset.pos;faShow=50;faSel=null;bidConfirm=false;render();return}
   const fr=e.target.closest("button[data-fa]");
@@ -2108,11 +2481,13 @@ document.addEventListener("click",async e=>{
     return;
   }
   const r=e.target.closest("button.row[data-id]");
+  if(r&&isPast()){toast(`Week ${week} is over. Past lineups are read-only.`);return}
   if(r&&!busy&&r.classList.contains("locked")){toast(`${P(r.dataset.id).name}'s game has started. MFL won't move him now.`);return}
   if(r&&!busy){const s=lineups[l.id],id=r.dataset.id,before=r.getBoundingClientRect();s.has(id)?s.delete(id):s.add(id);confirming=false;flashId=id;saveDraft(l);render();glide(id,before);return}
   const a=e.target.closest("[data-act]");if(!a)return;
   const act=a.dataset.act;
   if(act==="liveref"){refreshLive(false);return}
+  if(isPast()&&["best","ask","send"].includes(act))return; // past weeks are read-only
   if(act==="best"){lineups[l.id]=best(l);saveDraft(l);render();toast("Best projected lineup set")}
   if(act==="ask"){confirming=true;render()}
   if(act==="cancel"){confirming=false;render()}
@@ -2127,9 +2502,14 @@ document.addEventListener("click",async e=>{
     busy=false;confirming=false;render();
   }
 });
-$("pinform").addEventListener("submit",e=>{e.preventDefault();const v=$("pin").value.trim();if(!v)return;store.set("dd-pin",v);$("pin").value="";$("pinbox").hidden=true;load(week)});
-$("retry").addEventListener("click",()=>load(week));
-if(D){try{prepare();render();loadValues()}catch(e){D=null}}
+$("pinform").addEventListener("submit",e=>{e.preventDefault();const v=$("pin").value.trim();if(!v)return;store.set("dd-pin",v);$("pin").value="";$("pinbox").hidden=true;load(wkWant||week)});
+$("retry").addEventListener("click",()=>load(wkWant||week)); // retries the week you asked for
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&wkOpen){e.stopPropagation();closeWeekList(true)}},true);
+window.addEventListener("resize",()=>{if(wkOpen)closeWeekList()});
+// The app always opens on the current week. A saved copy of another week isn't shown first, so it can't flash up.
+// (it stays in memory as the fallback if MFL can't be reached).
+if(D&&curWeek&&D.week!==curWeek)$("view").innerHTML=skeleton();
+else if(D){try{prepare();render();loadValues()}catch(e){D=null}}
 renderFoot();
 load(null);
 </script>
