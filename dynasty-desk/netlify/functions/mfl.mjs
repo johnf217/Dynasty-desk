@@ -12,7 +12,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 export const config = { path: "/api/mfl" };
 
 // Shown in the app's footer so you can tell which version of this file is deployed.
-const VERSION = "v33";
+const VERSION = "v34";
 
 const YEAR = process.env.MFL_YEAR || "2026";
 const API_HOST = "https://api.myfantasyleague.com";
@@ -269,6 +269,7 @@ async function photoIds() {
   } catch { return idTable?.map || null; }
 }
 
+const validWeek = (w) => /^\d{1,2}$/.test(w || "") && +w >= 1 && +w <= 18;
 async function loadWeek(week, fresh = false) {
   const photosP = photoIds(); // runs alongside the MFL calls
   // Your leagues, with your franchise in each and the server MFL currently hosts it on.
@@ -283,6 +284,12 @@ async function loadWeek(week, fresh = false) {
 
   const sched = await mfl(exportUrl(API_HOST, "nflSchedule", week ? { W: week } : {}), { auth: false });
   const wk = week || sched.nflSchedule?.week;
+  // v34: the app can show any week 1-18, so it also needs to know which week is the current one.
+  // Asking for a past or future week costs one extra (cached) schedule read; if that read fails the app
+  // falls back to the current week it saw last.
+  const current = week
+    ? await mfl(exportUrl(API_HOST, "nflSchedule", {}), { auth: false }).then((s) => +s.nflSchedule?.week || null, () => null)
+    : +wk;
   const games = arr(sched.nflSchedule?.matchup).map((m) => {
     const [a, h] = arr(m.team);
     const away = a.isHome === "1" ? h : a, home = a.isHome === "1" ? a : h;
@@ -350,7 +357,8 @@ async function loadWeek(week, fresh = false) {
   });
   if (!leagues.length) throw settled[0].reason;
 
-  const ids = [...new Set(leagues.flatMap((l) => [...l.roster, ...(l.live?.opp ? Object.keys(l.live.opp.players) : [])]))];
+  // Your own MFL starters are included too: in a past week some of them may have left your roster since.
+  const ids = [...new Set(leagues.flatMap((l) => [...l.roster, ...(l.live?.me ? Object.keys(l.live.me.players) : []), ...(l.live?.opp ? Object.keys(l.live.opp.players) : [])]))];
   const players = {};
   await Promise.all(chunks(ids, 300).map(async (c) => {
     const pl = await mfl(exportUrl(API_HOST, "players", { PLAYERS: c.join(",") }), { auth: false });
@@ -365,7 +373,7 @@ async function loadWeek(week, fresh = false) {
 
   const injuries = (await injuryMap(wk)) || {};
 
-  return { year: YEAR, week: +wk, generated: Date.now(), games, byes, players, injuries, leagues, failed };
+  return { year: YEAR, week: +wk, current, generated: Date.now(), games, byes, players, injuries, leagues, failed };
 }
 
 // Injury designations for the week (Out, Doubtful, Questionable, IR...). Optional: null if MFL doesn't answer.
@@ -454,6 +462,11 @@ async function dynastyValues(qbs, ppr) {
 async function submitLineup({ league, host, week, starters }) {
   if (!league || !week || !Array.isArray(starters) || !starters.length) throw httpError(400, "Missing league, week or starters.");
   if (!okHost(host)) throw httpError(400, "Unknown league server.");
+  if (!validWeek(String(week))) throw httpError(400, "Lineups can only be set for weeks 1 to 18.");
+  // v34: the app can show past weeks, which are read-only. Refuse a lineup for a week that's already over
+  // (if the schedule can't be read, MFL makes the call).
+  const now = await mfl(exportUrl(API_HOST, "nflSchedule", {}), { auth: false }).then((s) => +s.nflSchedule?.week || 0, () => 0);
+  if (now && +week < now) throw httpError(400, `Week ${+week} is over, so its lineup can't be changed.`);
   if (!cookie) await login();
   const send = () =>
     mflFetch(`${host}/${YEAR}/import`, {
@@ -726,7 +739,8 @@ export default async (req, context) => {
       if (!/^\d+$/.test(q.get("L") || "") || !/^\d{1,2}$/.test(w || "")) return json(400, { error: "Missing league or week." });
       return json(200, await freeAgents({ league: q.get("L"), host: q.get("host"), week: w }));
     }
-    return json(200, await loadWeek(w && /^\d{1,2}$/.test(w) ? w : null, q.get("fresh") === "1"));
+    // Weeks 1-18 only (the NFL regular season); anything else loads the current week.
+    return json(200, await loadWeek(validWeek(w) ? String(+w) : null, q.get("fresh") === "1"));
   } catch (e) {
     return json(e.status || 500, { error: e.message || "Something went wrong talking to MFL." });
   }
