@@ -7,9 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Dynasty Desk">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="manifest" href="/manifest.webmanifest">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="manifest" href="/manifest.webmanifest?v=33">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=33">
+<link rel="icon" type="image/png" href="/icon-192.png?v=33">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F4F4F2">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0C0C0E">
 <title>Dynasty Desk</title>
@@ -57,18 +57,11 @@ button{font:inherit;color:inherit}
 .wrap{max-width:620px;margin:0 auto;padding-inline:16px;padding-block:14px calc(40px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
 body.has-bar .wrap{padding-bottom:calc(120px + env(safe-area-inset-bottom,0px))}
 
-/* Header */
-.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.brand{display:flex;align-items:center;gap:10px;min-width:0}
-.mark{width:36px;height:36px;border-radius:var(--r-md);background:var(--board);display:grid;place-items:center;flex:none}
-.mark svg{width:20px;height:22px}
-h1{font:800 27px/1 var(--display);letter-spacing:.01em;margin:0;white-space:nowrap}
-#sub{margin:3px 0 0;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.week{display:flex;align-items:center;border:1px solid var(--line);border-radius:var(--r-md);padding:2px;flex:none;background:var(--surface)}
-.week button{width:32px;height:32px;border:0;background:none;border-radius:9px;display:grid;place-items:center;cursor:pointer;color:var(--muted);transition:background .2s,color .2s}
-.week button:hover{background:var(--sunk);color:var(--ink)}
-.week button svg{width:16px;height:16px}
-.week span{font:800 18px/1 var(--display);min-width:64px;text-align:center;letter-spacing:.02em}
+/* Header (v33): the Dynasty Desk logo, near edge to edge, on a dark strip in both themes */
+.top.hero{display:flex;flex-direction:column;align-items:center;gap:2px;margin:calc(-14px - env(safe-area-inset-top,0px)) -16px 0;padding:calc(6px + env(safe-area-inset-top,0px)) 8px 6px;background:#0B0B0D}
+.hero-logo{display:block;width:100%;max-width:560px;height:auto;max-height:150px;object-fit:contain}
+.vh{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#sub{margin:0;font-size:12.5px;color:#9A9AA2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 
 /* League switcher */
 .tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:grid;grid-template-columns:repeat(var(--n,4),minmax(0,1fr));padding:4px;background:color-mix(in srgb,var(--sunk) 88%,transparent);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);border-radius:var(--r-md)}
@@ -425,8 +418,6 @@ h1{font:800 27px/1 var(--display);letter-spacing:.01em;margin:0;white-space:nowr
 /* States */
 .banner{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 14px;border-radius:var(--r-md);background:color-mix(in srgb,var(--bad) 8%,var(--surface));color:var(--bad);font-weight:500;font-size:14px;border:1px solid color-mix(in srgb,var(--bad) 25%,transparent)}
 .pin{align-items:center;text-align:center;padding:30px 22px;gap:12px}
-.pin .mark{width:52px;height:52px}
-.pin .mark svg{width:28px;height:30px}
 .pin h2{font:800 30px/1 var(--display);margin:4px 0 0}
 .pin form{display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;margin-top:6px}
 .pin input{text-align:center;letter-spacing:.2em;font:800 24px var(--display);padding:12px;border-radius:var(--r-md);border:1px solid var(--line);background:var(--sunk);color:var(--ink);width:100%}
@@ -768,7 +759,6 @@ body.has-tabs .tbal{bottom:calc(70px + env(safe-area-inset-bottom,0px))}
 .mv-top h2 .wk{white-space:nowrap}
 /* Small phones: drop the parts that matter least instead of shrinking text */
 @media (max-width:380px){
-  h1{font-size:24px}                       /* app title no longer runs into the week picker */
   #sub .nx{display:none}
   .row.fa:has(.dv),.lhc.fa{grid-template-columns:36px minmax(0,1fr) 46px 48px}
   .lhc.novals.fa{grid-template-columns:36px minmax(0,1fr) 48px}
@@ -891,20 +881,14 @@ html body .strip b{font-family:"Barlow Semi Condensed",var(--text);font-weight:6
 </head>
 <body>
 <div class="wrap">
-  <header class="top">
-    <div class="brand">
-      <span class="mark" aria-hidden="true"><svg viewBox="0 0 20 22" fill="none" stroke="#C6F432" stroke-width="2.4" stroke-linecap="round"><path d="M3 2v8h14V2M10 10v11"/></svg></span>
-      <div style="min-width:0"><h1>Dynasty Desk</h1><p id="sub">Loading your MFL teams</p></div>
-    </div>
-    <div class="week" id="weekbar" hidden>
-      <button id="prev" aria-label="Previous week"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
-      <span id="wklbl"></span>
-      <button id="next" aria-label="Next week"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5"/></svg></button>
-    </div>
+  <header class="top hero">
+    <h1 class="vh">Dynasty Desk</h1>
+    <!-- v33 header logo. Swap versions by changing this one file name: logo-a.webp (default) or logo-b.webp -->
+    <img class="hero-logo" src="/logo-a.webp" alt="" width="780" height="267" decoding="async" fetchpriority="high">
+    <p id="sub">Loading your MFL teams</p>
   </header>
 
   <section class="panel pin" id="pinbox" hidden>
-    <span class="mark" aria-hidden="true"><svg viewBox="0 0 20 22" fill="none" stroke="#C6F432" stroke-width="2.4" stroke-linecap="round"><path d="M3 2v8h14V2M10 10v11"/></svg></span>
     <h2>Enter your PIN</h2>
     <p class="note">The APP_PIN you set in Netlify (8 or more characters is safest). This device remembers it after the first time.</p>
     <form id="pinform">
@@ -959,7 +943,7 @@ let liveHold=0; // after MFL says "too many requests", auto-refresh pauses for 5
 let G={},owned={},seen=new Set(),intro=false,flashId=null,lastSegI=0,lastMode="lineup",liveBusy=false;
 
 // Version of this page. The server sends its own version, so a mismatch means one file wasn't uploaded.
-const APP_VERSION="v32";
+const APP_VERSION="v33";
 let srvVer=null,pinWeak=false;
 // For a couple of minutes after you change something on MFL, reads skip the server's short cache.
 let freshUntil=0;
@@ -1013,7 +997,6 @@ function prepare(){
   lineups={};D.leagues.forEach(l=>reconcile(l));
   pruneDrafts();
   if(!D.leagues.some(l=>l.id===cur)&&cur!=="all")cur=D.leagues[0]?.id;
-  $("weekbar").hidden=false;$("wklbl").textContent=`Week ${week}`;
   $("sub").innerHTML=`Updated ${new Date(D.generated).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}<span class="nx"> from MFL</span>`;
 }
 const lk=l=>`dd-lu-${D.year}-${week}-${l.id}`;
@@ -2146,8 +2129,6 @@ document.addEventListener("click",async e=>{
 });
 $("pinform").addEventListener("submit",e=>{e.preventDefault();const v=$("pin").value.trim();if(!v)return;store.set("dd-pin",v);$("pin").value="";$("pinbox").hidden=true;load(week)});
 $("retry").addEventListener("click",()=>load(week));
-$("prev").addEventListener("click",()=>{if(week>1)load(week-1)});
-$("next").addEventListener("click",()=>{if(week<18)load(week+1)});
 if(D){try{prepare();render();loadValues()}catch(e){D=null}}
 renderFoot();
 load(null);
