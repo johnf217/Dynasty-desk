@@ -132,8 +132,8 @@ body.has-bar .wrap{padding-bottom:calc(120px + env(safe-area-inset-bottom,0px))}
 .seg button{position:relative;z-index:1;border:0;background:none;padding:9px 4px;font-weight:600;font-size:14px;color:var(--muted);cursor:pointer;transition:color .25s}
 .seg button[aria-pressed="true"]{color:var(--ink)}
 .swap{display:flex;flex-direction:column;gap:14px}
-.swap.in{animation:swapIn .32s var(--ease)}
-@keyframes swapIn{from{opacity:0;transform:translateY(6px)}}
+.swap.in{animation:swapIn .2s var(--ease)} /* v35: was .32s; content shows sooner */
+@keyframes swapIn{from{opacity:.35;transform:translateY(4px)}}
 
 /* Strips: flat rows of figures, divided by hairlines (used for slot counts, FAAB, standings summary) */
 .strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);background:var(--sunk);border-radius:var(--r-md)}
@@ -430,8 +430,8 @@ body.has-bar .wrap{padding-bottom:calc(120px + env(safe-area-inset-bottom,0px))}
 body.has-bar .toast{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
 @media (max-width:380px){.ab{padding-left:12px}.ab-total{font-size:26px}.btn{padding-inline:13px}.row{gap:10px}}
 /* Shared-element morph between the scoreboard and the full matchup screen (View Transitions) */
-::view-transition-group(*){animation-duration:.46s;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
-::view-transition-old(root),::view-transition-new(root){animation-duration:.32s}
+::view-transition-group(*){animation-duration:.36s;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.26s} /* v35: matchup opens and closes a little quicker (was .46s / .32s) */
 ::view-transition-old(mu-board),::view-transition-new(mu-board){height:100%;object-fit:cover;object-position:top}
 ::view-transition-old(mu-score-me),::view-transition-new(mu-score-me),::view-transition-old(mu-score-opp),::view-transition-new(mu-score-opp),
 ::view-transition-old(mu-name-me),::view-transition-new(mu-name-me),::view-transition-old(mu-name-opp),::view-transition-new(mu-name-opp){height:100%;object-fit:contain}
@@ -711,7 +711,10 @@ body.has-bar .toast{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
 /* ---- v23: bottom tab bar, page titles, info sheet ---- */
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(5,1fr);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--surface) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.5);backdrop-filter:blur(20px) saturate(1.5);border-top:1px solid var(--line)}
 .tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 2px;border:0;background:none;color:var(--faint);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}
-.tabbar svg{width:22px;height:22px}
+.tabbar svg{width:22px;height:22px;transition:transform .12s var(--ease)}
+.tabbar button:active svg{transform:scale(.86)} /* v35: instant press feedback */
+.tabbar button,.tab,.row,.btn,.chip{touch-action:manipulation}
+.tab:active{opacity:.7}
 .tabbar button[aria-current="page"]{color:var(--ink)}
 .tabbar button[aria-current="page"] svg{color:var(--sig-ink)}
 body.has-tabs .wrap{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
@@ -1172,8 +1175,20 @@ const ord=n=>{const s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]
 const whenShort=t=>{try{const d=new Date(t*1000),day=d.toLocaleString("en-US",{timeZone:"America/New_York",weekday:"short"}),tt=d.toLocaleString("en-US",{timeZone:"America/New_York",hour:"numeric",minute:"2-digit"});return`${day} ${tt.replace(":00","").replace(/ ?([AP])M/,(m,x)=>x.toLowerCase())}`}catch(e){return""}};
 const RM=typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motion: reduce)").matches;
 const TC={ARI:"#97233F",ATL:"#A71930",BAL:"#241773",BUF:"#00338D",CAR:"#0085CA",CHI:"#0B162A",CIN:"#FB4F14",CLE:"#311D00",DAL:"#003594",DEN:"#FB4F14",DET:"#0076B6",GB:"#203731",HOU:"#03202F",IND:"#002C5F",JAX:"#006778",KC:"#E31837",LAC:"#0080C6",LAR:"#003594",LV:"#000000",MIA:"#008E97",MIN:"#4F2683",NE:"#002244",NO:"#9F8958",NYG:"#0B2265",NYJ:"#125740",PHI:"#004C54",PIT:"#101820",SEA:"#002244",SF:"#AA0000",TB:"#D50A0A",TEN:"#0C2340",WAS:"#5A1414"};
-function logo(t,sz){const a=tm(t);if(!TC[a])return"";const e=a==="WAS"?"wsh":a.toLowerCase();return`<span class="tl" style="--tc:${TC[a]};--sz:${sz||20}px"><b>${a}</b><img src="https://a.espncdn.com/i/teamlogos/nfl/500/${e}.png" alt="" loading="lazy" decoding="async" onload="this.parentNode.classList.add('ok')" onerror="this.remove()"></span>`}
-function ficon(f,cls){const n=(f&&f.name)||"?",ini=n.replace(/[^A-Za-z0-9 ]/g,"").split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase()||"?";return`<span class="ft${cls?" "+cls:""}">${esc(ini)}${f&&f.icon?`<img src="${esc(f.icon)}" alt="" loading="lazy" onerror="this.remove()">`:""}</span>`}
+// v35: pictures that have loaded once (or failed). A redraw shows a loaded one straight away instead of
+// loading it lazily and fading it in again, and doesn't keep asking for one that failed.
+const IMG_OK=new Set(),IMG_BAD=new Set();
+const imgLazy=src=>IMG_OK.has(src)?"":` loading="lazy" decoding="async"`;
+function imgOk(el){IMG_OK.add(el.getAttribute("src"));const p=el.parentNode;if(p&&p.classList.contains("tl"))p.classList.add("ok")}
+function imgBad(el){IMG_BAD.add(el.getAttribute("src"));el.remove()}
+// v35: logos show at 16-20px, so they come through ESPN's resizer at 60px instead of as 500px files.
+// If the resizer ever fails, the app switches back to the full-size files.
+let logoFull=false;
+const logoBig=e=>`https://a.espncdn.com/i/teamlogos/nfl/500/${e}.png`;
+const logoSrc=e=>logoFull?logoBig(e):`https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/${e}.png&w=60&h=60`;
+function logoErr(el){const big=logoBig(el.dataset.e);if(el.getAttribute("src")!==big){logoFull=true;el.src=big}else imgBad(el)}
+function logo(t,sz){const a=tm(t);if(!TC[a])return"";const e=a==="WAS"?"wsh":a.toLowerCase(),src=logoSrc(e),ok=IMG_OK.has(src);if(IMG_BAD.has(src))return`<span class="tl" style="--tc:${TC[a]};--sz:${sz||20}px"><b>${a}</b></span>`;return`<span class="tl${ok?" ok":""}" style="--tc:${TC[a]};--sz:${sz||20}px"><b>${a}</b><img src="${src}" alt=""${imgLazy(src)} data-e="${e}" onload="imgOk(this)" onerror="logoErr(this)"></span>`}
+function ficon(f,cls){const n=(f&&f.name)||"?",ini=n.replace(/[^A-Za-z0-9 ]/g,"").split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase()||"?";return`<span class="ft${cls?" "+cls:""}">${esc(ini)}${f&&f.icon&&!IMG_BAD.has(f.icon)?`<img src="${esc(f.icon)}" alt=""${IMG_OK.has(f.icon)?"":` loading="lazy"`} onload="imgOk(this)" onerror="imgBad(this)">`:""}</span>`}
 function clock(secs){
   if(secs==null)return"";if(secs<=0)return"Final";
   const q=Math.min(4,Math.floor((3600-secs)/900)+1),rem=secs-(4-q)*900;
@@ -1208,7 +1223,7 @@ let curWeek=store.get("dd-curwk"),wkWant=null,wkPending=null,wkOpen=false,loadSe
 const nowWeek=()=>curWeek||week;
 const isPast=()=>week!=null&&weekKind(week,nowWeek())==="past";
 // Version of this page. The server sends its own version, so a mismatch means one file wasn't uploaded.
-const APP_VERSION="v34";
+const APP_VERSION="v35";
 let srvVer=null,pinWeak=false;
 // For a couple of minutes after you change something on MFL, reads skip the server's short cache.
 let freshUntil=0;
@@ -1466,7 +1481,10 @@ function row(l,id,on){
 const TABS=[["lineup","Lineup",'<path d="M4 6h16M4 12h16M4 18h10"/>'],["fa","Free agents",'<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>'],["st","Standings",'<path d="M5 20V10M12 20V4M19 20v-7"/>'],["rk","Rankings",'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/>'],["tr","Trade",'<path d="M7 7h12l-3-3M17 17H5l3 3"/>']];
 function renderTabbar(on){
   const t=$("tabbar");if(!t)return;t.hidden=!on;document.body.classList.toggle("has-tabs",on);
-  if(on)t.innerHTML=TABS.map(([m,label,ic])=>`<button data-mode="${m}" aria-current="${mode===m?"page":"false"}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ic}</svg><span>${label}</span></button>`).join("");
+  if(!on)return;
+  // v35: the buttons are built once; after that only the highlight moves (no rebuild under your finger).
+  if(t.children.length!==TABS.length)t.innerHTML=TABS.map(([m,label,ic])=>`<button data-mode="${m}" aria-current="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ic}</svg><span>${label}</span></button>`).join("");
+  for(const b of t.children){const v=mode===b.dataset.mode?"page":"false";if(b.getAttribute("aria-current")!==v)b.setAttribute("aria-current",v)}
 }
 // Explanations live behind a small ⓘ instead of paragraphs of fine print.
 const INFO={};
@@ -1526,15 +1544,52 @@ function tabAria(l){const s=tabState(l),t=tabLive(l);const st=!t||!t.started?`${
 function allAria(){const c=allCap();return c==="Overview"?"All leagues overview":`All leagues overview, ${c.replace(" · ",", ")}`}
 function leagueTab(l){const s=tabState(l);return`<span class="ln">${(p=>`${p.num?`<span class="lnn">${esc(p.num)}${p.type?"&nbsp;-&nbsp;":""}</span>`:""}${p.type?`<span class="lnt">${esc(p.type)}</span>`:""}${p.tail?`<span class="lnn">${esc(p.tail).replace(/ /g,"&nbsp;")}</span>`:""}`)(lgParts(l))}</span><b class="sc">${fmt(s.v)}</b><i class="ubar ${s.st}${s.live?" live":""}" aria-hidden="true"></i>${tabFix(l)}`}
 function allTab(){return`<span class="ln">All</span><span class="cap">${allCap()}</span><i class="ubar" aria-hidden="true"></i>`}
+// v35: run light background work when the phone isn't busy (Safari has no requestIdleCallback, so a short timer).
+const idle=f=>typeof requestIdleCallback==="function"?requestIdleCallback(f,{timeout:2000}):setTimeout(f,250);
+// Pictures fetched ahead of time. Holding on to them keeps them in the browser's memory, ready to show.
+const WARM=[];
+function warmImg(u){if(!u||IMG_OK.has(u)||IMG_BAD.has(u))return;const im=new Image();im.onload=()=>IMG_OK.add(u);im.src=u;WARM.push(im)}
+// v35: while the lineup screen sits idle, fetch the full matchup's pictures (both sides' starters and the header art)
+// so tapping into it shows everything at once instead of photos popping in after the slide.
+const warmed=new Set();let artWarm=false;
+function warmMU(l){
+  const k=`${l.id}-${week}`;if(warmed.has(k)||!l.live||!l.live.opp)return;warmed.add(k);
+  idle(()=>{
+    const theirs=starters(l,"opp"),opp=theirs.set?theirs.ids:bestOf(l,Object.keys(l.live.opp.players));
+    const urls=[...lineups[l.id],...opp].map(id=>shotSrc(P(id)).src);
+    if(!artWarm){artWarm=true;urls.push("/mu-header.webp","/mu-glow-left.webp","/mu-glow-right.webp","/mu-vs.webp")}
+    urls.forEach(warmImg);
+  });
+}
+// v35: a moment after the app opens, quietly load every league's roster photos and team logos, so the first
+// switch to another league shows them at once (they usually come straight from the phone's cache).
+let rostersWarm=false;
+function warmRosters(){
+  if(rostersWarm||!D)return;rostersWarm=true;
+  setTimeout(()=>idle(()=>{
+    const urls=new Set();
+    D.leagues.forEach(l=>rosterOf(l).forEach(id=>{const p=P(id),a=tm(p.team),s=shotSrc(p).src;if(s)urls.add(s);if(TC[a])urls.add(logoSrc(a==="WAS"?"wsh":a.toLowerCase()))}));
+    urls.forEach(warmImg);
+  }),1500);
+}
 function render(){
   if(!D)return;
   renderWeekUI();
   const tabsEl=$("tabs"),items=[...D.leagues.map(l=>l.id),"all"];
   tabsEl.style.setProperty("--n",items.length);
   tabsEl.style.setProperty("--i",Math.max(0,items.indexOf(cur)));
-  tabsEl.innerHTML=D.leagues.map(l=>`<button class="tab lt acc${accOf(l)}" role="tab" aria-selected="${l.id===cur}" data-k="${l.id}" title="${esc(l.name)}" aria-label="${esc(tabAria(l))}">${leagueTab(l)}</button>`).join("")+`<button class="tab lt all" role="tab" aria-selected="${cur==="all"}" data-k="all" aria-label="${esc(allAria())}">${allTab()}</button>`;
+  // v35: the tab buttons stay put and only what changed is updated, so they don't flicker on every tap,
+  // the highlight fades instead of jumping, and the live pulse keeps its rhythm.
+  const tabs=[...D.leagues.map(l=>({k:l.id,c:`tab lt acc${accOf(l)}`,t:l.name,a:tabAria(l),h:leagueTab(l)})),{k:"all",c:"tab lt all",t:null,a:allAria(),h:allTab()}],bs=tabsEl.children;
+  if(bs.length!==tabs.length||tabs.some((x,i)=>bs[i].dataset.k!==x.k))tabsEl.innerHTML=tabs.map(x=>`<button class="${x.c}" role="tab" data-k="${x.k}"></button>`).join("");
+  tabs.forEach((x,i)=>{const b=bs[i],sel=String(x.k===cur);
+    if(b.className!==x.c)b.className=x.c;
+    if(b.getAttribute("aria-selected")!==sel)b.setAttribute("aria-selected",sel);
+    if(b.getAttribute("aria-label")!==x.a)b.setAttribute("aria-label",x.a);
+    if(x.t!=null&&b.title!==x.t)b.title=x.t;
+    if(b._h!==x.h){b.innerHTML=x.h;b._h=x.h}});
   const v=$("view");
-  if(cur==="all"){document.body.classList.remove("has-bar");renderTabbar(false);v.innerHTML=renderAll();muOpen=null;renderMU();return}
+  if(cur==="all"){document.body.classList.remove("has-bar");renderTabbar(false);v.innerHTML=renderAll();muOpen=null;renderMU();warmRosters();return}
   const l=D.leagues.find(x=>x.id===cur);if(!l)return;
   const ik=`${l.id}-${week}`;intro=!seen.has(ik);
   const{c,issues,dead,n}=check(l),set=lineups[l.id],tot=projTotal(l),locked=allLocked(l),done=locked&&allFinal(l),bl=locked?set:best(l),gap=locked?0:gainLeft(set,bl,id=>ptsNow(l,id)),swapDead=!locked&&[...set].some(id=>!bl.has(id)&&ptsNow(l,id)===0&&/^(bye|noteam)$/.test(lockOf(l,id))),hs=done?hindsight(l):0;
@@ -1577,6 +1632,8 @@ function render(){
   flashId=null;
   renderMU();
   bumpScores(v);
+  if(mode==="lineup")warmMU(l);
+  warmRosters();
 }
 function glide(id,before){
   if(RM)return;const el=document.querySelector(`button.row[data-id="${id}"]`);if(!el||typeof el.animate!=="function")return;
@@ -1775,7 +1832,7 @@ async function saveClaims(l,picks,done){
 }
 function faPanel(l){
   const f=FA[faKey(l)];
-  if(!f||f.loading){if(!f)setTimeout(()=>loadFA(l));return`<div class="sk" style="height:76px;border-radius:12px"></div><div class="sk" style="height:46px;border-radius:13px"></div><div class="sk" style="height:300px;border-radius:15px"></div>`}
+  if(!f||f.loading){if(!f){setTimeout(()=>loadFA(l));if(!BH[l.id]){BH[l.id]={loading:true};setTimeout(()=>loadBH(l))}}return`<div class="sk" style="height:76px;border-radius:12px"></div><div class="sk" style="height:46px;border-radius:13px"></div><div class="sk" style="height:300px;border-radius:15px"></div>`}
   if(f.error)return`<div class="banner"><span>${esc(f.error)}</span><button class="btn sm quiet" data-act="fareload">Try again</button></div>`;
   const mine=me(l),full=l.rosterSize&&l.roster.length>=l.rosterSize,claims=f.pending;
   return`<div class="strip">
@@ -1877,12 +1934,18 @@ function recOf(l,fid){
 const p1=v=>(Math.round((v||0)*10)/10).toFixed(1);
 // One side of a matchup row: who, their game, and points.
 // Player photo with a small team-logo badge. Sleeper's photo first, ESPN's if that fails, initials if neither loads.
+// v35: the photo to use: Sleeper's, else ESPN's, skipping any that already failed this session.
+function shotSrc(pl){
+  const sl=pl.sl?`https://sleepercdn.com/content/nfl/players/thumb/${pl.sl}.jpg`:"";
+  const es=pl.es?`https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/${pl.es}.png&w=96&h=70`:"";
+  const src=[sl,es].find(u=>u&&!IMG_BAD.has(u))||"";
+  return{src,next:src===sl&&es&&!IMG_BAD.has(es)?es:""};
+}
+function shotErr(el){const n=el.dataset.next;IMG_BAD.add(el.getAttribute("src"));if(n){el.removeAttribute("data-next");el.src=n}else el.remove()}
 function shotOf(pl,id){
   const ini=String(pl.name||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
-  const es=pl.es?`https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/${pl.es}.png&w=96&h=70`:"";
-  const src=pl.sl?`https://sleepercdn.com/content/nfl/players/thumb/${pl.sl}.jpg`:es;
-  const fb=pl.sl&&es?`if(!this.dataset.f){this.dataset.f=1;this.src='${es}'}else this.remove()`:"this.remove()";
-  return`<span class="hs"><span class="hsi">${esc(ini)}${src?`<img src="${src}" alt="" loading="lazy" decoding="async" onerror="${fb}">`:""}</span>${pl.team&&pl.team!=="FA"?`<span class="hsb">${logo(pl.team,16)}</span>`:""}</span>`;
+  const{src,next}=shotSrc(pl);
+  return`<span class="hs"><span class="hsi">${esc(ini)}${src?`<img src="${src}" alt=""${imgLazy(src)}${next?` data-next="${next}"`:""} onload="imgOk(this)" onerror="shotErr(this)">`:""}</span>${pl.team&&pl.team!=="FA"?`<span class="hsb">${logo(pl.team,16)}</span>`:""}</span>`;
 }
 // One player in a matchup row: photo, name, opponent and game status, points.
 // One player in a matchup row. Before kickoff the big number is the projection; once their game starts it's
@@ -1918,14 +1981,21 @@ function bRow(l,slot,x,y,bench){
 // Names never get cut off: shrink a long name to fit its space, and if it still won't fit, use the last name only.
 function fitNames(root){
   if(!root)return;
-  root.querySelectorAll(".bn .fit,.xn .fit").forEach(el=>{
-    if(el.dataset.full)el.textContent=el.dataset.full;else el.dataset.full=el.textContent;
-    el.style.fontSize="";
-    const base=parseFloat(getComputedStyle(el).fontSize),over=()=>{const r=document.createRange();r.selectNodeContents(el);return Math.max(el.scrollWidth,r.getBoundingClientRect().width)>el.clientWidth+.25};
-    let fs=base;
-    while(over()&&fs>13.5){fs-=.5;el.style.fontSize=fs+"px"}
-    if(over()&&el.dataset.last){el.textContent=el.dataset.last;fs=base;el.style.fontSize="";while(over()&&fs>13){fs-=.5;el.style.fontSize=fs+"px"}}
-  });
+  // v35: same rules as before, but every name moves one step at a time together: change them all, then measure
+  // them all. The screen lays out a handful of times instead of once or twice per name, so it opens faster.
+  const els=[...root.querySelectorAll(".bn .fit,.xn .fit")];
+  els.forEach(el=>{if(el.dataset.full)el.textContent=el.dataset.full;else el.dataset.full=el.textContent;el.style.fontSize=""});
+  const over=el=>{const r=document.createRange();r.selectNodeContents(el);return Math.max(el.scrollWidth,r.getBoundingClientRect().width)>el.clientWidth+.25};
+  let todo=els.map(el=>({el,base:parseFloat(getComputedStyle(el).fontSize),min:13.5}));
+  todo.forEach(x=>x.fs=x.base);
+  for(let pass=0;pass<40&&(todo=todo.filter(x=>over(x.el))).length;pass++){
+    todo.forEach(x=>{
+      if(x.fs>x.min){x.fs-=.5;x.el.style.fontSize=x.fs+"px"}                       // shrink half a pixel
+      else if(x.min>13&&x.el.dataset.last){x.el.textContent=x.el.dataset.last;x.fs=x.base;x.min=13;x.el.style.fontSize=""} // then last name only
+      else x.done=true;
+    });
+    todo=todo.filter(x=>!x.done);
+  }
   root.querySelectorAll(".mvh .tname").forEach(el=>{
     el.style.fontSize="";let fs=parseFloat(getComputedStyle(el).fontSize);
     while((el.scrollHeight>el.clientHeight+1||el.scrollWidth>el.clientWidth+.5)&&fs>12){fs-=.5;el.style.fontSize=fs+"px"}
@@ -1958,7 +2028,8 @@ function vtDone(){vtBusy=false;if(muPending){muPending=false;drawMU()}}
 // v34: full matchup screen, redesigned to the mockup. Header art, week pill, score card, starters.
 const ICON_BACK=`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg>`;
 // Kickoff, short: Sunday games show just the time ("1p", "8:20p"); other days add the day ("Mon 8:15p", "Thu 8:15p").
-function kickShort(t){if(!t)return"";const d=new Date(t*1000),h=d.getHours(),m=d.getMinutes();return`${d.getDay()===0?"":d.toLocaleDateString([],{weekday:"short"})+" "}${h%12||12}${m?`:${String(m).padStart(2,"0")}`:""}${h<12?"a":"p"}`}
+let WDAY=null; // v35: built once; making a date formatter for every row was slow
+function kickShort(t){if(!t)return"";const d=new Date(t*1000),h=d.getHours(),m=d.getMinutes();return`${d.getDay()===0?"":(WDAY||(WDAY=new Intl.DateTimeFormat([],{weekday:"short"}))).format(d)+" "}${h%12||12}${m?`:${String(m).padStart(2,"0")}`:""}${h<12?"a":"p"}`}
 // The week pill: ‹ Week 7 · 099 - Basic ›. The label opens the 1-18 jump list.
 function muPill(l){
   const w=wkPending||week;
@@ -2003,7 +2074,7 @@ function drawMU(){
     host.innerHTML=shell(`<section class="xcard xempty"><p>${l.live?`You don't have an opponent in week ${week}.`:`MFL didn't send a matchup for week ${week}. Refresh to try again.`}</p></section>`,"Full matchup");
     document.documentElement.style.overflow="hidden";return;
   }
-  if(!ST[l.id])setTimeout(()=>loadST(l));
+  needST(l);
   const lv=l.live,mine=starters(l,"me"),theirs=starters(l,"opp");
   const oppF=l.franchises.find(f=>f.id===lv.opp.id)||{name:"Opponent"};
   const myIds=mine.set?mine.ids:[...lineups[l.id]];
@@ -2088,10 +2159,17 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&muOpen)closeMU();el
 
 // ---- Standings ----
 const ST={};
+// v35: Standings and Rankings open straight away from the copy saved on this phone (up to 3 days old), then refresh
+// from MFL in the background. If the refresh fails, the saved copy stays up.
+function saved(kind,l){const c=store.get(`dd-c-${kind}-${l.id}`);return c&&c.y===D.year&&Date.now()-c.t<3*864e5?c.d:null}
+function keep(kind,l,d){if(d&&!d.error&&!d.loading)idle(()=>store.set(`dd-c-${kind}-${l.id}`,{t:Date.now(),y:D.year,d}))}
+function needST(l){if(!ST[l.id]){ST[l.id]=saved("st",l)||{loading:true};setTimeout(()=>loadST(l))}return ST[l.id]}
+function needRK(l){if(!RK[l.id]){RK[l.id]=saved("rk",l)||{loading:true};setTimeout(()=>loadRK(l))}return RK[l.id]}
 async function loadST(l){
-  ST[l.id]={loading:true};
-  try{ST[l.id]=await api("GET",null,null,`action=standings&L=${l.id}&host=${encodeURIComponent(l.host)}`)}
-  catch(e){ST[l.id]={error:e.message==="PIN needed"||e.message==="PIN"?"Enter your PIN to load standings.":e.message}}
+  const old=ST[l.id]&&ST[l.id].rows?ST[l.id]:null;
+  ST[l.id]=old||{loading:true};
+  try{ST[l.id]=await api("GET",null,null,`action=standings&L=${l.id}&host=${encodeURIComponent(l.host)}`);keep("st",l,ST[l.id])}
+  catch(e){ST[l.id]=old||{error:e.message==="PIN needed"||e.message==="PIN"?"Enter your PIN to load standings.":e.message}}
   if(cur===l.id&&(mode==="st"||mode==="rk"||mode==="tr"))render();
   if(muOpen===l.id)renderMU();
 }
@@ -2161,8 +2239,7 @@ async function runOdds(l,rows,d){
 }
 // Picks each team owns, from MFL futureDraftPicks (same data as Rankings).
 function picksPanel(l){
-  const d=RK[l.id];
-  if(!d){setTimeout(()=>loadRK(l))}
+  const d=needRK(l);
   if(!d||d.loading)return`<div class="sk" style="height:40px;border-radius:12px"></div>${'<div class="sk" style="height:54px;border-radius:12px"></div>'.repeat(5)}`;
   if(d.error)return`<div class="banner"><span>${esc(d.error)}</span><button class="btn sm quiet" data-act="rkreload">Try again</button></div>`;
   const years=[...new Set(d.teams.flatMap(t=>t.picks.map(p=>p.year)))].sort();
@@ -2177,8 +2254,10 @@ function picksPanel(l){
     <div class="stlegend"><span>Name under a pick = original owner</span></div>`;
 }
 function standingsPanel(l){
-  const s=ST[l.id];
-  if(!s||s.loading){if(!s)setTimeout(()=>loadST(l));return`<div class="sk" style="height:76px;border-radius:12px"></div><div class="sk" style="height:420px;border-radius:12px"></div>`}
+  const s=needST(l);
+  // v35: the playoff schedule is fetched alongside the standings instead of after them.
+  if(stView!=="picks"&&!PO[l.id]){PO[l.id]={loading:true};setTimeout(()=>loadPO(l))}
+  if(!s||s.loading){return`<div class="sk" style="height:76px;border-radius:12px"></div><div class="sk" style="height:420px;border-radius:12px"></div>`}
   if(s.error)return`<div class="banner"><span>${esc(s.error)}</span><button class="btn sm quiet" data-act="streload">Try again</button></div>`;
   const sub=`<div class="chips stsub"><button class="chip" data-stview="table" aria-pressed="${stView==="table"}">Standings &amp; odds</button><button class="chip" data-stview="picks" aria-pressed="${stView==="picks"}">Draft picks</button></div>`;
   if(stView==="picks")return sub+picksPanel(l);
@@ -2226,9 +2305,10 @@ const RK_PARTS=["QB","RB","WR","TE","PK"];
 // Fallback pick values by round when FantasyCalc has no value for that year and round.
 const PICK_FALLBACK={1:3500,2:1500,3:650,4:300};
 async function loadRK(l){
-  RK[l.id]={loading:true};
-  try{RK[l.id]=await api("GET",null,null,`action=rankings&L=${l.id}&host=${encodeURIComponent(l.host)}`)}
-  catch(e){RK[l.id]={error:e.message==="PIN needed"||e.message==="PIN"?"Enter your PIN to load rankings.":e.message}}
+  const old=RK[l.id]&&RK[l.id].teams?RK[l.id]:null;
+  RK[l.id]=old||{loading:true};
+  try{RK[l.id]=await api("GET",null,null,`action=rankings&L=${l.id}&host=${encodeURIComponent(l.host)}`);keep("rk",l,RK[l.id])}
+  catch(e){RK[l.id]=old||{error:e.message==="PIN needed"||e.message==="PIN"?"Enter your PIN to load rankings.":e.message}}
   if(cur===l.id&&(mode==="rk"||mode==="tr"||mode==="st"))render();
 }
 function pickValue(l,p){
@@ -2259,9 +2339,8 @@ function rankRows(l,data){
   return rows;
 }
 function rankingsPanel(l){
-  const d=RK[l.id];
-  if(!d){setTimeout(()=>loadRK(l));}
-  if(!ST[l.id])setTimeout(()=>loadST(l));
+  const d=needRK(l);
+  needST(l);
   if(!d||d.loading||(!VALS[valKey(l)]&&!valErr))return`<div class="sk" style="height:40px;border-radius:12px"></div>${'<div class="sk" style="height:62px;border-radius:12px"></div>'.repeat(6)}`;
   if(d.error)return`<div class="banner"><span>${esc(d.error)}</span><button class="btn sm quiet" data-act="rkreload">Try again</button></div>`;
   if(!VALS[valKey(l)])return`<div class="banner"><span>Dynasty values couldn't load, so teams can't be ranked yet.</span><button class="btn sm quiet" data-act="rkreload">Try again</button></div>`;
@@ -2339,8 +2418,7 @@ function findTrades(l,d,opp){
   return out.sort((p,q)=>p.m.pct-q.m.pct||(q.m.ta+q.m.tb)-(p.m.ta+p.m.tb)).filter(t=>{const k=[...t.a,...t.b].map(x=>x.k).sort().join();if(seen.has(k))return false;seen.add(k);return true}).slice(0,5);
 }
 function tradePanel(l){
-  const d=RK[l.id];
-  if(!d)setTimeout(()=>loadRK(l));
+  const d=needRK(l);
   if(!d||d.loading||(!VALS[valKey(l)]&&!valErr))return`<div class="sk" style="height:44px;border-radius:12px"></div><div class="sk" style="height:150px;border-radius:12px"></div><div class="sk" style="height:150px;border-radius:12px"></div>`;
   if(d.error)return`<div class="banner"><span>${esc(d.error)}</span><button class="btn sm quiet" data-act="rkreload">Try again</button></div>`;
   if(!VALS[valKey(l)])return`<div class="banner"><span>Dynasty values couldn't load, so trades can't be valued yet.</span><button class="btn sm quiet" data-act="rkreload">Try again</button></div>`;
@@ -2502,6 +2580,9 @@ document.addEventListener("click",async e=>{
     busy=false;confirming=false;render();
   }
 });
+// v35: iPhone Safari only shows :active press states when a touchstart listener exists. This empty one turns them on,
+// so buttons, rows and tabs react the moment your finger lands.
+document.addEventListener("touchstart",()=>{},{passive:true});
 $("pinform").addEventListener("submit",e=>{e.preventDefault();const v=$("pin").value.trim();if(!v)return;store.set("dd-pin",v);$("pin").value="";$("pinbox").hidden=true;load(wkWant||week)});
 $("retry").addEventListener("click",()=>load(wkWant||week)); // retries the week you asked for
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&wkOpen){e.stopPropagation();closeWeekList(true)}},true);
