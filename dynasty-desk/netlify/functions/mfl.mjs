@@ -12,7 +12,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 export const config = { path: "/api/mfl" };
 
 // Shown in the app's footer so you can tell which version of this file is deployed.
-const VERSION = "v37";
+const VERSION = "v36";
 
 const YEAR = process.env.MFL_YEAR || "2026";
 const API_HOST = "https://api.myfantasyleague.com";
@@ -56,10 +56,9 @@ async function mflFetch(url, opts = {}) {
 }
 const CACHE = new Map();
 // How long each kind of read stays fresh (ms). Live scores stay short; slow-changing data longer.
-const TTL = { futureDraftPicks: 30 * 60e3, myleagues: 6 * 3600e3, nflSchedule: 90e3, league: 20 * 60e3, rules: 12 * 3600e3, rosters: 60e3,
+const TTL = { futureDraftPicks: 30 * 60e3, myleagues: 6 * 3600e3, nflSchedule: 30 * 60e3, league: 20 * 60e3, rules: 12 * 3600e3, rosters: 60e3,
   projectedScores: 20 * 60e3, players: 6 * 3600e3, injuries: 10 * 60e3, liveScoring: 25e3, schedule: 10 * 60e3,
-  leagueStandings: 10 * 60e3, freeAgents: 3 * 60e3, pendingWaivers: 0, transactions: 10 * 60e3,
-  weeklyResults: 10 * 60e3, playerScores: 30 * 60e3 }; // v37: game logs
+  leagueStandings: 10 * 60e3, freeAgents: 3 * 60e3, pendingWaivers: 0, transactions: 10 * 60e3 };
 
 // Netlify Blobs: a small key-value store that survives between requests, so slow-changing MFL data
 // (players, rules, schedule, projections) and the photo ID table don't have to be fetched again on
@@ -350,18 +349,6 @@ async function playersFor(ids, { fill = true, details = false } = {}) {
   return out;
 }
 
-// v37: each NFL game with its score and clock when MFL has them (scores are null before kickoff).
-const numOrNull = (v) => (v === "" || v == null || !isFinite(+v) ? null : +v);
-function gamesOf(sched) {
-  return arr(sched?.nflSchedule?.matchup).map((m) => {
-    const [a, h] = arr(m.team);
-    if (!a || !h) return null;
-    const away = a.isHome === "1" ? h : a, home = a.isHome === "1" ? a : h;
-    const side = (t) => ({ id: t.id, passD: +t.passDefenseRank || null, rushD: +t.rushDefenseRank || null, score: numOrNull(t.score) });
-    return { kickoff: +m.kickoff, secs: numOrNull(m.gameSecondsRemaining), away: side(away), home: side(home) };
-  }).filter(Boolean);
-}
-
 const validWeek = (w) => /^\d{1,2}$/.test(w || "") && +w >= 1 && +w <= 18;
 async function loadWeek(week, fresh = false) {
   const photosP = photoIds(); // runs alongside the MFL calls
@@ -387,7 +374,12 @@ async function loadWeek(week, fresh = false) {
   // falls back to the current week it saw last.
   const current = week ? curW : +wk;
   const injP = injuryMap(wk); // v36: started now instead of after everything else
-  const games = gamesOf(sched);
+  const games = arr(sched.nflSchedule?.matchup).map((m) => {
+    const [a, h] = arr(m.team);
+    const away = a.isHome === "1" ? h : a, home = a.isHome === "1" ? a : h;
+    const side = (t) => ({ id: t.id, passD: +t.passDefenseRank || null, rushD: +t.rushDefenseRank || null });
+    return { kickoff: +m.kickoff, away: side(away), home: side(home) };
+  });
   const playing = new Set(games.flatMap((g) => [g.away.id, g.home.id]));
   const byes = games.length ? NFL.filter((t) => !playing.has(t)) : [];
 
@@ -510,7 +502,7 @@ function tePremium(groups) {
 const VALUES_TTL = 24 * 3600e3;
 const valuesInFlight = new Map();
 async function dynastyValues(qbs, ppr) {
-  const key = `fc-values3-${qbs}-${ppr}`;
+  const key = `fc-values2-${qbs}-${ppr}`;
   const mem = CACHE.get(key);
   if (mem && Date.now() - mem.t < VALUES_TTL) return mem.v;
   const saved = await blobGet(key);
@@ -525,8 +517,7 @@ async function dynastyValues(qbs, ppr) {
       const v = {}, pk = {};
       for (const x of Array.isArray(list) ? list : []) {
         const id = String(x?.player?.mflId ?? "");
-        // v37: [value, 30-day trend, position rank] (the rank is for the player card's "Dynasty WR3")
-        if (/^\d+$/.test(id) && isFinite(+x.value)) v[id] = [Math.round(+x.value), Math.round(+x.trend30Day || 0), +x.positionRank || 0];
+        if (/^\d+$/.test(id) && isFinite(+x.value)) v[id] = [Math.round(+x.value), Math.round(+x.trend30Day || 0)];
         // Draft picks come in the same list (position "PICK"), named like "2027 1st", "2027 Round 2" or "2027 Pick 1.05".
         if (String(x?.player?.position || "").toUpperCase() === "PICK" && isFinite(+x.value)) {
           const n = String(x.player.name || ""), y = n.match(/20\d\d/)?.[0];
@@ -764,76 +755,6 @@ async function standings({ league, host }) {
   return { league, rows };
 }
 
-// ---- v37: game logs ----
-// Every rostered player's points in each finished week (MFL weeklyResults, one call for the season when MFL
-// allows it), each team's starters and bench that week, plus last-weeks projections for the players asked for.
-// Players who were never on a roster get their weekly points straight from MFL (playerScores).
-async function gameLog({ league, host, week, ids }) {
-  if (!okHost(host)) throw httpError(400, "Unknown league server.");
-  const past = []; for (let k = 1; k < week && k <= 18; k++) past.push(k);
-  if (!past.length) return { league, week, scores: {}, proj: {}, teams: {} };
-  let list = [];
-  try {
-    const r = await mfl(exportUrl(host, "weeklyResults", { L: league, W: "YTD" }));
-    list = arr(r.allWeeklyResults?.weeklyResults ?? r.weeklyResults);
-  } catch { /* week by week below */ }
-  if (!list.some((x) => +x?.week)) {
-    list = (await Promise.all(past.map((k) => mfl(exportUrl(host, "weeklyResults", { L: league, W: String(k) })).then((r) => ({ week: k, ...(r.weeklyResults || {}) }), () => null)))).filter(Boolean);
-  }
-  const scores = {}, teams = {};
-  for (const wr of list) {
-    const k = +wr?.week;
-    if (!k || k >= week) continue;
-    const fr = [...arr(wr.matchup).flatMap((m) => arr(m.franchise)), ...arr(wr.franchise)];
-    for (const f of fr) {
-      if (!f?.id) continue;
-      const st = [], bn = [];
-      for (const p of arr(f.player ?? f.players?.player)) {
-        if (!p?.id) continue;
-        const s = numOrNull(p.score);
-        if (s != null) (scores[p.id] ||= {})[k] = s;
-        (p.status === "starter" ? st : bn).push(p.id);
-      }
-      (teams[k] ||= {})[f.id] = { s: numOrNull(f.score) ?? 0, st, bn, r: String(f.result || "") };
-    }
-  }
-  const proj = {}, want = ids.filter((id) => /^\d+$/.test(id));
-  if (want.length) {
-    await Promise.all(past.slice(-6).map((k) => mfl(exportUrl(host, "projectedScores", { L: league, W: String(k), PLAYERS: want.join(",") }))
-      .then((ps) => arr(ps.projectedScores?.playerScore).forEach((p) => { const v = numOrNull(p.score); if (p.id && v != null) (proj[p.id] ||= {})[k] = v; }), () => null)));
-    const missing = want.filter((id) => !scores[id]);
-    if (missing.length) {
-      await Promise.all(past.slice(-8).map((k) => mfl(exportUrl(host, "playerScores", { L: league, W: String(k), PLAYERS: missing.join(",") }))
-        .then((ps) => arr(ps.playerScores?.playerScore).forEach((p) => { const v = numOrNull(p.score); if (p.id && v != null) (scores[p.id] ||= {})[k] = v; }), () => null)));
-    }
-  }
-  return { league, week, scores, proj, teams };
-}
-
-// ---- v37: trade offers ----
-// Sends a trade offer to another team on MFL. Players are MFL ids; future picks are FP_<original team>_<year>_<round>.
-const TRADE_ITEM = /^(\d{3,6}|FP_\d{4}_\d{4}_\d{1,2})$/;
-async function proposeTrade({ league, host, to, give, get, note }) {
-  if (!okHost(host)) throw httpError(400, "Unknown league server.");
-  if (!/^\d+$/.test(String(league)) || !/^\d{4}$/.test(String(to))) throw httpError(400, "Pick a team to trade with.");
-  if (!Array.isArray(give) || !Array.isArray(get) || !give.length || !get.length) throw httpError(400, "A trade needs something on each side.");
-  if ([...give, ...get].some((x) => !TRADE_ITEM.test(String(x)))) throw httpError(400, "Unknown player or pick in the trade.");
-  await session();
-  const params = { TYPE: "tradeProposal", L: league, OFFEREDTO: to, WILL_GIVE_UP: give.join(","), WILL_RECEIVE: get.join(","),
-    COMMENTS: String(note || "").replace(/[\r\n]+/g, " ").slice(0, 240), EXPIRES: String(Math.floor(Date.now() / 1000) + 3 * 86400) };
-  const send = () =>
-    mflFetch(`${host}/${YEAR}/import`, {
-      method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded", "user-agent": UA, cookie: `MFL_USER_ID=${cookie}` },
-      body: new URLSearchParams(params),
-    }).then((r) => r.text());
-  let reply = await send();
-  if (!/<status>\s*OK/i.test(reply) && (cookieSaved || AUTH_RE.test(reply))) { await login(); reply = await send(); }
-  if (/<status>\s*OK/i.test(reply)) return { ok: true };
-  const msg = reply.match(/<error>([\s\S]*?)<\/error>/i)?.[1] || reply.replace(/<[^>]+>/g, " ").trim().slice(0, 200);
-  throw httpError(502, `MFL didn't accept the offer: ${msg}`);
-}
-
 async function handle(req, context) {
   const pin = process.env.APP_PIN;
   if (!pin) return json(500, { error: "APP_PIN is not set in Netlify." });
@@ -852,7 +773,6 @@ async function handle(req, context) {
       if (body.action === "lineup") return json(200, await submitLineup(body));
       if (body.action === "bid") return json(200, await submitBid(body));
       if (body.action === "claims") return json(200, await setClaims(body));
-      if (body.action === "trade") return json(200, await proposeTrade(body));
       return json(400, { error: "Unknown action." });
     }
     const q = new URL(req.url).searchParams;
@@ -862,9 +782,8 @@ async function handle(req, context) {
       const list = (q.get("leagues") || "").split(",").map((s) => { const [id, host, fid] = s.split("~"); return { id, host, fid }; })
         .filter((x) => /^\d+$/.test(x.id) && okHost(x.host) && /^\d{4}$/.test(x.fid));
       if (!list.length) return json(400, { error: "No leagues given." });
-      const [leagues, injuries, sched] = await Promise.all([liveAll(w, list, q.get("fresh") === "1"), injuryMap(w),
-        mfl(exportUrl(API_HOST, "nflSchedule", { W: w }), { auth: false }).catch(() => null)]);
-      return json(200, { week: +w, at: Date.now(), leagues, injuries, games: sched ? gamesOf(sched) : null });
+      const [leagues, injuries] = await Promise.all([liveAll(w, list, q.get("fresh") === "1"), injuryMap(w)]);
+      return json(200, { week: +w, at: Date.now(), leagues, injuries });
     }
     if (q.get("type") === "values") {
       const qbs = q.get("qbs"), ppr = q.get("ppr");
@@ -886,11 +805,6 @@ async function handle(req, context) {
     if (q.get("action") === "standings") {
       if (!/^\d+$/.test(q.get("L") || "")) return json(400, { error: "Missing league." });
       return json(200, await standings({ league: q.get("L"), host: q.get("host") }));
-    }
-    if (q.get("action") === "log") {
-      if (!/^\d+$/.test(q.get("L") || "") || !/^\d{1,2}$/.test(w || "")) return json(400, { error: "Missing league or week." });
-      const ids = (q.get("P") || "").split(",").filter((x) => /^\d{3,6}$/.test(x)).slice(0, 80);
-      return json(200, await gameLog({ league: q.get("L"), host: q.get("host"), week: +w, ids }));
     }
     if (q.get("action") === "fa") {
       if (!/^\d+$/.test(q.get("L") || "") || !/^\d{1,2}$/.test(w || "")) return json(400, { error: "Missing league or week." });
