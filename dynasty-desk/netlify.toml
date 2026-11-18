@@ -3,3 +3,14 @@
 
 [functions]
   directory = "netlify/functions"
+
+# Security headers for the app page (they don't apply to the /api/mfl function's replies).
+# The CSP only sets frame-ancestors, so it can't block the inline script/styles, Google Fonts
+# or franchise/player images; it and X-Frame-Options stop other sites framing the app.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "DENY"
+    Content-Security-Policy = "frame-ancestors 'none'"
