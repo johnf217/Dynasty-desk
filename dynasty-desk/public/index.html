@@ -7,9 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dynasty Desk">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="manifest" href="/manifest.webmanifest?v=33">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=33">
-<link rel="icon" type="image/png" href="/icon-192.png?v=33">
+<link rel="manifest" href="/manifest.webmanifest?v=38">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=38">
+<link rel="icon" type="image/png" href="/icon-192.png?v=38">
 <meta name="theme-color" content="#0A0B0D">
 <meta name="color-scheme" content="dark">
 <title>Dynasty Desk</title>
@@ -648,7 +648,7 @@ body.has-bar .toast{bottom:calc(176px + env(safe-area-inset-bottom,0px))}
 <div class="wrap">
   <header class="top" id="top">
     <h1 class="vh">Dynasty Desk</h1>
-    <img class="mark" src="/icon-192.png?v=33" alt="" width="38" height="38" decoding="async">
+    <img class="mark" src="/mark.png?v=37" alt="" width="38" height="38" decoding="async">
     <nav class="lgs" role="tablist" id="tabs" aria-label="Leagues"></nav>
   </header>
 
@@ -734,7 +734,7 @@ let curWeek=store.get("dd-curwk"),wkWant=null,wkPending=null,wkOpen=false,loadSe
 const nowWeek=()=>curWeek||week;
 const isPast=()=>week!=null&&weekKind(week,nowWeek())==="past";
 // Version of this page. The server sends its own version, so a mismatch means one file wasn't uploaded.
-const APP_VERSION="v37";
+const APP_VERSION="v38";
 let srvVer=null,pinWeak=false;
 // For a couple of minutes after you change something on MFL, reads skip the server's short cache.
 let freshUntil=0;
